@@ -1,17 +1,25 @@
 import { Outlet } from 'react-router-dom';
-// import { DashboardSidebar } from './component/DashboardSidebar';
-// import { DashboardHeader } from './component/DashboardHeader';
+import { SIGN_IN_ROUTE } from '../../router/routeConstants';
+import { useNavigate } from 'react-router-dom';
+import { DashboardSidebar } from '../../pages/layout/components/DashboardSidebar';
+import { DashboardHeader } from '../../pages/layout/components/DashboardHeader';
 
 export function DashboardLayout() {
+    const navigate = useNavigate();
+    const handleLogout = () => {
+  localStorage.removeItem("access_token");
+  navigate(SIGN_IN_ROUTE);
+};
+
     return (
-        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-            {/* <DashboardSidebar /> */}
-            <div className="flex flex-col h-screen w-full">
-                {/* <DashboardHeader /> */}
-                <main className="flex-1 overflow-y-auto p-4 lg:gap-6 lg:p-6 w-full">
-                    <Outlet />
-                </main>
-            </div>
-        </div>
+       <div className="flex h-screen overflow-hidden">
+      <DashboardSidebar />
+      <div className="flex flex-col flex-1">
+        <DashboardHeader />
+        <main className="flex-1 overflow-y-auto bg-white p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
     );
 }

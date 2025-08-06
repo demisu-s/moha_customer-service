@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import backGroundImage from "../../assets/pepsi.jpg";
+import { REGISTER_ROUTE, SIGN_IN_ROUTE } from '../../router/routeConstants';
+
 
 export const LandingPage = () => {
   const navigate = useNavigate();
 
   const handleSignIn = () => {
-    navigate("/signin"); // Adjust the path as needed 
+    navigate(SIGN_IN_ROUTE); // Adjust the path as needed 
   };
 
   return (
