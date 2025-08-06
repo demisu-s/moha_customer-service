@@ -1,17 +1,19 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { SIGN_IN_ROUTE } from './routeConstants';
-import { getAccessToken } from "@/utils/localStorage";
-import { useAuthenticationStore } from "@/store/authentication";
+import { getAccessToken } from "../utils/localStorage";
+import { JSX } from "react";
 
-export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+interface ProtectedRouteProps {
+  children: JSX.Element;
+}
+
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
   const isAuthenticated = Boolean(getAccessToken());
 
-  const isLoggedOut = useAuthenticationStore(store => store.isLoggedOut)
-
-  if (!isAuthenticated || isLoggedOut) {
-    return <Navigate to={SIGN_IN_ROUTE} state={{ from: location }} />;
+  if (!isAuthenticated) {
+    return <Navigate to={SIGN_IN_ROUTE} state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
+  return children;
 };

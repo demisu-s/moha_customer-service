@@ -1,5 +1,3 @@
 export{Dashboards} from './Dashboards'
-export{LeftSideBar} from './LeftSidBar'
 export{CardComponent} from './CardComponent'
-export{RightSideBar} from './RightSideBar'
 export {CardList} from './CardList'

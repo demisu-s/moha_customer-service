@@ -2,16 +2,19 @@
 import { Link } from 'react-router-dom';
 import { Menu, Home, ShoppingCart, Package } from "lucide-react";
 import { FaCog, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { CompanyLogo } from '@/components/ui';
-import { DASHBOARD_ROUTE, POSTS_ROUTE, PROPERTIES_ROUTE, SETTINGS_ROUTE } from '@/router/routeConstants';
+import { Button } from "../../../components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "../../../components/ui/sheet";
+import { CompanyLogo } from '../../../components/ui';
+import { DASHBOARD_ROUTE,SETTINGS_ROUTE,SIGN_IN_ROUTE } from '../../../router/routeConstants';
 import { NavLinkItem } from './NavLinkItem';
-import { useAuthenticationStore } from '@/store/authentication';
+import { useNavigate } from 'react-router-dom';
 
 export function MobileMenu() {
-    const signOut = useAuthenticationStore((store) => store.signOut);
-
+   const navigate = useNavigate();
+    const handleLogout = () => {
+  localStorage.removeItem("access_token");
+  navigate(SIGN_IN_ROUTE);
+};
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -26,14 +29,12 @@ export function MobileMenu() {
                         <CompanyLogo />
                     </Link>
                     <NavLinkItem to={DASHBOARD_ROUTE} icon={Home} label="Dashboard" isSmallScreen />
-                    <NavLinkItem to={PROPERTIES_ROUTE} icon={ShoppingCart} label="Properties" isSmallScreen />
-                    <NavLinkItem to={POSTS_ROUTE} icon={Package} label="Posts" isSmallScreen />
                     <NavLinkItem to={SETTINGS_ROUTE} icon={FaCog} label="Settings" isSmallScreen />
                 </nav>
                 <div className="mt-auto p-4">
                     <div className="p-4">
                         <NavLinkItem to="/support" icon={FaQuestionCircle} label="Help & Support" isSmallScreen />
-                        <NavLinkItem to="/" icon={FaSignOutAlt} label="Log Out" isSmallScreen onClick={signOut} />
+                        <NavLinkItem to="/" icon={FaSignOutAlt} label="Log Out" isSmallScreen onClick={handleLogout} />
                     </div>
                 </div>
             </SheetContent>

@@ -1,38 +1,55 @@
-
-import { Link } from 'react-router-dom';
-import { Home, Package, ShoppingCart } from "lucide-react";
-import { FaCog, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
-import { CompanyLogo } from '@/components/ui';
-import { DASHBOARD_ROUTE, POSTS_ROUTE, PROPERTIES_ROUTE, SETTINGS_ROUTE } from '@/router/routeConstants';
-import { useAuthenticationStore } from '@/store/authentication';
-import { NavLinkItem } from './NavLinkItem';
+import { useNavigate } from 'react-router-dom';
+import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
+import logo from '../../../assets/logo.jpg'; // Replace with your actual logo
+import { DASHBOARD_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE } from '../../../router/routeConstants';
 
 export function DashboardSidebar() {
-    const signOut = useAuthenticationStore((store) => store.signOut);
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    navigate(SIGN_IN_ROUTE);
+  };
 
-    return (
-        <div className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-20 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                    <Link to={DASHBOARD_ROUTE} className="flex items-center gap-2 font-semibold">
-                        <CompanyLogo />
-                    </Link>
-                </div>
-                <div className="flex-1 pt-8">
-                    <nav className="grid items-start px-2 text-sm font-medium lg:px-4 space-y-4">
-                        <NavLinkItem to={DASHBOARD_ROUTE} icon={Home} label="Dashboard" />
-                        <NavLinkItem to={PROPERTIES_ROUTE} icon={ShoppingCart} label="Properties" />
-                        <NavLinkItem to={POSTS_ROUTE} icon={Package} label="Posts" />
-                        <NavLinkItem to={SETTINGS_ROUTE} icon={FaCog} label="Settings" />
-                    </nav>
-                </div>
-                <div className="mt-auto p-4">
-                    <div className="p-4">
-                        <NavLinkItem to="/support" icon={FaQuestionCircle} label="Help & Support" />
-                        <NavLinkItem to="/" icon={FaSignOutAlt} label="Log Out" onClick={signOut} />
-                    </div>
-                </div>
-            </div>
+  const navItems = [
+    { to: DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
+    { to: USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
+    { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
+    { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
+    { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+  ];
+
+  return (
+    <aside className="w-[250px] bg-[#1891C3] text-white flex flex-col justify-between py-6 px-4">
+      <div>
+        <div className="mb-8 ml-12 flex items-center gap-3">
+          <img src={logo} alt="Logo" className="h-20 w-20 object-contain" />
         </div>
-    );
+
+        <nav className="space-y-4">
+          {navItems.map(({ to, icon, label }) => (
+            <NavLink
+              key={label}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium ${
+                  isActive ? 'bg-white text-[#1891C3]' : 'hover:bg-white hover:text-[#1891C3]'
+                }`
+              }
+            >
+              {icon}
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+
+      <button
+        onClick={handleLogout}
+        className="mt-4 flex items-center justify-between bg-white text-[#1891C3] w-full px-4 py-2 rounded-md font-semibold hover:bg-gray-100"
+      >
+        Logout <FaSignOutAlt />
+      </button>
+    </aside>
+  );
 }

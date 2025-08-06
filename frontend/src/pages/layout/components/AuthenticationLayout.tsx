@@ -1,4 +1,4 @@
-import { CompanyLogo } from '@/components/ui';
+import { CompanyLogo } from '../../../components/ui';
 import { Outlet } from 'react-router-dom';
 
 export const AuthenticationLayout = () => {

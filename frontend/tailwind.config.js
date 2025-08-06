@@ -1,4 +1,4 @@
-// import type { Config } from "tailwindcss";
+// tailwind.config.ts
 
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
@@ -10,7 +10,6 @@ const config = {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -21,6 +20,12 @@ const config = {
     },
     extend: {
       colors: {
+        primary: {
+          500: "#007AA8",    // Background gradient
+          600: "#256D85",    // Card background
+          700: "#58A4B0",    // Button normal
+          800: "#3a8d9e",    // Button hover
+        },
         orange: {
           500: "#f97316",
           600: "#ea580c",
