@@ -1,11 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import {Dashboard, ErrorPage, LandingPage,Login,AuthenticationLayout} from "../pages";
 import { DashboardLayout } from '../pages/layout/DashboardLayout';
-import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE} from './routeConstants';
+import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE } from './routeConstants';
 import { ProtectedRoute } from './ProtectedRoute';
-
-
-
+import UserManagement from '../pages/dashboard/users'; 
+import AddUser from '../pages/dashboard/adduser';
+import AssignFormPage from '../pages/admin/assignForm'; // Import at the top
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -27,6 +27,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />
   }
 ,
+// ...existing code...
 {
   path: DASHBOARD_ROUTE,
   element: (
@@ -36,12 +37,24 @@ export const router = createBrowserRouter([
   ),
   children: [
     {
-      path: DASHBOARD_ROUTE,
+      path: "", // dashboard home
       element: <Dashboard />
+    },
+    {
+  path: "dashboard/assign/:requestId", 
+  element: <AssignFormPage />
+},
+    {
+      path: "users", 
+      element: <UserManagement />
+    },
+    {
+      path: "users/adduser",
+      element: <AddUser />
     }
   ]
-}
-,
+},
+// ...existing code...
   
   {
     path: "*",
