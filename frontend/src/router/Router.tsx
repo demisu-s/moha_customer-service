@@ -5,7 +5,8 @@ import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE } fr
 import { ProtectedRoute } from './ProtectedRoute';
 import UserManagement from '../pages/dashboard/users'; 
 import AddUser from '../pages/dashboard/adduser';
-import AssignFormPage from '../pages/admin/assignForm'; // Import at the top
+import AssignFormPage from '../pages/admin/assignForm';
+import EditUser from '../pages/dashboard/edituser'; 
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -51,7 +52,11 @@ export const router = createBrowserRouter([
     {
       path: "users/adduser",
       element: <AddUser />
-    }
+    },
+    {
+      path: "users/edit/:id",
+      element: <EditUser />
+    },
   ]
 },
 // ...existing code...

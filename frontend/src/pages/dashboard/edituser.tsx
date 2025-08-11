@@ -2,8 +2,8 @@ import * as React from "react";
 import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
-import { useNavigate } from "react-router-dom";
-import { useUserContext } from "../../context/UserContext"; // <-- import context
+import { useNavigate, useParams } from "react-router-dom";
+import { useUserContext } from "../../context/UserContext";
 
 interface UserFormData {
   firstName: string;
@@ -34,29 +34,15 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = "SelectItem";
 
-const AddUser = () => {
-  const { addUser } = useUserContext();
+const EditUser = () => {
+  const { users, updateUser } = useUserContext();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
-  const [formData, setFormData] = React.useState<UserFormData>({
-    firstName: "",
-    lastName: "",
-    area: "HO",
-    department: "",
-    role: "User",
-    gender: "Male",
-    userId: "",
-    password: "",
-    photo: null,
-  });
+  const user = users.find((u) => u.id === Number(id));
 
-  const handleChange = (field: keyof UserFormData, value: string | File | null) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = () => {
-    addUser(formData); // Save to context
-    setFormData({
+  const [formData, setFormData] = React.useState<UserFormData>(
+    user || {
       firstName: "",
       lastName: "",
       area: "HO",
@@ -66,13 +52,33 @@ const AddUser = () => {
       userId: "",
       password: "",
       photo: null,
-    });
-    navigate("/dashboard/users"); // go back to users page
+    }
+  );
+
+  React.useEffect(() => {
+    if (!user) {
+      navigate("/dashboard/users");
+    }
+  }, [user, navigate]);
+
+  const handleChange = (field: keyof UserFormData, value: string | File | null) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    if (user) {
+      updateUser(user.id, formData); // update in context
+    }
+    navigate("/dashboard/users");
+  };
+
+  const handleCancel = () => {
+    navigate("/dashboard/users");
   };
 
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6 border rounded-md shadow-md">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Add User</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Edit User</h2>
       <div className="grid grid-cols-2 gap-8">
         {/* First Name */}
         <div>
@@ -80,7 +86,8 @@ const AddUser = () => {
           <input
             value={formData.firstName}
             onChange={(e) => handleChange("firstName", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter first name"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter first name"
           />
         </div>
 
@@ -90,7 +97,8 @@ const AddUser = () => {
           <input
             value={formData.lastName}
             onChange={(e) => handleChange("lastName", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter Last name"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter Last name"
           />
         </div>
 
@@ -125,7 +133,8 @@ const AddUser = () => {
           <input
             value={formData.department}
             onChange={(e) => handleChange("department", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter your department"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter your department"
           />
         </div>
 
@@ -184,7 +193,8 @@ const AddUser = () => {
           <input
             value={formData.userId}
             onChange={(e) => handleChange("userId", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter User ID"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter User ID"
           />
         </div>
 
@@ -195,7 +205,8 @@ const AddUser = () => {
             type="password"
             value={formData.password}
             onChange={(e) => handleChange("password", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter Password"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter Password"
           />
         </div>
 
@@ -218,14 +229,23 @@ const AddUser = () => {
         </div>
       </div>
 
-      <button
-        className="w-full bg-primary-500 text-lg hover:bg-primary-900 text-white mt-6 py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
-        onClick={handleSubmit}
-      >
-        Add
-      </button>
+      {/* Buttons */}
+      <div className="flex gap-4 mt-6">
+        <button
+          className="w-1/2 bg-primary-500 text-lg hover:bg-primary-900 text-white py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
+          onClick={handleSubmit}
+        >
+          Save
+        </button>
+        <button
+          className="w-1/2 bg-gray-400 text-lg hover:bg-gray-600 text-white py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
+          onClick={handleCancel}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };
 
-export default AddUser;
+export default EditUser;

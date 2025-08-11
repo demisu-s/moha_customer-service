@@ -150,7 +150,8 @@ export default function UserManagement(): JSX.Element {
                   <td className="px-4 py-2">{user.department}</td>
                   <td className="px-4 py-2">{user.role}</td>
                   <td className="px-4 py-2 flex gap-2">
-                    <button className="text-blue-600 hover:underline">
+                    <button className="text-blue-600 hover:underline"
+                    onClick={() => navigate(`/dashboard/users/edit/${user.id}`)}>
                       <Pencil1Icon className="w-4 h-4" />
                     </button>
                     <button

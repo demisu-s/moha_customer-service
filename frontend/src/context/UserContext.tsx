@@ -48,9 +48,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const deleteUser = (id: number) => {
         setUsers((prev) => prev.filter((user) => user.id !== id));
     };
+     
+    const updateUser = (id: number, updatedData: Omit<User, "id">) => {
+  setUsers((prev) =>
+    prev.map((user) => (user.id === id ? { ...user, ...updatedData } : user))
+  );
+};
 
   return (
-    <UserContext.Provider value={{ users, addUser, deleteUser }}>
+    <UserContext.Provider value={{ users, addUser, deleteUser, updateUser}}>
       {children}
     </UserContext.Provider>
   );
