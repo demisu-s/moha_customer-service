@@ -146,7 +146,7 @@ const AddUser = () => {
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                   <SelectItem value="User">User</SelectItem>
-                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="Supervisor">Supervisor</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                 </Select.Viewport>
               </Select.Content>

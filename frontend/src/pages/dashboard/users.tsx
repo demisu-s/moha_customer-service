@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext"; // <-- New import
 
 export default function UserManagement(): JSX.Element {
-  const { users } = useUserContext(); // <-- Get users from context
+  const { users, deleteUser} = useUserContext(); // <-- Get users from context
   const [search, setSearch] = useState<string>("");
   const [departmentFilter, setDepartmentFilter] = useState<string>("");
   const [areaFilter, setAreaFilter] = useState<string>("");
@@ -14,6 +14,9 @@ export default function UserManagement(): JSX.Element {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const usersPerPage = 10;
 
+
+  const [showDialog, setShowDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const filteredUsers = users.filter((user) => {
@@ -150,7 +153,13 @@ export default function UserManagement(): JSX.Element {
                     <button className="text-blue-600 hover:underline">
                       <Pencil1Icon className="w-4 h-4" />
                     </button>
-                    <button className="text-red-600 hover:underline">
+                    <button
+                      className="text-red-600 hover:underline"
+                      onClick={() => {
+                        setUserToDelete(user.id);
+                        setShowDialog(true);
+                      }}
+                    >
                       <TrashIcon className="w-4 h-4" />
                     </button>
                   </td>
@@ -166,6 +175,35 @@ export default function UserManagement(): JSX.Element {
           </tbody>
         </table>
       </div>
+
+      {/* Confirmation Dialog */}
+            {showDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+            <h2 className="text-lg font-normal mb-4">Are you sure you want to delete this user?</h2>
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold"
+                onClick={() => setShowDialog(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-lg bg-black text-white font-bold hover:bg-red-700"
+                onClick={() => {
+                  if (userToDelete !== null) {
+                    deleteUser(userToDelete);
+                  }
+                  setShowDialog(false);
+                  setUserToDelete(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pagination Controls */}
       <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-600">

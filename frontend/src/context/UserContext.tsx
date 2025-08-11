@@ -16,6 +16,7 @@ export type User = {
 type UserContextType = {
   users: User[];
   addUser: (user: Omit<User, "id">) => void;
+  deleteUser: (id: number) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -44,8 +45,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     ]);
   };
 
+    const deleteUser = (id: number) => {
+        setUsers((prev) => prev.filter((user) => user.id !== id));
+    };
+
   return (
-    <UserContext.Provider value={{ users, addUser }}>
+    <UserContext.Provider value={{ users, addUser, deleteUser }}>
       {children}
     </UserContext.Provider>
   );
