@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useDeviceContext } from "../../context/DeviceContext";
-import DeviceCard from "../../components/dashboardComponents/DeviceCard";
+import DeviceCard2 from "../../components/dashboardComponents/DeviceCard2";
 
 export default function Devices() {
-  const { devices } = useDeviceContext();
+  const { devices, deleteDevice} = useDeviceContext();
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [area, setArea] = useState("");
+  const [showDialog, setShowDialog] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
 
     const filteredDevices = devices.filter((d) => {
@@ -101,17 +103,50 @@ export default function Devices() {
     </div>
         ):(
         filteredDevices.map((device) => (
-          <DeviceCard
+          <DeviceCard2
             id={device.id}
             deviceType={device.type}
             serialNo={device.serial}
             userName={device.user}
             department={device.department}
             area={device.area}
+            onDelete={(id) => {
+            setDeviceToDelete(id);
+            setShowDialog(true);
+            }}
+            onEdit={(id) => navigate(`/dashboard/devices/edit/${id}`)}
           />
         ))
         )}
       </div>
+{/* Delete Confirmation Dialog */}
+      {showDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+            <h2 className="text-lg font-normal mb-4">Are you sure you want to delete this device?</h2>
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold"
+                onClick={() => setShowDialog(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-lg bg-black text-white font-bold hover:bg-red-700"
+                onClick={() => {
+                  if (deviceToDelete !== null) {
+                    deleteDevice(deviceToDelete);
+                  }
+                  setShowDialog(false);
+                  setDeviceToDelete(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

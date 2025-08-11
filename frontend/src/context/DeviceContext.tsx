@@ -14,7 +14,9 @@ export interface Device {
 interface DeviceContextType {
   devices: Device[];
   addDevice: (device: Device) => void;
-}
+  deleteDevice: (id: string) => void; 
+  updateDevice: (updatedDevice: Device) => void;
+};
 
 const DeviceContext = createContext<DeviceContextType | undefined>(undefined);
 
@@ -54,9 +56,17 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   const addDevice = (device: Device) => {
     setDevices((prev) => [...prev, device]);
   };
+  const deleteDevice = (id: string) => {
+  setDevices((prev) => prev.filter((device) => device.id !== id));
+  };
+    const updateDevice = (updatedDevice: Device) => {
+        setDevices((prev) =>
+        prev.map((device) => (device.id === updatedDevice.id ? updatedDevice : device))
+        );
+    };
 
   return (
-    <DeviceContext.Provider value={{ devices, addDevice }}>
+    <DeviceContext.Provider value={{ devices, addDevice, deleteDevice, updateDevice }}>
       {children}
     </DeviceContext.Provider>
   );
