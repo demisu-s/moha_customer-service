@@ -7,6 +7,8 @@ import UserManagement from '../pages/dashboard/users';
 import AddUser from '../pages/dashboard/adduser';
 import AssignFormPage from '../pages/admin/assignForm';
 import EditUser from '../pages/dashboard/edituser'; 
+import Devices from '../pages/dashboard/devices';
+import AddDevice from '../pages/dashboard/adddevice';
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -42,9 +44,9 @@ export const router = createBrowserRouter([
       element: <Dashboard />
     },
     {
-  path: "dashboard/assign/:requestId", 
-  element: <AssignFormPage />
-},
+     path: "dashboard/assign/:requestId", 
+     element: <AssignFormPage />
+    },
     {
       path: "users", 
       element: <UserManagement />
@@ -56,6 +58,14 @@ export const router = createBrowserRouter([
     {
       path: "users/edit/:id",
       element: <EditUser />
+    },
+    {
+      path: "devices", 
+      element: <Devices />
+    },
+    {
+      path: "devices/adddevice", 
+      element: <AddDevice />
     },
   ]
 },

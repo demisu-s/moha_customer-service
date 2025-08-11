@@ -13,8 +13,8 @@ export function DashboardSidebar() {
 
   const navItems = [
     { to: DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
-{ to: "/dashboard/users", icon: <FaUsers />, label: 'Users' },
-    { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
+    { to: "/dashboard/users", icon: <FaUsers />, label: 'Users' },
+    { to: "/dashboard/devices", icon: <FaMicrochip />, label: 'Devices' },
     { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
     { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
   ];
