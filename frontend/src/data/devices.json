@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "deviceType": "Printer",
+    "serialNo": "19282372128",
+    "department": "MIS",
+    "area": "Summit",
+    "userName": "Abebe Cifra",
+    "problem": "Paper jam",
+    "status": "Pending"
+  },
+  {
+    "id": 2,
+    "deviceType": "Monitor",
+    "serialNo": "84572398219",
+    "department": "Finance",
+    "area": "Main Office",
+    "userName": "Sara Lemma",
+    "problem": "Display issue",
+    "status": "Assigned"
+  },
+  {
+    "id": 3,
+    "deviceType": "PC",
+    "serialNo": "84573829333",
+    "department": "HR",
+    "area": "Annex",
+    "userName": "Kaleab Yonas",
+    "problem": "Doesn’t boot",
+    "status": "Resolved"
+  },
+  {
+    "id": 4,
+    "deviceType": "laptop",
+    "serialNo": "17882372128",
+    "department": "MIS",
+    "area": "Summit",
+    "userName": "Abebe Cifra",
+    "problem": "Paper jam",
+    "status": "Pending"
+  },
+  {
+    "id": 5,
+    "deviceType": "Printer",
+    "serialNo": "1902372128",
+    "department": "MIS",
+    "area": "Summit",
+    "userName": "Abebe Cifra",
+    "problem": "Paper jam",
+    "status": "Pending"
+  },
+    {
+        "id": 6,
+        "deviceType": "Monitor",
+        "serialNo": "84572398219",
+        "department": "Finance",
+        "area": "Main Office",
+        "userName": "Sara Lemma",
+        "problem": "Display issue",
+        "status": "Assigned"
+    },
+    {
+        "id": 7,
+        "deviceType": "PC",
+        "serialNo": "84573829333",
+        "department": "HR",
+        "area": "Annex",
+        "userName": "Kaleab Yonas",
+        "problem": "Doesn’t boot",
+        "status": "Resolved"
+    },
+    {
+        "id": 8,
+        "deviceType": "laptop",
+        "serialNo": "17882372128",
+        "department": "MIS",
+        "area": "Summit",
+        "userName": "Abebe Cifra",
+        "problem": "Paper jam",
+        "status": "Pending"
+    },
+    {
+        "id": 9,
+        "deviceType": "Printer",
+        "serialNo": "1902372128",
+        "department": "MIS",
+        "area": "Summit",
+        "userName": "Abebe Cifra",
+        "problem": "Paper jam",
+        "status": "Pending"
+    }
+]

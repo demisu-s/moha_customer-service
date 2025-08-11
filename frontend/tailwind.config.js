@@ -24,11 +24,13 @@ const config = {
           500: "#007AA8",    // Background gradient
           600: "#256D85",    // Card background
           700: "#58A4B0",    // Button normal
-          800: "#3a8d9e",    // Button hover
+          800: "#3a8d9e",  // Button hover
+          900: "#95D4EB", 
         },
         orange: {
           500: "#f97316",
           600: "#ea580c",
+          700: "#F0962F",
         },
         blue: {
           500: "#79B5EC",
