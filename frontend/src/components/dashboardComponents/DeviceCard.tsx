@@ -46,7 +46,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
 
       <div className="flex justify-between mt-2">
         <Button
-          onClick={() => navigate(`/assign/${id}`)}
+          onClick={() => navigate(`details/${id}`)}
           className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
         >
           Details
