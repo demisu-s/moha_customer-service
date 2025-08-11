@@ -8,4 +8,3 @@ export const USERS_ROUTE = "/users";
 export const DEVICES_ROUTE = "/devices";
 export const PLANTS_ROUTE = "/plants";
 export const SCHEDULES_ROUTE = "/schedules";
-
