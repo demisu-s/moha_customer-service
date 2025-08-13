@@ -15,7 +15,7 @@ export function DashboardSidebar() {
     { to: DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
     { to: "/dashboard/users", icon: <FaUsers />, label: 'Users' },
     { to: "/dashboard/devices", icon: <FaMicrochip />, label: 'Devices' },
-    { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
+    { to: "/dashboard/plants", icon: <FaMapMarkerAlt />, label: 'Plants' },
     { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
   ];
 

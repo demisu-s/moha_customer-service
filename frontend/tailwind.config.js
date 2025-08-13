@@ -21,6 +21,7 @@ const config = {
     extend: {
       colors: {
         primary: {
+          400: "#1891C3", // Primary color
           500: "#007AA8",    // Background gradient
           600: "#256D85",    // Card background
           700: "#58A4B0",    // Button normal

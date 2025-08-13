@@ -10,6 +10,7 @@ import EditUser from '../pages/dashboard/edituser';
 import Devices from '../pages/dashboard/devices';
 import AddDevice from '../pages/dashboard/adddevice';
 import EditDevice from '../pages/dashboard/editdevice';
+import Plants from '../pages/dashboard/plants';
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -71,6 +72,10 @@ export const router = createBrowserRouter([
     {
       path: "devices/edit/:id", 
       element: <EditDevice/>
+    },
+    {
+      path: "plants", 
+      element: <Plants/>
     },
   ]
 },
