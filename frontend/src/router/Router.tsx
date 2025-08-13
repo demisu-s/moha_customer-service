@@ -11,6 +11,9 @@ import Devices from '../pages/dashboard/devices';
 import AddDevice from '../pages/dashboard/adddevice';
 import EditDevice from '../pages/dashboard/editdevice';
 import Plants from '../pages/dashboard/plants';
+import Overview from '../pages/admin/Overview';
+import Scheduler from '../pages/dashboard/Scheduler';
+import DeviceDetail from '../pages/dashboard/devicedetail';
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -74,8 +77,20 @@ export const router = createBrowserRouter([
       element: <EditDevice/>
     },
     {
+      path: "devices/detail/:id", 
+      element: <DeviceDetail/>
+    },
+    {
       path: "plants", 
       element: <Plants/>
+    },
+    {
+      path: "overview", 
+      element: <Overview/>
+    },
+    {
+      path: "schedules", 
+      element: <Scheduler/>
     },
   ]
 },
