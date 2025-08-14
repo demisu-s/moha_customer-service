@@ -2,17 +2,14 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
 import { useDeviceContext } from "../../context/DeviceContext";
-import { useUserContext } from "../../context/UserContext";
+import { IoArrowBack } from "react-icons/io5";
 
 const DeviceDetail: React.FC = () => {
-  const { requestId } = useParams(); // We'll use requestId as the device.id
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const { devices } = useDeviceContext();
-  const { users } = useUserContext();
-
-  // Find the device by ID
-  const device = devices.find((dev) => dev.id === requestId);
+  const device = devices.find((dev) => dev.id === id);
 
   if (!device) {
     return (
@@ -25,108 +22,92 @@ const DeviceDetail: React.FC = () => {
     );
   }
 
-  // Find the user who is assigned to this device
-  const requester = users.find(
-    (user) =>
-      `${user.firstName}`.toLowerCase() ===
-      device.user.toLowerCase()
-  );
+  // Mocked repair history
+  const repairHistory = [
+    { date: "2025-05-12", problem: "The laptop screen is flickering frequently. If you want, I can also give you a system architecture diagram",repairedBy: "Technician A" },
+    { date: "2025-07-01", problem: "The laptop screen is flickering frequently. If you want, I can also give you a system architecture diagram", repairedBy: "Technician B" },
+  ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      <h2 className="text-3xl font-bold text-gray-800">
-        Device Details - {device.serial}
-      </h2>
-      <p className="text-sm text-gray-400 max-w-xl">
-        Review your device Information
+    <div className="space-y-6 p-6 rounded-lg">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-gray-900">
+          Device Details - {device.serial}
+        </h2>
+        <Button
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md inline-flex items-center shadow-md"
+          onClick={() => navigate(-1)}
+        >
+          <IoArrowBack className="mr-2" /> Go Back
+        </Button>
+      </div>
+
+      <p className="text-gray-500 text-lg font-light">
+        Review the full device information and repair history.
       </p>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        {/* Device Image + Summary */}
-        <div className="col-span-2 flex gap-0">
-          {/* Device Image */}
-          <div className="border rounded-l-lg p-4 flex items-center justify-center bg-white">
-            <img
-              src={device.image}
-              alt="Device"
-              className="w-72 h-48 object-contain"
-            />
-          </div>
-          {/* Device Summary */}
-          <div className="border-t border-b border-r rounded-r-lg p-4 flex-1 bg-white">
-            <h3 className="font-bold mb-3 text-xl">Device Information</h3>
-            <div className="text-sm space-y-1">
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Device Name:
-                </strong>{" "}
-                {device.name}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-6">
-                  Device Type:
-                </strong>{" "}
-                {device.type}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Device ID/Serial:
-                </strong>{" "}
-                {device.serial}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Area:
-                </strong>{" "}
-                {device.area}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Department:
-                </strong>{" "}
-                {device.department}
-              </p>
-            </div>
-          </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Device Image */}
+        <div className="col-span-1 bg-white rounded-xl p-5 flex items-center justify-center transition-transform transform hover:scale-105">
+          <img
+            src={device.image}
+            alt={device.name}
+            className="w-full h-64 object-contain rounded-lg"
+          />
         </div>
 
-        {/* Requester Info */}
-        <div className="border rounded-lg p-4 bg-white">
-          <h3 className="font-bold mb-3 text-xl">User Information</h3>
-          {requester ? (
-            <div className="text-sm space-y-1">
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Name:
-                </strong>{" "}
-                {requester.firstName} {requester.lastName}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Plant Location:
-                </strong>{" "}
-                {requester.area}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Department:
-                </strong>{" "}
-                {requester.department}
-              </p>
-              <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Role:
-                </strong>{" "}
-                {requester.role}
-              </p>
-            </div>
-          ) : (
-            <p className="text-gray-500 italic">
-              No user details found for this device.
-            </p>
-          )}
+        {/* Device Information */}
+        <div className="col-span-2 bg-white border border-gray-200 rounded-xl p-6 space-y-6">
+          <h3 className="text-2xl font-semibold border-b border-gray-200 pb-2">
+            Device Information
+          </h3>
+          <div className="grid grid-cols-2 gap-4 text-gray-700">
+            {[
+              ["Device Name", device.name],
+              ["Device Type", device.type],
+              ["Serial Number", device.serial],
+              ["Working Area", device.area],
+              ["Department", device.department],
+              ["User Person", device.user],
+            ].map(([label, value], idx) => (
+              <div key={idx} className="flex flex-col">
+                <span className="text-gray-500 text-lg font-medium">{label}</span>
+                <span className="text-gray-900 font-semibold">{value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+            {/* Repair History */}
+        <div className="bg-blue-50 shadow-lg rounded-xl p-6">
+        <h3 className="text-2xl font-semibold border-b border-gray-200 pb-2 mb-4">
+            Repair History
+        </h3>
+        {repairHistory.length > 0 ? (
+            <div className="overflow-x-auto">
+            <div className="grid grid-cols-12 font-semibold text-black border-b border-gray-200 pb-2 mb-2 text-lg">
+                <div className="col-span-7 pl-2">Problem Description</div>
+                <div className="col-span-3 pl-4">Technician</div>
+                <div className="col-span-2">Date</div>
+            </div>
+
+            {repairHistory.map((history, idx) => (
+                <div
+                key={idx}
+                className="text-gray-500 grid grid-cols-12 items-center bg-gray-50 rounded-lg p-3 mb-2 shadow-sm hover:bg-gray-100 transition-colors"
+                >
+                <div className="col-span-7 text-gray-700">{history.problem}</div>
+                <div className="col-span-3 text-gray-600 pl-4">{history.repairedBy}</div>
+                <div className="col-span-2 text-gray-500">{history.date}</div>
+                </div>
+            ))}
+            </div>
+        ) : (
+            <p className="text-gray-500">No repair history available.</p>
+        )}
+        </div>
     </div>
   );
 };
