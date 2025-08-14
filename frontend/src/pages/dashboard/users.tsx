@@ -1,7 +1,7 @@
 // src/pages/UserManagement.tsx
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext"; // <-- New import
 
