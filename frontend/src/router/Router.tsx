@@ -6,6 +6,7 @@ import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE } fr
 import { ProtectedRoute } from './ProtectedRoute';
 import UserManagement from '../pages/dashboard/users'; 
 import AddUser from '../pages/dashboard/adduser';
+import RequestDetailsPage from '../pages/request/RequestDetailsPage';
 import AssignFormPage from '../pages/admin/assignForm';
 import EditUser from '../pages/dashboard/edituser'; 
 import Devices from '../pages/dashboard/devices';
@@ -16,6 +17,9 @@ import Overview from '../pages/admin/Overview';
 import Scheduler from '../pages/dashboard/Scheduler';
 import DeviceDetail from '../pages/dashboard/devicedetail';
 import Home from '../pages/User/Home'; // Assuming you have a Home component for the user dashboard
+import SolutionPage from '../pages/request/SolutionPage';
+import RequestHistoryPage from '../pages/request/RequestHistoryPage';
+
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -51,9 +55,21 @@ export const router = createBrowserRouter([
       element: <Dashboard />
     },
     {
-     path: "dashboard/assign/:requestId", 
-     element: <AssignFormPage />
-    },
+  path: "dashboard/assign/:requestId", 
+  element: <AssignFormPage />
+},
+  {
+  path: "details/:requestId", 
+  element: <RequestDetailsPage/>
+},
+  {
+  path: "solve/:requestId", 
+  element: <SolutionPage/>
+},
+ {
+  path: "history/:requestId", 
+  element: <RequestHistoryPage/>
+},
     {
       path: "users", 
       element: <UserManagement />

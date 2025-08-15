@@ -1,5 +1,4 @@
 // src/pages/dashboard/Home.tsx
-
 import React, { useState } from "react";
 import DeviceCard from "../../components/dashboardComponents/DeviceCard";
 import { maintenanceRequests } from "../../data/mockdata";
@@ -19,8 +18,10 @@ const Home: React.FC = () => {
         request.requester.department.toLowerCase().includes(search.toLowerCase()))
   );
 
+
   return (
-    <div className="px-4 space-y-6 font-sans">
+   <div className="px-4 space-y-6 font-sans">
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 pb-1">
@@ -41,7 +42,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
+     {/* Tabs */}
       <div className="flex gap-16 border-b border-gray-200">
         {["Pending", "Assigned", "Resolved"].map((tab) => (
           <button
@@ -60,7 +61,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Cards */}
-      {filteredRequests.length === 0 ? (
+     {filteredRequests.length === 0 ? (
         <p className="text-gray-500 italic">No devices found for this status.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -74,6 +75,7 @@ const Home: React.FC = () => {
               area={request.requester.location}
               userName={request.requester.name}
               problem={request.issue.description}
+              status={request.device.status} 
             />
           ))}
         </div>
@@ -81,5 +83,6 @@ const Home: React.FC = () => {
     </div>
   );
 };
+
 
 export default Home;
