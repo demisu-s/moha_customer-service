@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import {Dashboard, ErrorPage, LandingPage,Login,AuthenticationLayout} from "../pages";
 import { DashboardLayout } from '../pages/layout/DashboardLayout';
+import { ClientDashboardLayout } from '../pages/layout/ClientDashboardLayout';
 import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE } from './routeConstants';
 import { ProtectedRoute } from './ProtectedRoute';
 import UserManagement from '../pages/dashboard/users'; 
@@ -14,6 +15,7 @@ import Plants from '../pages/dashboard/plants';
 import Overview from '../pages/admin/Overview';
 import Scheduler from '../pages/dashboard/Scheduler';
 import DeviceDetail from '../pages/dashboard/devicedetail';
+import Home from '../pages/User/Home'; // Assuming you have a Home component for the user dashboard
 export const router = createBrowserRouter([
   {
     path: LANDING_ROUTE,
@@ -95,6 +97,18 @@ export const router = createBrowserRouter([
   ]
 },
 // ...existing code...
+  {
+    path: "/client-dashboard",
+    element: (
+      <ProtectedRoute allowedRole="client">
+        <ClientDashboardLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "", element: <Home /> }
+      // ... add other client pages
+    ]
+  },
   
   {
     path: "*",
