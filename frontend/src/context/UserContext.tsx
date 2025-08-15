@@ -17,7 +17,7 @@ type UserContextType = {
   users: User[];
   addUser: (user: Omit<User, "id">) => void;
   deleteUser: (id: number) => void;
-   updateUser: (id: number, updatedData: Omit<User, "id">) => void;
+  updateUser: (id: number, updatedData: Omit<User, "id">) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);

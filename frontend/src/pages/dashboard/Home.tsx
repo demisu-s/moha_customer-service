@@ -6,6 +6,9 @@ import { maintenanceRequests } from "../../data/mockdata";
 const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"Pending" | "Assigned" | "Resolved">("Pending");
   const [search, setSearch] = useState("");
+  
+  // Get admin info from localStorage
+  const adminName = localStorage.getItem("userId") === "admin" ? "Administrator" : "User";
 
   const filteredRequests = maintenanceRequests.filter(
     (request) =>
@@ -22,7 +25,7 @@ const Home: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 pb-1">
-            Welcome to your dashboard
+            Welcome, {adminName}!
           </h1>
           <p className="text-sm text-gray-400 max-w-xl">
             Select a category to view devices. You can search by serial number, username, or department.

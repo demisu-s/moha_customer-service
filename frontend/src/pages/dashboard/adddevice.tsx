@@ -172,8 +172,8 @@ export default function AddDevice() {
                 <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                     {filteredUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.firstName}>
-                        {u.firstName}
+                    <SelectItem key={u.id} value={u.userId}>
+                        {u.firstName} {u.lastName}
                     </SelectItem>
                     ))}
                 </Select.Viewport>

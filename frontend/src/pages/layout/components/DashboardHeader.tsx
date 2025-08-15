@@ -21,6 +21,11 @@ export function DashboardHeader() {
 
       const handleLogout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userDepartment");
+    localStorage.removeItem("userArea");
     navigate(SIGN_IN_ROUTE);
   };
 
