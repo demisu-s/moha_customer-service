@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/nono.png'; // Replace with your actual logo
 import { DASHBOARD_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE } from '../../../router/routeConstants';
@@ -13,10 +13,11 @@ export function DashboardSidebar() {
 
   const navItems = [
     { to: DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
-{ to: "/dashboard/users", icon: <FaUsers />, label: 'Users' },
-    { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
-    { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
-    { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    { to: "/dashboard/users", icon: <FaUsers />, label: 'Users' },
+    { to: "/dashboard/devices", icon: <FaMicrochip />, label: 'Devices' },
+    { to: "/dashboard/plants", icon: <FaMapMarkerAlt />, label: 'Plants' },
+    { to: "/dashboard/schedules", icon: <FaClock />, label: 'Schedule' },
+    { to: "/dashboard/overview", icon: <FaChartPie />, label: 'Overview' },
   ];
 
   return (
