@@ -14,7 +14,7 @@ type DeviceCardProps = {
   area: string;
 };
 
-const DeviceCard: React.FC<DeviceCardProps> = ({
+const DeviceCardUser: React.FC<DeviceCardProps> = ({
   id,
   deviceType,
   serialNo,
@@ -49,7 +49,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
           onClick={() => navigate(`dashboard/assign/${id}`)}
           className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
         >
-          Assign
+          Ask for help
         </Button>
       </div>
     </div>
@@ -70,4 +70,4 @@ const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => 
   </div>
 );
 
-export default DeviceCard;
+export default DeviceCardUser;

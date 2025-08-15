@@ -16,6 +16,7 @@ interface DeviceContextType {
   addDevice: (device: Device) => void;
   deleteDevice: (id: string) => void; 
   updateDevice: (updatedDevice: Device) => void;
+  getDevicesByUser: (userId: string) => Device[];
 };
 
 const DeviceContext = createContext<DeviceContextType | undefined>(undefined);
@@ -27,8 +28,8 @@ const initialDevices: Device[] = [
     type: "Laptop",
     name: "Dell XPS 15",
     serial: "CN-9576-9597",
-    user: "John Doe",
-    department: "Finance",
+    user: "kebede",
+    department: "MIS",
     area: "HO"
   },
   {
@@ -37,9 +38,29 @@ const initialDevices: Device[] = [
     name: "HP EliteBook 840",
     type: "Printer",
     serial: "PR-7742",
-    user: "Jane Smith",
+    user: "abebe",
     department: "MIS",
+    area: "Kality"
+  },
+  {
+    id: "3",
+    image: "/device-image.png",
+    type: "Desktop",
+    name: "Lenovo ThinkCentre",
+    serial: "DT-1234",
+    user: "alem",
+    department: "Finance",
     area: "Summit"
+  },
+  {
+    id: "4",
+    image: "/device-image.png",
+    type: "Tablet",
+    name: "iPad Pro",
+    serial: "TB-5678",
+    user: "alex",
+    department: "HR",
+    area: "Kality"
   }
 ];
 
@@ -65,8 +86,12 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+  const getDevicesByUser = (userId: string) => {
+    return devices.filter(device => device.user === userId);
+  };
+
   return (
-    <DeviceContext.Provider value={{ devices, addDevice, deleteDevice, updateDevice }}>
+    <DeviceContext.Provider value={{ devices, addDevice, deleteDevice, updateDevice, getDevicesByUser }}>
       {children}
     </DeviceContext.Provider>
   );

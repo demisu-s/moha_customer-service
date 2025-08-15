@@ -5,6 +5,7 @@ import { RegisterData } from "../../store/types";
 import { validator } from "../../utils/auth.validator";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useUserContext } from "../../context/UserContext";
 
 export interface ValidationErrors {
   [key: string]: string;
@@ -15,6 +16,7 @@ const ADMIN_CREDENTIALS = { userId: "admin", password: "admin123" };
 
 export const Login = () => {
   const navigate = useNavigate();
+  const { users } = useUserContext();
 
   const [userData, setUserData] = useState<RegisterData>({
     userId: "",
@@ -23,7 +25,7 @@ export const Login = () => {
   const [validationError, setValidationError] = useState<ValidationErrors>();
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const { name, value } = e.target;
     setUserData((prev) => ({
@@ -44,18 +46,28 @@ export const Login = () => {
         userData.userId === ADMIN_CREDENTIALS.userId &&
         userData.password === ADMIN_CREDENTIALS.password;
 
-      // In a real app, here you'd call an API to check credentials
       if (isAdmin) {
         localStorage.setItem("access_token", "fake-token");
         localStorage.setItem("role", "admin");
+        localStorage.setItem("userId", "admin");
         navigate(DASHBOARD_ROUTE);
-      } else if (userData.userId && userData.password) {
-        // Any other valid login → client
-        localStorage.setItem("access_token", "fake-token");
-        localStorage.setItem("role", "client");
-        navigate("/client-dashboard");
       } else {
-        setValidationError({ password: "Invalid username or password" });
+        // Check if user exists in the users list
+        const foundUser = users.find(
+          user => user.userId === userData.userId && user.password === userData.password
+        );
+
+        if (foundUser) {
+          localStorage.setItem("access_token", "fake-token");
+          localStorage.setItem("role", "client");
+          localStorage.setItem("userId", foundUser.userId);
+          localStorage.setItem("userName", `${foundUser.firstName} ${foundUser.lastName}`);
+          localStorage.setItem("userDepartment", foundUser.department);
+          localStorage.setItem("userArea", foundUser.area);
+          navigate("/client-dashboard");
+        } else {
+          setValidationError({ password: "Invalid username or password" });
+        }
       }
     }
   };
