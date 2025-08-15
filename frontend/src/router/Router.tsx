@@ -5,6 +5,7 @@ import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE } fr
 import { ProtectedRoute } from './ProtectedRoute';
 import UserManagement from '../pages/dashboard/users'; 
 import AddUser from '../pages/dashboard/adduser';
+import RequestDetailsPage from '../pages/dashboard/RequestDetailsPage';
 import AssignFormPage from '../pages/admin/assignForm';
 import EditUser from '../pages/dashboard/edituser'; 
 import Devices from '../pages/dashboard/devices';
@@ -49,9 +50,13 @@ export const router = createBrowserRouter([
       element: <Dashboard />
     },
     {
-     path: "dashboard/assign/:requestId", 
-     element: <AssignFormPage />
-    },
+  path: "dashboard/assign/:requestId", 
+  element: <AssignFormPage />
+},
+  {
+  path: "details/:requestId", 
+  element: <RequestDetailsPage/>
+},
     {
       path: "users", 
       element: <UserManagement />
