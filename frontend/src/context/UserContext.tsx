@@ -13,6 +13,9 @@ export type User = {
   photo?: File | null;
 };
 
+
+
+
 type UserContextType = {
   users: User[];
   addUser: (user: Omit<User, "id">) => void;
@@ -22,12 +25,23 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+
 const initialUsers: User[] = [
-  { id: 1, firstName: "Kebede", lastName: "Kasa", area: "HO", department: "MIS", role: "Admin", gender: "Male", userId: "kebede", password: "pass" },
-  { id: 2, firstName: "Abebe", lastName: "Kasa", area: "Kality", department: "MIS", role: "Supervisor", gender: "Male", userId: "abebe", password: "pass" },
-  { id: 3, firstName: "Alem", lastName: "Kasa", area: "Summit", department: "Finance", role: "User", gender: "Female", userId: "alem", password: "pass" },
-  { id: 4, firstName: "Alex", lastName: "Kasa", area: "Kality", department: "HR", role: "User", gender: "Male", userId: "alex", password: "pass" },
+  {
+    id: 1,
+    firstName: "System",
+    lastName: "Admin",
+    area: "HO",
+    department: "MIS",
+    role: "Admin",
+    gender: "Male",
+    userId: "admin",
+    password: "admin123",
+  }
 ];
+
+
+
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>(() => {

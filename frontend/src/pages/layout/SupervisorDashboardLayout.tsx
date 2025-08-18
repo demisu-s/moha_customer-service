@@ -3,9 +3,8 @@ import { SIGN_IN_ROUTE } from '../../router/routeConstants';
 import { useNavigate } from 'react-router-dom';
 import { SupervisorSidebar } from '../../pages/layout/components/SupervisorSidebar';
 import { DashboardHeader } from '../../pages/layout/components/DashboardHeader';
-import { ClientSidebar } from './components/ClientSidebar';
 
-export function ClientDashboardLayout() {
+export function SupervisorDashboardLayout() {
     const navigate = useNavigate();
     const handleLogout = () => {
   localStorage.removeItem("access_token");
@@ -17,15 +16,15 @@ export function ClientDashboardLayout() {
   navigate(SIGN_IN_ROUTE);
 };
 
-     return (
-    <div className="flex h-screen overflow-hidden">
-      <ClientSidebar />
+    return (
+       <div className="flex h-screen overflow-hidden">
+      <SupervisorSidebar />
       <div className="flex flex-col flex-1">
         <DashboardHeader />
         <main className="flex-1 overflow-y-auto bg-white p-6">
-          <Outlet />   {/* ✅ This should render <Home />, <Devices />, etc. */}
+          <Outlet />
         </main>
       </div>
     </div>
-  );
+    );
 }

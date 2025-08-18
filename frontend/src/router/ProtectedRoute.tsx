@@ -31,10 +31,18 @@ export const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) =
     }
   }
 
-  if (allowedRole && userRole !== allowedRole) {
-    // If role doesn't match, redirect to their dashboard
-    return <Navigate to={userRole === "admin" ? DASHBOARD_ROUTE : "/client-dashboard"} replace />;
+ if (allowedRole && userRole?.toLowerCase() !== allowedRole.toLowerCase()) {
+  // redirect to correct dashboard depending on role
+  if (userRole?.toLowerCase() === "admin") {
+    return <Navigate to={DASHBOARD_ROUTE} replace />;
   }
+  if (userRole?.toLowerCase() === "supervisor") {
+    return <Navigate to="/supervisor-dashboard" replace />;
+  }
+  return <Navigate to="/client-dashboard" replace />;
+}
+
+
 
   return children;
 };

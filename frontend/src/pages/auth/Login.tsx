@@ -1,6 +1,6 @@
 import InputField from "../../components/common/inputField";
 import { Button } from "../../components/ui/button";
-import { DASHBOARD_ROUTE, SIGN_IN_ROUTE } from "../../router/routeConstants";
+import { CLIENT_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SIGN_IN_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
 import { RegisterData } from "../../store/types";
 import { validator } from "../../utils/auth.validator";
 import { useState } from "react";
@@ -35,42 +35,40 @@ export const Login = () => {
   };
 
   const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const fieldsToValidate: (keyof RegisterData)[] = ["userId", "password"];
-    const validate = validator(userData, fieldsToValidate);
-    setValidationError(validate);
+  const fieldsToValidate: (keyof RegisterData)[] = ["userId", "password"];
+  const validate = validator(userData, fieldsToValidate);
+  setValidationError(validate);
 
-    if (Object.keys(validate).length === 0) {
-      const isAdmin =
-        userData.userId === ADMIN_CREDENTIALS.userId &&
-        userData.password === ADMIN_CREDENTIALS.password;
+  if (Object.keys(validate).length === 0) {
+    const foundUser = users.find(
+      (user) => user.userId === userData.userId && user.password === userData.password
+    );
 
-      if (isAdmin) {
-        localStorage.setItem("access_token", "fake-token");
-        localStorage.setItem("role", "admin");
-        localStorage.setItem("userId", "admin");
-        navigate(DASHBOARD_ROUTE);
+    if (foundUser) {
+      localStorage.setItem("access_token", "fake-token");
+      // localStorage.setItem("role", foundUser.role);
+      localStorage.setItem("role", foundUser.role.toLowerCase());
+      localStorage.setItem("userId", foundUser.userId);
+      localStorage.setItem("userName", `${foundUser.firstName} ${foundUser.lastName}`);
+      localStorage.setItem("userDepartment", foundUser.department);
+      localStorage.setItem("userArea", foundUser.area);
+
+      if (foundUser.role === "Admin") {
+        navigate("/dashboard");
+      } else if (foundUser.role === "Supervisor") {
+        navigate(SUPERVISOR_DASHBOARD_ROUTE);
       } else {
-        // Check if user exists in the users list
-        const foundUser = users.find(
-          user => user.userId === userData.userId && user.password === userData.password
-        );
-
-        if (foundUser) {
-          localStorage.setItem("access_token", "fake-token");
-          localStorage.setItem("role", "client");
-          localStorage.setItem("userId", foundUser.userId);
-          localStorage.setItem("userName", `${foundUser.firstName} ${foundUser.lastName}`);
-          localStorage.setItem("userDepartment", foundUser.department);
-          localStorage.setItem("userArea", foundUser.area);
-          navigate("/client-dashboard");
-        } else {
-          setValidationError({ password: "Invalid username or password" });
-        }
+        navigate(CLIENT_DASHBOARD_ROUTE);
       }
+    } else {
+      setValidationError({ password: "Invalid username or password" });
     }
-  };
+  }
+};
+
+
 
   return (
     <form onSubmit={handleLoginSubmit} className="w-full space-y-4">

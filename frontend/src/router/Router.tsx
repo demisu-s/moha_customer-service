@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import {Dashboard, ErrorPage, LandingPage,Login,AuthenticationLayout} from "../pages";
 import { DashboardLayout } from '../pages/layout/DashboardLayout';
 import { ClientDashboardLayout } from '../pages/layout/ClientDashboardLayout';
-import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE } from './routeConstants';
+import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE, SUPERVISOR_DASHBOARD_ROUTE, CLIENT_DASHBOARD_ROUTE } from './routeConstants';
 import { ProtectedRoute } from './ProtectedRoute';
 import UserManagement from '../pages/dashboard/users'; 
 import AddUser from '../pages/dashboard/adduser';
@@ -19,6 +19,7 @@ import DeviceDetail from '../pages/dashboard/devicedetail';
 import Home from '../pages/User/Home'; // Assuming you have a Home component for the user dashboard
 import SolutionPage from '../pages/request/SolutionPage';
 import RequestHistoryPage from '../pages/request/RequestHistoryPage';
+import { SupervisorDashboardLayout } from '../pages/layout/SupervisorDashboardLayout';
 
 export const router = createBrowserRouter([
   {
@@ -55,7 +56,7 @@ export const router = createBrowserRouter([
       element: <Dashboard />
     },
     {
-  path: "dashboard/assign/:requestId", 
+  path: "assign/:requestId", 
   element: <AssignFormPage />
 },
   {
@@ -112,20 +113,35 @@ export const router = createBrowserRouter([
     },
   ]
 },
-// ...existing code...
+{
+  path: CLIENT_DASHBOARD_ROUTE, // "/client-dashboard"
+  element: (
+    <ProtectedRoute allowedRole="user">
+      <ClientDashboardLayout />
+    </ProtectedRoute>
+  ),
+  children: [
+    { index: true, element: <Home /> },
+    { path: "devices", element: <Devices /> },
+    { path: "overview", element: <Overview /> }
+  ]
+}
+
+
+,
+  
   {
-    path: "/client-dashboard",
+    path: SUPERVISOR_DASHBOARD_ROUTE,
     element: (
-      <ProtectedRoute allowedRole="client">
-        <ClientDashboardLayout />
+      <ProtectedRoute allowedRole="Supervisor">
+        <SupervisorDashboardLayout/>
       </ProtectedRoute>
     ),
     children: [
-      { path: "", element: <Home /> }
-      // ... add other client pages
-    ]
+ 
+
+  ]
   },
-  
   {
     path: "*",
     element: <ErrorPage />

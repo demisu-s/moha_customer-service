@@ -111,8 +111,14 @@ const AddUser = () => {
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                   <SelectItem value="HO">Head Office</SelectItem>
-                  <SelectItem value="Kality">Kality</SelectItem>
+                  <SelectItem value="Kality">THP</SelectItem>
                   <SelectItem value="Summit">Summit</SelectItem>
+                  <SelectItem value="Kality">NSP</SelectItem>
+                  <SelectItem value="Summit">Bure</SelectItem>
+                  <SelectItem value="Kality">Mekelle</SelectItem>
+                  <SelectItem value="Summit">Dessie</SelectItem>
+                  <SelectItem value="Kality">Gonder</SelectItem>
+                  <SelectItem value="Summit">Hawassa</SelectItem>
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>
