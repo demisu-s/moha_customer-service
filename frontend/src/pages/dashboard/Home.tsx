@@ -6,26 +6,62 @@ import { maintenanceRequests } from "../../data/mockdata";
 const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"Pending" | "Assigned" | "Resolved">("Pending");
   const [search, setSearch] = useState("");
-  
-  // Get admin info from localStorage
-  const adminName = localStorage.getItem("userId") === "admin" ? "Administrator" : "User";
 
-  const filteredRequests = maintenanceRequests.filter(
-    (request) =>
-      request.device.status === activeTab &&
-      (request.device.serial.includes(search) ||
-        request.requester.name.toLowerCase().includes(search.toLowerCase()) ||
-        request.requester.department.toLowerCase().includes(search.toLowerCase()))
-  );
+  const userRole = localStorage.getItem("role");
+  const userId = localStorage.getItem("userId");
+  const userName = localStorage.getItem("userName");
 
+  // Only Admin & Supervisor allowed here
+  if (userRole !== "admin" && userRole !== "supervisor") {
+    return (
+      <div className="p-6 text-center text-red-600 font-semibold">
+        This dashboard is only available for Admin and Supervisor.
+      </div>
+    );
+  }
+
+  // Tabs available for both
+  const availableTabs: ("Pending" | "Assigned" | "Resolved")[] = [
+    "Pending",
+    "Assigned",
+    "Resolved",
+  ];
+
+  // Filtering requests
+  const filteredRequests = maintenanceRequests.filter((request) => {
+    const matchesTab = request.device.status === activeTab;
+    const matchesSearch =
+      request.device.serial.includes(search) ||
+      request.requester.name.toLowerCase().includes(search.toLowerCase()) ||
+      request.requester.department.toLowerCase().includes(search.toLowerCase());
+
+    if (userRole === "admin") {
+      // Admin sees everything
+      return matchesTab && matchesSearch;
+    } else if (userRole === "supervisor") {
+      if (activeTab === "Pending") {
+        // Supervisors see all pending requests
+        return matchesTab && matchesSearch;
+      }
+      if (activeTab === "Assigned") {
+        // Supervisors see only the ones assigned to them
+        return matchesTab && matchesSearch && request.assignedTo === userId;
+      }
+      if (activeTab === "Resolved") {
+        // Supervisors see ALL resolved requests (same as admin)
+        return matchesTab && matchesSearch;
+      }
+    }
+    return false;
+  });
 
   return (
-   <div className="px-4 space-y-6 font-sans">
+    <div className="px-4 space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 pb-1">
-            Welcome, {adminName}!
+            Welcome, {userName || "User"}!
           </h1>
           <p className="text-sm text-gray-400 max-w-xl">
             Select a category to view devices. You can search by serial number, username, or department.
@@ -42,12 +78,12 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-     {/* Tabs */}
+      {/* Tabs */}
       <div className="flex gap-16 border-b border-gray-200">
-        {["Pending", "Assigned", "Resolved"].map((tab) => (
+        {availableTabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab as any)}
+            onClick={() => setActiveTab(tab)}
             className={`relative px-4 pb-2 text-xl font-bold capitalize transition-all duration-200 ${
               activeTab === tab ? "text-primary-500" : "text-gray-600"
             }`}
@@ -61,7 +97,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Cards */}
-     {filteredRequests.length === 0 ? (
+      {filteredRequests.length === 0 ? (
         <p className="text-gray-500 italic">No devices found for this status.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -75,7 +111,8 @@ const Home: React.FC = () => {
               area={request.requester.location}
               userName={request.requester.name}
               problem={request.issue.description}
-              status={request.device.status} 
+              status={request.device.status}
+              supervisorName={request.supervisor?.name}
             />
           ))}
         </div>
@@ -83,6 +120,5 @@ const Home: React.FC = () => {
     </div>
   );
 };
-
 
 export default Home;

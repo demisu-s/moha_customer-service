@@ -179,12 +179,12 @@ const RequestDetailsComponent: React.FC = () => {
         >
           Back
         </Button>
-        <button
+        {/* <button
       onClick={handleAssign}
       className="bg-primary-600 text-white px-4 py-1 border border-gray-300 rounded-md hover:bg-primary-900 duration-200 hover:shadow-md hover:scale-105"
     >
       Assign
-    </button>
+    </button> */}
       </div>
     </div>
   );

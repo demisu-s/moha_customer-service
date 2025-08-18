@@ -1,12 +1,10 @@
 // src/components/dashboardComponents/DeviceCard.tsx
-
 import React, { JSX } from "react";
 import * as Label from "@radix-ui/react-label";
 import deviceImage from "../../assets/device 1.png";
 import { Button } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
-import { Status } from "../../data/mockdata"; // ✅ Import the Status type
-
+import { Status } from "../../data/mockdata";
 
 type DeviceCardProps = {
   id: string;
@@ -16,7 +14,8 @@ type DeviceCardProps = {
   area: string;
   userName: string;
   problem?: string;
-  status: Status; // ✅ Use the Status type here
+  status: Status;
+  supervisorName?: string;
 };
 
 const DeviceCard: React.FC<DeviceCardProps> = ({
@@ -27,66 +26,91 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   area,
   userName,
   problem,
-  status, // ✅ Accept the status prop
+  status,
+  supervisorName,
 }) => {
   const navigate = useNavigate();
+  const role = localStorage.getItem("role");
 
-    // Button rendering logic
   let buttons: JSX.Element[] = [];
-  console.log("DeviceCard status:", status);
 
-
-  if (status === "Pending") {
+  // --- ADMIN actions ---
+  if (status === "Pending" && role === "admin") {
     buttons.push(
       <Button
         key="details"
         onClick={() => navigate(`details/${id}`)}
-        className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
+        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
       >
         Details
       </Button>,
       <Button
         key="assign"
         onClick={() => navigate(`assign/${id}`)}
-        className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
+        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
       >
         Assign
       </Button>
     );
-  } else if (status === "Assigned") {
+  }
+
+  // --- SUPERVISOR actions ---
+  else if (status === "Pending" && role === "supervisor") {
+    buttons.push(
+      <Button
+        key="details"
+        onClick={() => navigate(`details/${id}`)}
+        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+      >
+        Details
+      </Button>
+    );
+  } else if (status === "Assigned" && role === "supervisor") {
     buttons.push(
       <Button
         key="solve"
         onClick={() => navigate(`solve/${id}`)}
-       className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
+        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
       >
         Solve
       </Button>
     );
-  } else if (status === "Resolved") {
+  }
+
+  // --- COMMON actions ---
+ // src/components/dashboardComponents/DeviceCard.tsx
+else if (status === "Resolved") {
+  if (role === "admin" || role === "supervisor") {
+    // Admin & Supervisor can view history
     buttons.push(
       <Button
         key="history"
         onClick={() => navigate(`history/${id}`)}
-        className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
+        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
       >
         History
       </Button>
     );
+  } else {
+    // Normal users only get details view
+    buttons.push(
+      <Button
+        key="details"
+        onClick={() => navigate(`details/${id}`)}
+        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+      >
+        Details
+      </Button>
+    );
   }
+}
 
-  // Center the buttons if only one
   const buttonContainerClass =
     buttons.length === 1 ? "flex justify-center mt-2" : "flex justify-between mt-2";
 
-
   return (
     <div className="w-[230px] bg-primary-900 rounded-xl shadow-md p-3 space-y-3 text-sm">
-      <img
-        src={deviceImage}
-        alt="Device"
-        className="w-full h-28 object-contain rounded"
-      />
+      <img src={deviceImage} alt="Device" className="w-full h-28 object-contain rounded" />
 
       <div className="space-y-2">
         <Field label="Device type" value={deviceType} />
@@ -94,6 +118,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
         <Field label="Department" value={department} />
         <Field label="Area" value={area} />
         <Field label="User name" value={userName} />
+        {supervisorName && <Field label="Supervisor" value={supervisorName} />}
         <Field label="Problem" value={problem || "—"} />
       </div>
 
@@ -104,9 +129,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
 
 const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => (
   <div className="flex items-center">
-    <Label.Root className="w-[35%] text-[11px] font-bold text-gray-700">
-      {label}:
-    </Label.Root>
+    <Label.Root className="w-[35%] text-[11px] font-bold text-gray-700">{label}:</Label.Root>
     <input
       type="text"
       value={value}
