@@ -20,6 +20,9 @@ import Home from '../pages/User/Home'; // Assuming you have a Home component for
 import SolutionPage from '../pages/request/SolutionPage';
 import RequestHistoryPage from '../pages/request/RequestHistoryPage';
 import { SupervisorDashboardLayout } from '../pages/layout/SupervisorDashboardLayout';
+import AskForHelp from '../pages/User/askforhelp';
+import StatusPage from '../pages/User/status';
+import ClientOverview from '../pages/User/overview';
 
 export const router = createBrowserRouter([
   {
@@ -122,8 +125,10 @@ export const router = createBrowserRouter([
   ),
   children: [
     { index: true, element: <Home /> },
-    { path: "devices", element: <Devices /> },
-    { path: "overview", element: <Overview /> }
+    { path: "status", element: <StatusPage /> },
+    { path: "overview", element: <ClientOverview /> },
+    { path: "device/:id", element: <DeviceDetail /> },
+    { path: "help/:id", element: <AskForHelp /> }
   ]
 }
 
