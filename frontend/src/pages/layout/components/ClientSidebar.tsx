@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie } from 'react-icons/fa';
+import { FaHome, FaHistory, FaSignOutAlt, FaChartPie } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/logo.jpg'; // Replace with your actual logo
 import { DASHBOARD_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE } from '../../../router/routeConstants';
@@ -13,7 +13,7 @@ export function ClientSidebar() {
 
   const navItems = [
     { to: "/client-dashboard", icon: <FaHome />, label: 'Home' },
-    { to: "/client-dashboard/devices", icon: <FaMicrochip />, label: 'Devices' },
+    { to: "/client-dashboard/status", icon: <FaHistory />, label: 'Status' },
     { to: "/client-dashboard/overview", icon: <FaChartPie />, label: 'Overview' },
   ];
 

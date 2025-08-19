@@ -40,13 +40,13 @@ const DeviceCardUser: React.FC<DeviceCardProps> = ({
 
       <div className="flex justify-between mt-2">
         <Button
-          onClick={() => navigate(`/assign/${id}`)}
+          onClick={() => navigate(`/client-dashboard/device/${id}`)}
           className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
         >
           Details
         </Button>
         <Button
-          onClick={() => navigate(`dashboard/assign/${id}`)}
+          onClick={() => navigate(`/client-dashboard/help/${id}`)}
           className="bg-orange-700 hover:bg-orange-500 hover:shadow-md hover:scale-105 text-black text-xs font-semibold px-6 py-1 rounded"
         >
           Ask for help

@@ -12,9 +12,10 @@ const Home: React.FC = () => {
   const userDevices = currentUserId ? getDevicesByUser(currentUserId) : [];
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Welcome, {currentUserName || 'User'}!</h1>
-      <h2 className="text-lg font-semibold mb-4 text-gray-600">My Devices</h2>
+    <div className="px-4">
+      <h1 className="text-2xl font-bold mb-1">Welcome, {currentUserName || 'User'}!</h1>
+      <h6 className="text-sm font-light mb-3 text-gray-600">This is your dashboard look your devices see their details and status and it any problem ask for help we will reach you with good maintainace </h6>
+      <h2 className="font-bold text-2xl mb-4">My Devices</h2>
       
       {userDevices.length === 0 ? (
         <div className="text-center py-8">
