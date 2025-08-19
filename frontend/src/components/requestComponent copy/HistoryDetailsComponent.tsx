@@ -72,15 +72,16 @@ const HistoryDetailsComponent: React.FC = () => {
                 {request.device?.submissionDate}
               </p>
 <p>
-        <strong className="text-lg font-light text-gray-500 pr-2">
-          Status:
-        </strong>{" "}
-        <span className="text-red-500 font-semibold">
-          {request.device?.status}{" "}
-          <span className="text-gray-500 font-normal">by</span>{" "}
-          {currentUserId}
-        </span>
-      </p>
+  <strong className="text-lg font-light text-gray-500 pr-2">
+    Status:
+  </strong>{" "}
+  <span className="text-red-500 font-semibold">
+    {request.device?.status}{" "}
+    <span className="text-gray-500 font-normal">by</span>{" "}
+    {request.supervisor?.name || "Supervisor"}
+  </span>
+</p>
+
             </div>
           </div>
         </div>
