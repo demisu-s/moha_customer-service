@@ -58,7 +58,7 @@ export const Login = () => {
       if (foundUser.role === "Admin") {
         navigate("/dashboard");
       } else if (foundUser.role === "Supervisor") {
-        navigate(SUPERVISOR_DASHBOARD_ROUTE);
+        navigate("/dashboard");
       } else {
         navigate(CLIENT_DASHBOARD_ROUTE);
       }

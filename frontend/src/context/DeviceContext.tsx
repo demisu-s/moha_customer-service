@@ -7,6 +7,7 @@ export interface Device {
   name: string; // Added name field for better identification
   serial: string;
   user: string;
+  userId?: string; // Optional userId for better association
   department: string;
   area: string;
 }
@@ -86,9 +87,12 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
-  const getDevicesByUser = (userId: string) => {
-    return devices.filter(device => device.user === userId);
-  };
+  // const getDevicesByUser = (userId: string) => {
+  //   return devices.filter(device => device.user === userId);
+  // };
+const getDevicesByUser = (userId: string) => {
+  return devices.filter(device => device.userId === userId);
+};
 
   return (
     <DeviceContext.Provider value={{ devices, addDevice, deleteDevice, updateDevice, getDevicesByUser }}>

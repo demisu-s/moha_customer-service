@@ -5,8 +5,6 @@ import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { useDeviceContext } from "../../context/DeviceContext";
 import { useUserContext } from "../../context/UserContext";
-import { Button } from "@radix-ui/themes";
-import { IoArrowBack } from "react-icons/io5";
 
 const SelectItem = React.forwardRef<
   HTMLDivElement,
@@ -34,14 +32,13 @@ export default function AddDevice() {
     type: "",
     name: "",
     serial: "",
-    user: "",
+    userId: "", // ✅ store userId instead of user name
     department: "",
     area: "HO",
     image: "/device-image.png",
     file: null as File | null,
   });
 
-  // Filter users based on selected department and area
   const filteredUsers = users.filter(
     (u) =>
       (formData.department ? u.department === formData.department : true) &&
@@ -54,7 +51,7 @@ export default function AddDevice() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!filteredUsers.find((u) => u.firstName === formData.user)) {
+    if (!filteredUsers.find((u) => u.userId === formData.userId)) {  // ✅ check by userId
       alert("Selected user is invalid for the chosen department and area.");
       return;
     }
@@ -63,17 +60,17 @@ export default function AddDevice() {
       type: formData.type,
       name: formData.name,
       serial: formData.serial,
-      user: formData.user,
+      userId: formData.userId, // ✅ save userId
       department: formData.department,
       area: formData.area,
       image: formData.image,
+      user: ""
     });
     navigate("/dashboard/devices");
   };
 
-  // Reset user if department or area changes
   React.useEffect(() => {
-    setFormData((prev) => ({ ...prev, user: "" }));
+    setFormData((prev) => ({ ...prev, userId: "" })); // ✅ reset userId
   }, [formData.department, formData.area]);
 
   return (
@@ -91,7 +88,7 @@ export default function AddDevice() {
             required
           />
         </div>
-        {/* Serial Number */}
+        {/* Device Name */}
         <div>
           <Label.Root className="text-lg font-light">Device Name</Label.Root>
           <input
@@ -149,54 +146,53 @@ export default function AddDevice() {
               </Select.Content>
             </Select.Portal>
           </Select.Root>
-        </div>
+        </div>   
         {/* User */}
         <div>
-        <Label.Root className="text-lg font-light">User</Label.Root>
-        <Select.Root
-            value={formData.user}
-            onValueChange={(value) => handleChange("user", value)}
+          <Label.Root className="text-lg font-light">User</Label.Root>
+          <Select.Root
+            value={formData.userId}
+            onValueChange={(value) => handleChange("userId", value)}  // ✅ store userId
             disabled={!formData.department || !formData.area || filteredUsers.length === 0}
-        >
+          >
             <Select.Trigger
-            className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1"
-            disabled={!formData.department || !formData.area || filteredUsers.length === 0}
+              className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1"
+              disabled={!formData.department || !formData.area || filteredUsers.length === 0}
             >
-            <Select.Value placeholder={filteredUsers.length === 0 ? "No users found" : "Select user"} />
-            <Select.Icon>
+              <Select.Value placeholder={filteredUsers.length === 0 ? "No users found" : "Select user"} />
+              <Select.Icon>
                 <ChevronDownIcon />
-            </Select.Icon>
+              </Select.Icon>
             </Select.Trigger>
             {filteredUsers.length > 0 && (
-            <Select.Portal>
+              <Select.Portal>
                 <Select.Content className="bg-white border rounded shadow-md">
-                <Select.Viewport>
+                  <Select.Viewport>
                     {filteredUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.userId}>
+                      <SelectItem key={u.id} value={u.userId}>  {/* ✅ use userId */}
                         {u.firstName} {u.lastName}
-                    </SelectItem>
+                      </SelectItem>
                     ))}
-                </Select.Viewport>
+                  </Select.Viewport>
                 </Select.Content>
-            </Select.Portal>
+              </Select.Portal>
             )}
-        </Select.Root>
-        {filteredUsers.length === 0 && (
+          </Select.Root>
+          {filteredUsers.length === 0 && (
             <div className="text-sm text-red-500 mt-1">No users found for this department and area.</div>
-        )}
+          )}
         </div>
-
+        {/* Serial Number */}
         <div>
           <Label.Root className="text-lg font-light">Serial Number</Label.Root>
           <input
             value={formData.serial}
             onChange={(e) => handleChange("serial", e.target.value)}
             className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
-            placeholder="Enter seiral number"
+            placeholder="Enter serial number"
             required
           />
         </div>
-
         {/* Image Upload */}
         <div className="col-span-2">
           <Label.Root className="text-lg font-light mr-5">Upload Image</Label.Root>
