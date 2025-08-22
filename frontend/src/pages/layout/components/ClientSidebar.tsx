@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaHistory, FaSignOutAlt, FaChartPie } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
-import logo from '../../../assets/logo.jpg'; // Replace with your actual logo
+import logo from '../../../assets/nono.png'; // Replace with your actual logo
 import { DASHBOARD_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE } from '../../../router/routeConstants';
 
 export function ClientSidebar() {
@@ -20,10 +20,11 @@ export function ClientSidebar() {
   return (
     <aside className="w-[250px] bg-[#1891C3] text-white flex flex-col justify-between py-6 px-4">
       <div>
-        <div className="mb-8 ml-12 flex items-center gap-3">
-          <img src={logo} alt="Logo" className="h-20 w-20 object-contain" />
+        <div className="mb-12 flex items-center gap-3">
+          <img src={logo} alt="Logo" className="h-50 w-50 object-contain" />
         </div>
 
+        
         <nav className="space-y-4">
           {navItems.map(({ to, icon, label }) => (
             <NavLink

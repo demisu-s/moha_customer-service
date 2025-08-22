@@ -7,17 +7,28 @@ import { useUserContext } from "../../context/UserContext";
 
 type Urgency = "" | "Low" | "Medium" | "High";
 
-type ServiceRequest = {
+export type ServiceRequest = {
+  map(arg0: (r: any) => any): unknown;
   id: string;
   deviceId: string;
   deviceSerial: string;
   requestedBy: string;
+  area: string;
   description: string;
-  urgency: Exclude<Urgency, "">;
-  attachments: string[]; // just names for now
+  department: string;
+  userId?: string;
+  submissionDate?: Date |string; // Optional, if submission date is available
+  urgency: "Low" | "Medium" | "High";
+  attachments: string[];
   createdAt: string;
-  status: "Pending" | "In-Progress" | "Resolved";
+  deviceImage?: string; // Optional, if device image is available
+  status: "Pending" | "Assigned" | "Resolved"; // ✅ corrected
+  assignedTo?: string; // store supervisor ID now
+  assignedToName?: string; // store supervisor full name
+  notes?: string; // supervisor's recommendation
+  assignedDate:Date | string; // date assigned
 };
+
 
 const AskForHelp: React.FC = () => {
   const { id } = useParams();
@@ -42,7 +53,9 @@ const AskForHelp: React.FC = () => {
     return (
       <div className="max-w-3xl mx-auto p-6 text-center text-red-600">
         <h2 className="text-xl font-semibold">Device not found</h2>
-        <Button onClick={() => navigate(-1)} className="mt-4">Go Back</Button>
+        <Button onClick={() => navigate(-1)} className="mt-4">
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -67,24 +80,36 @@ const AskForHelp: React.FC = () => {
       return;
     }
 
+    // ✅ Create new service request
     const request: ServiceRequest = {
       id: `${Date.now()}`,
       deviceId: device.id,
       deviceSerial: device.serial,
       requestedBy: currentUserName || "User",
+      department: device.department,
+      area: device.area,
+      assignedDate: "",
+      submissionDate: new Date(),
+      deviceImage: device.image || "",
       description: description.trim(),
-      urgency: urgency as Exclude<Urgency, "">,
+      urgency: urgency as "Low" | "Medium" | "High",
       attachments: files.map((f) => f.name),
       createdAt: new Date().toISOString(),
-      status: "Pending",
+      status: "Pending", // ✅ corrected spelling
+      notes: "",
+      map: function (arg0: (r: any) => any): unknown {
+        throw new Error("Function not implemented.");
+      }
     };
 
+
+    // ✅ Store in localStorage
     const key = "serviceRequests";
     const prevRaw = localStorage.getItem(key);
     const prev: ServiceRequest[] = prevRaw ? JSON.parse(prevRaw) : [];
     localStorage.setItem(key, JSON.stringify([request, ...prev]));
 
-    setSuccess("Your request has been submitted successfully.");
+    setSuccess("✅ Your request has been submitted successfully. The Admin will review it.");
     setDescription("");
     setUrgency("");
     setFiles([]);
@@ -94,14 +119,24 @@ const AskForHelp: React.FC = () => {
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold text-black">Request Device Service</h1>
-        <Button onClick={() => navigate(-1)} className="inline-flex items-center bg-primary-600 text-white px-4 py-1 font-semibold rounded-lg"><IoArrowBack className="mr-2"/>Back</Button>
+        <Button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center bg-primary-600 text-white px-4 py-1 font-semibold rounded-lg"
+        >
+          <IoArrowBack className="mr-2" />
+          Back
+        </Button>
       </div>
 
       <p className="text-gray-600 mb-3">
-        Fill out the form below to request a repair or replacement of device/machine. Please provide as much detail as possible to help us process your request efficiently.
+        Fill out the form below to request a repair or replacement of a device/machine. Please
+        provide as much detail as possible to help us process your request efficiently.
       </p>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-300 rounded-xl p-6 space-y-5">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border border-gray-300 rounded-xl p-6 space-y-5"
+      >
         <div>
           <label className="block font-semibold mb-4 text-2xl">Problem description</label>
           <textarea
@@ -114,7 +149,9 @@ const AskForHelp: React.FC = () => {
 
         <div>
           <label className="block font-semibold text-2xl">Attachments</label>
-          <p className="text-gray-500 text-sm mb-4">Attach relevant photos or video if available to illustrate the issue (Optional).</p>
+          <p className="text-gray-500 text-sm mb-4">
+            Attach relevant photos or video if available to illustrate the issue (Optional).
+          </p>
           <input
             type="file"
             accept="image/*,video/*"
@@ -123,13 +160,17 @@ const AskForHelp: React.FC = () => {
             className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
           {files.length > 0 && (
-            <div className="mt-2 text-xs text-gray-600">{files.length} file(s) selected</div>
+            <div className="mt-2 text-xs text-gray-600">
+              {files.length} file(s) selected
+            </div>
           )}
         </div>
 
         <div>
           <label className="block font-semibold text-2xl">Urgency level</label>
-          <p className="text-gray-500 text-sm mb-4">Specify urgency level accurately based on operational impact.</p>
+          <p className="text-gray-500 text-sm mb-4">
+            Specify urgency level accurately based on operational impact.
+          </p>
           <select
             value={urgency}
             onChange={(e) => setUrgency(e.target.value as Urgency)}
@@ -156,12 +197,11 @@ const AskForHelp: React.FC = () => {
       </form>
 
       <div className="mt-8 text-sm text-gray-500">
-        Submitting for: <span className="font-semibold">{device.name}</span> ({device.serial}) • Requested by <span className="font-semibold">{currentUserName}</span>
+        Submitting for: <span className="font-semibold">{device.name}</span> ({device.serial}) •
+        Requested by <span className="font-semibold">{currentUserName}</span>
       </div>
     </div>
   );
 };
 
 export default AskForHelp;
-
-

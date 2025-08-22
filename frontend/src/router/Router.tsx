@@ -135,18 +135,18 @@ export const router = createBrowserRouter([
 
 ,
   
-  {
-    path: SUPERVISOR_DASHBOARD_ROUTE,
-    element: (
-      <ProtectedRoute allowedRole="Supervisor">
-        <SupervisorDashboardLayout/>
-      </ProtectedRoute>
-    ),
-    children: [
+  // {
+  //   path: SUPERVISOR_DASHBOARD_ROUTE,
+  //   element: (
+  //     <ProtectedRoute allowedRole="Supervisor">
+  //       <SupervisorDashboardLayout/>
+  //     </ProtectedRoute>
+  //   ),
+  //   children: [
  
 
-  ]
-  },
+  // ]
+  // },
   {
     path: "*",
     element: <ErrorPage />
