@@ -8,6 +8,7 @@ import { useUserContext } from "../../context/UserContext";
 type Urgency = "" | "Low" | "Medium" | "High";
 
 export type ServiceRequest = {
+  map(arg0: (r: any) => any): unknown;
   id: string;
   deviceId: string;
   deviceSerial: string;
@@ -24,6 +25,8 @@ export type ServiceRequest = {
   status: "Pending" | "Assigned" | "Resolved"; // ✅ corrected
   assignedTo?: string; // store supervisor ID now
   assignedToName?: string; // store supervisor full name
+  notes?: string; // supervisor's recommendation
+  assignedDate:Date | string; // date assigned
 };
 
 
@@ -79,20 +82,25 @@ const AskForHelp: React.FC = () => {
 
     // ✅ Create new service request
     const request: ServiceRequest = {
-  id: `${Date.now()}`,
-  deviceId: device.id,
-  deviceSerial: device.serial,
-  requestedBy: currentUserName || "User",
-  department: device.department,
-  area: device.area,
-  submissionDate: new Date(),
-  deviceImage: device.image || "",
-  description: description.trim(),
-  urgency: urgency as "Low" | "Medium" | "High",
-  attachments: files.map((f) => f.name),
-  createdAt: new Date().toISOString(),
-  status: "Pending", // ✅ corrected spelling
-};
+      id: `${Date.now()}`,
+      deviceId: device.id,
+      deviceSerial: device.serial,
+      requestedBy: currentUserName || "User",
+      department: device.department,
+      area: device.area,
+      assignedDate: "",
+      submissionDate: new Date(),
+      deviceImage: device.image || "",
+      description: description.trim(),
+      urgency: urgency as "Low" | "Medium" | "High",
+      attachments: files.map((f) => f.name),
+      createdAt: new Date().toISOString(),
+      status: "Pending", // ✅ corrected spelling
+      notes: "",
+      map: function (arg0: (r: any) => any): unknown {
+        throw new Error("Function not implemented.");
+      }
+    };
 
 
     // ✅ Store in localStorage
