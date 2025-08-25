@@ -1,18 +1,27 @@
-import React from "react";
+// src/components/dashboardComponents/HistoryDetailsComponent.tsx
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
-import { maintenanceRequests } from "../../data/mockdata";
+import { ServiceRequest } from "../../pages/User/askforhelp";
+import { useUserContext } from "../../context/UserContext";
+import { useDeviceContext } from "../../context/DeviceContext";
 
 const HistoryDetailsComponent: React.FC = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
+  const { users } = useUserContext();
+  const [request, setRequest] = useState<ServiceRequest | null>(null);
+   const { devices } = useDeviceContext();   // ✅ device lookup
 
-   const currentUserId = localStorage.getItem("userId") || "USR123";
-
-  // Ensure correct type comparison (convert to string if ids are strings)
-  const request = maintenanceRequests.find(
-    (req) => String(req.id) === String(requestId)
-  );
+  // ✅ Load request from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("serviceRequests");
+    if (stored) {
+      const requests: ServiceRequest[] = JSON.parse(stored);
+      const found = requests.find((r) => String(r.id) === String(requestId));
+      if (found) setRequest(found);
+    }
+  }, [requestId]);
 
   if (!request) {
     return (
@@ -25,10 +34,16 @@ const HistoryDetailsComponent: React.FC = () => {
     );
   }
 
+  // ✅ Lookup requester & supervisor from context
+  const requester = users.find((u) => u.userId === request.userId);
+  const supervisor = users.find((u) => u.userId === request.assignedTo);
+    const device = devices.find((d) => d.id === request.deviceId);
+
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       <h2 className="text-3xl font-bold text-gray-800">
-        Request - {request.device?.serial}
+        Request - {request.deviceSerial}
+        {/* Request - {device ? device.name : request.deviceSerial} */}
       </h2>
       <p className="text-sm text-gray-400 max-w-xl">
         View and manage all incoming reported issues and new machine requests.
@@ -37,13 +52,15 @@ const HistoryDetailsComponent: React.FC = () => {
       <div className="grid md:grid-cols-3 gap-4">
         {/* Device Image + Request Summary */}
         <div className="col-span-2 flex gap-0">
-          <div className="border rounded-l-lg p-4 flex items-center justify-center bg-white">
-            <img
-              src={request.device?.image}
-              alt="Device"
-              className="w-72 h-48 object-contain"
-            />
-          </div>
+          {request.deviceImage && (
+            <div className="border rounded-l-lg p-4 flex items-center justify-center bg-white">
+              <img
+                src={request.deviceImage}
+                alt="Device"
+                className="w-72 h-48 object-contain"
+              />
+            </div>
+          )}
           <div className="border-t border-b border-r rounded-r-lg p-4 flex-1 bg-white">
             <h3 className="font-bold mb-3 text-xl">Request Summary</h3>
             <div className="text-sm space-y-1">
@@ -51,37 +68,40 @@ const HistoryDetailsComponent: React.FC = () => {
                 <strong className="text-lg font-light text-gray-500 pr-4">
                   Device Name:
                 </strong>{" "}
-                {request.device?.name}
+                {device ? device.name : "Unknown"}
               </p>
               <p>
                 <strong className="text-lg font-light text-gray-500 pr-6">
                   Device Type:
                 </strong>{" "}
-                {request.device?.type}
+                {device ? device.type : "Unknown"}
               </p>
               <p>
                 <strong className="text-lg font-light text-gray-500 pr-4">
                   Device ID/Serial:
                 </strong>{" "}
-                {request.device?.serial}
+                {request.deviceSerial}
               </p>
               <p>
                 <strong className="text-lg font-light text-gray-500 pr-4">
-                  Submission Date:
+                  Requested Date:
                 </strong>{" "}
-                {request.device?.submissionDate}
+                 {request.requestedDate
+                  ? new Date(request.requestedDate).toLocaleString()
+                  : "—"}
               </p>
-<p>
-  <strong className="text-lg font-light text-gray-500 pr-2">
-    Status:
-  </strong>{" "}
-  <span className="text-red-500 font-semibold">
-    {request.device?.status}{" "}
-    <span className="text-gray-500 font-normal">by</span>{" "}
-    {request.supervisor?.name || "Supervisor"}
-  </span>
-</p>
-
+              <p>
+                <strong className="text-lg font-light text-gray-500 pr-2">
+                  Status:
+                </strong>{" "}
+                <span className="text-red-500 font-semibold">
+                  {request.status}{" "}
+                  <span className="text-gray-500 font-normal">by</span>{" "}
+                  {supervisor
+                    ? `${supervisor.firstName} ${supervisor.lastName}`
+                    : request.assignedToName || "Not assigned"}
+                </span>
+              </p>
             </div>
           </div>
         </div>
@@ -94,25 +114,27 @@ const HistoryDetailsComponent: React.FC = () => {
               <strong className="text-lg font-light text-gray-500 pr-4">
                 User Name:
               </strong>{" "}
-              {request.requester?.name}
+              {requester
+                ? requester.firstName + " " + requester.lastName
+                : request.requestedBy || "Unknown"}
             </p>
             <p>
               <strong className="text-lg font-light text-gray-500 pr-4">
                 Plant Location:
               </strong>{" "}
-              {request.requester?.location}
+              {request.area}
             </p>
             <p>
               <strong className="text-lg font-light text-gray-500 pr-4">
                 Department:
               </strong>{" "}
-              {request.requester?.department}
+              {request.department}
             </p>
             <p>
               <strong className="text-lg font-light text-gray-500 pr-4">
                 Phone number:
               </strong>{" "}
-              {request.requester?.phone}
+              {request.phone}
             </p>
           </div>
         </div>
@@ -121,31 +143,43 @@ const HistoryDetailsComponent: React.FC = () => {
       {/* Issue Description */}
       <div className="border rounded-lg p-4">
         <h3 className="font-bold mb-3 text-xl">Issue Description</h3>
+        <div>
+          <p>
+            <strong className="text-lg font-light text-gray-500 pr-4">
+              Assigned Date:
+            </strong>{" "}
+            {request.assignedDate
+              ? new Date(request.assignedDate).toLocaleString()
+              : "—"}
+          </p>
+          <p>
+            <strong className="text-lg font-light text-gray-500 pr-4">
+              Resolved Date:
+            </strong>{" "}
+            {request.resolvedDate
+              ? new Date(request.resolvedDate).toLocaleString()
+              : "—"}
+          </p>
+        </div>
         <p className="text-md font-light text-gray-500 mb-2">Description</p>
-        <p className="text-md font-light mb-3">{request.issue?.description}</p>
+        <p className="text-md font-light mb-3">{request.description}</p>
       </div>
 
       {/* Recommendation & Solution */}
       <div className="border rounded-lg p-4 space-y-3">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block font-bold mb-3 text-xl">
-              Recommendation
-            </label>
+            <label className="block font-bold mb-3 text-xl">Recommendation</label>
             <div className="w-full border rounded px-3 py-6 text-sm">
-              <p className="text-md text-gray-500">
-                {request.issue?.recommendation}
-              </p>
+              <p className="text-md text-gray-500">{request.notes}</p>
             </div>
           </div>
 
-           <div>
-            <label className="block font-bold mb-3 text-xl">
-              Solution
-            </label>
+          <div>
+            <label className="block font-bold mb-3 text-xl">Solution</label>
             <div className="w-full border rounded px-3 py-6 text-sm">
               <p className="text-md text-gray-500">
-                {request.issue?.solution}
+                {request.solution || "No solution provided yet"}
               </p>
             </div>
           </div>
