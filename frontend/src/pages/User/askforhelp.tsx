@@ -13,19 +13,25 @@ export type ServiceRequest = {
   deviceId: string;
   deviceSerial: string;
   requestedBy: string;
+  requestedDate: Date | string;
   area: string;
   description: string;
   department: string;
   userId?: string;
-  submissionDate?: Date |string; // Optional, if submission date is available
+  phone?: string;
+  resolvedDate?: Date |string; 
   urgency: "Low" | "Medium" | "High";
   attachments: string[];
   createdAt: string;
   deviceImage?: string; // Optional, if device image is available
+  deviceName?: string; // Optional, if device name is available
+  deviceType?: string; // Optional, if device type is available
   status: "Pending" | "Assigned" | "Resolved"; // ✅ corrected
   assignedTo?: string; // store supervisor ID now
   assignedToName?: string; // store supervisor full name
   notes?: string; // supervisor's recommendation
+  solution?: string; // technician's solution
+  supervisorId?: string; // id of the supervisor assigned
   assignedDate:Date | string; // date assigned
 };
 
@@ -35,6 +41,9 @@ const AskForHelp: React.FC = () => {
   const navigate = useNavigate();
   const { devices } = useDeviceContext();
   const { users } = useUserContext();
+    const [resolvedDate, setResolvedDate] = useState<string>("");
+
+  
 
   const device = useMemo(() => devices.find((d) => d.id === id), [devices, id]);
   const currentUserId = localStorage.getItem("userId");
@@ -89,13 +98,20 @@ const AskForHelp: React.FC = () => {
       department: device.department,
       area: device.area,
       assignedDate: "",
-      submissionDate: new Date(),
+      phone: users.find((u) => u.userId === currentUserId)?.phone || "",
+      // requestedDate: new Date().toISOString(),
+      requestedDate: new Date().toISOString(),
+      resolvedDate: new Date(),
       deviceImage: device.image || "",
+      deviceName: device.name || "",
+      deviceType: device.type || "",
       description: description.trim(),
       urgency: urgency as "Low" | "Medium" | "High",
       attachments: files.map((f) => f.name),
+      solution: "",
+      supervisorId: "", // will be assigned later
       createdAt: new Date().toISOString(),
-      status: "Pending", // ✅ corrected spelling
+      status: "Pending", 
       notes: "",
       map: function (arg0: (r: any) => any): unknown {
         throw new Error("Function not implemented.");
@@ -114,6 +130,18 @@ const AskForHelp: React.FC = () => {
     setUrgency("");
     setFiles([]);
   };
+
+  
+
+
+  function setRequestedDate(value: string): void {
+    // Update the requestedDate state with the selected date string
+    // You may want to store it as an ISO string for consistency
+    // If you want to keep it as a string, just set it directly
+    // If you want to store as Date, use new Date(value)
+    // For now, let's store as string
+    localStorage.setItem("requestedDate", value);
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -181,6 +209,15 @@ const AskForHelp: React.FC = () => {
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </select>
+
+          <label className="block text-gray-500 mb-1">Requested Date</label>
+<input
+  type="date"
+  value={resolvedDate}
+  onChange={(e) => setResolvedDate(e.target.value)}
+  className="w-full border rounded px-3 py-1 text-base"
+/>
+
         </div>
 
         {error && <div className="text-red-600 text-sm">{error}</div>}

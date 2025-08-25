@@ -11,6 +11,7 @@ export type User = {
   userId: string;
   password: string;
   photo?: File | null;
+  phone?: string;
 };
 
 
