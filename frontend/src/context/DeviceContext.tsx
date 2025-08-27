@@ -4,10 +4,10 @@ export interface Device {
   id: string;
   image: string;
   type: string;
-  name: string; // Added name field for better identification
+  name: string; 
   serial: string;
   user: string;
-  userId?: string; // Optional userId for better association
+  userId?: string; 
   department: string;
   area: string;
 }
@@ -87,9 +87,6 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
-  // const getDevicesByUser = (userId: string) => {
-  //   return devices.filter(device => device.user === userId);
-  // };
 const getDevicesByUser = (userId: string) => {
   return devices.filter(device => device.userId === userId);
 };

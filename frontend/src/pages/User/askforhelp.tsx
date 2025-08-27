@@ -23,16 +23,16 @@ export type ServiceRequest = {
   urgency: "Low" | "Medium" | "High";
   attachments: string[];
   createdAt: string;
-  deviceImage?: string; // Optional, if device image is available
-  deviceName?: string; // Optional, if device name is available
-  deviceType?: string; // Optional, if device type is available
-  status: "Pending" | "Assigned" | "Resolved"; // ✅ corrected
-  assignedTo?: string; // store supervisor ID now
-  assignedToName?: string; // store supervisor full name
-  notes?: string; // supervisor's recommendation
-  solution?: string; // technician's solution
-  supervisorId?: string; // id of the supervisor assigned
-  assignedDate:Date | string; // date assigned
+  deviceImage?: string;
+  deviceName?: string; 
+  deviceType?: string; 
+  status: "Pending" | "Assigned" | "Resolved"; 
+  assignedTo?: string; 
+  assignedToName?: string; 
+  notes?: string;
+  solution?: string; 
+  supervisorId?: string; 
+  assignedDate:Date | string; 
 };
 
 
@@ -99,7 +99,6 @@ const AskForHelp: React.FC = () => {
       area: device.area,
       assignedDate: "",
       phone: users.find((u) => u.userId === currentUserId)?.phone || "",
-      // requestedDate: new Date().toISOString(),
       requestedDate: new Date().toISOString(),
       resolvedDate: new Date(),
       deviceImage: device.image || "",
@@ -135,11 +134,7 @@ const AskForHelp: React.FC = () => {
 
 
   function setRequestedDate(value: string): void {
-    // Update the requestedDate state with the selected date string
-    // You may want to store it as an ISO string for consistency
-    // If you want to keep it as a string, just set it directly
-    // If you want to store as Date, use new Date(value)
-    // For now, let's store as string
+ 
     localStorage.setItem("requestedDate", value);
   }
 

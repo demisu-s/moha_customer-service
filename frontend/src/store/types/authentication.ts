@@ -4,7 +4,6 @@ export interface RegisterData {
   userId: string;
   password: string;
   confirmPassword?: string;
-  primaryPhoneNumber?: string;
 }
 export interface LoginData {
   userId: string;
@@ -12,24 +11,18 @@ export interface LoginData {
 }
 
 export interface UserProfile {
-  bio: string | null;
   created_at: string;
   userId: string;
   firstName: string | null;
+  lastName: string | null;
   id: number;
   imageUrl: string | null;
-  lastName: string | null;
-  mainPhoneNumber: string | null;
-  secondaryPhoneNumber: string | null;
 }
 
 export interface UpdateUserProfile {
-  bio?: string | undefined;
   userId: string;
   firstName: string | null;
-  imageUrl?: string | null;
   lastName: string | null;
-  mainPhoneNumber: string | null;
-  secondaryPhoneNumber?: string | undefined;
+  imageUrl?: string | null;
   image?: File;
 }
