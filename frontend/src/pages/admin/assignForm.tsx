@@ -70,7 +70,7 @@ const AssignFormPage: React.FC = () => {
     );
 
     localStorage.setItem("serviceRequests", JSON.stringify(updated));
-    navigate("/dashboard/home");
+    navigate("/dashboard");
   };
 
   return (

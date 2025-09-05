@@ -123,8 +123,14 @@ export default function EditDevice() {
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                   <SelectItem value="HO">Head Office</SelectItem>
-                  <SelectItem value="Kality">Kality</SelectItem>
+                  <SelectItem value="Mekelle">Mekelle</SelectItem>
                   <SelectItem value="Summit">Summit</SelectItem>
+                   <SelectItem value="Nifas Silk">Nifas Silk</SelectItem>
+                  <SelectItem value="Hawassa">Hawassa</SelectItem>
+                  <SelectItem value="Bure">Bure</SelectItem>
+                   <SelectItem value="Teklehaymanot">Teklehaymanot</SelectItem>
+                  <SelectItem value="Dessie">Dessie</SelectItem>
+
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>
@@ -147,8 +153,12 @@ export default function EditDevice() {
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                   <SelectItem value="MIS">MIS</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="HR">HR</SelectItem>
+                  <SelectItem value="Finance">Finance</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Sales">Sales</SelectItem>
+                  <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Procrument">Procrument</SelectItem>
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>

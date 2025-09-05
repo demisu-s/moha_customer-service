@@ -4,6 +4,8 @@ import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useDeviceContext } from "../../context/DeviceContext";
 import DeviceCard2 from "../../components/dashboardComponents/DeviceCard2";
+import { useUserContext } from "../../context/UserContext";
+
 
 export default function Devices() {
   const { devices, deleteDevice} = useDeviceContext();
@@ -64,8 +66,12 @@ export default function Devices() {
                           >
                             <option value="">All</option>
                             <option value="MIS">MIS</option>
-                            <option value="Finance">Finance</option>
                             <option value="HR">HR</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Support">Planning</option>
+                            <option value="Admin">Procrument</option>
                           </select>
                         </div>
         
@@ -79,8 +85,13 @@ export default function Devices() {
                           >
                             <option value="">All</option>
                             <option value="HO">HO</option>
-                            <option value="Kality">Kality</option>
+                            <option value="Mekelle">Mekelle</option>
                             <option value="Summit">Summit</option>
+                            <option value="Bure">Bure</option>
+                            <option value="Hawassa">Hawassa</option>
+                            <option value="Nifas Silk">Nifas Silk</option>
+                            <option value="Teklehaymanot">Teklehaymanot</option>
+
                           </select>
                         </div>
                       </DropdownMenu.Content>

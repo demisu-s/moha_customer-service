@@ -25,7 +25,9 @@ const RequestSolutionComponent: React.FC = () => {
       if (found) {
         setRequest(found);
         if (found.resolvedDate) {
-          setResolvedDate(new Date(found.resolvedDate).toISOString().split("T")[0]); // set if exists
+          setResolvedDate(
+            new Date(found.resolvedDate).toISOString().split("T")[0]
+          );
         }
       }
     }
@@ -68,11 +70,11 @@ const RequestSolutionComponent: React.FC = () => {
     );
 
     localStorage.setItem("serviceRequests", JSON.stringify(updatedRequests));
-    navigate("/dashboard/home"); // back to dashboard
+    navigate("/dashboard");
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-8">
       <h2 className="text-3xl font-bold text-gray-800">
         Solve Request - {device ? device.name : request.deviceSerial}
       </h2>
@@ -81,72 +83,121 @@ const RequestSolutionComponent: React.FC = () => {
       </p>
 
       {/* Request Details */}
-      <div className="border rounded-lg p-4 bg-white space-y-2">
-        <h3 className="font-bold text-xl mb-2">Request Details</h3>
-        <p>
-          <strong>Requester:</strong>{" "}
-          {requester
-            ? `${requester.firstName} ${requester.lastName}`
-            : request.requestedBy}
-        </p>
-        <p>
-          <strong>Supervisor:</strong>{" "}
-          {supervisor
-            ? `${supervisor.firstName} ${supervisor.lastName}`
-            : request.assignedToName || "Not assigned"}
-        </p>
-        <p>
-          <strong>Device:</strong>{" "}
-          {device ? `${device.name} (${device.type})` : "Unknown device"}
-        </p>
-        <p>
-          <strong>Problem:</strong> {request.description}
-        </p>
-        <p>
-          <strong>Urgency:</strong> {request.urgency}
-        </p>
-        <p>
-          <strong>Assigned Date:</strong>{" "}
-          {request.assignedDate
-            ? new Date(request.assignedDate).toLocaleString()
-            : "—"}
-        </p>
-        <p>
-          <strong>Admin Notes:</strong> {request.notes || "No notes provided"}
-        </p>
+      <div className="bg-white border rounded-2xl shadow-sm p-6">
+        <h3 className="font-bold text-2xl mb-4 text-gray-800 flex items-center gap-2">
+          📝 Request Details
+        </h3>
+
+        {/* Grid for short fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
+          <div className="flex flex-col">
+            <span className="text-gray-500 font-medium">Requester</span>
+            <span className="text-gray-900">
+              {requester
+                ? `${requester.firstName} ${requester.lastName}`
+                : request.requestedBy}
+            </span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-500 font-medium">Supervisor</span>
+            <span className="text-gray-900">
+              {supervisor
+                ? `${supervisor.firstName} ${supervisor.lastName}`
+                : request.assignedToName || "Not assigned"}
+            </span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-500 font-medium">Device</span>
+            <span className="text-gray-900">
+              {device ? `${device.name} (${device.type})` : "Unknown device"}
+            </span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-500 font-medium">Urgency</span>
+            <span
+              className={`px-2 py-1 rounded-full text-xs w-fit ${
+                request.urgency === "High"
+                  ? "bg-red-100 text-red-600 font-semibold"
+                  : request.urgency === "Medium"
+                  ? "bg-yellow-100 text-yellow-600 font-semibold"
+                  : "bg-green-100 text-green-600 font-semibold"
+              }`}
+            >
+              {request.urgency}
+            </span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-500 font-medium">Assigned Date</span>
+            <span className="text-gray-900">
+              {request.assignedDate
+                ? new Date(request.assignedDate).toLocaleString()
+                : "—"}
+            </span>
+          </div>
+        </div>
+
+        {/* Problem */}
+        <div className="mb-6">
+          <span className="block text-gray-500 font-medium mb-1">Problem</span>
+          <div className="border rounded-lg p-3 bg-gray-50 text-gray-900 text-sm">
+            {request.description}
+          </div>
+        </div>
+
+        {/* Admin Notes */}
+        <div>
+          <span className="block text-gray-500 font-medium mb-1">
+            Admin Notes
+          </span>
+          <div className="border rounded-lg p-3 bg-gray-50 text-gray-900 text-sm italic">
+            {request.notes || "No notes provided"}
+          </div>
+        </div>
       </div>
 
       {/* Solution Form */}
-      <div className="border rounded-lg p-4 bg-white space-y-3">
-        <label className="block text-gray-500 mb-1">Resolved Date</label>
-        <input
-          type="date"
-          value={resolvedDate}
-          onChange={(e) => setResolvedDate(e.target.value)}
-          className="w-full border rounded px-3 py-1 text-base"
-        />
+      <div className="bg-white border rounded-2xl shadow-sm p-6 space-y-6">
+        <h3 className="font-bold text-2xl mb-4 text-gray-800 flex items-center gap-2">
+          ✅ Provide Solution
+        </h3>
 
-        <label className="block font-bold mb-2 text-xl">Solution</label>
-        <textarea
-          className="w-full border rounded px-3 py-2 text-sm"
-          rows={6}
-          placeholder="Describe how you solved the problem..."
-          value={solution}
-          onChange={(e) => setSolution(e.target.value)}
-        />
+        <div className="flex flex-col space-y-2">
+          <label className="text-gray-500 font-medium">Resolved Date</label>
+          <input
+            type="date"
+            value={resolvedDate}
+            onChange={(e) => setResolvedDate(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-primary-500 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex flex-col space-y-2">
+          <label className="text-gray-500 font-medium">Solution</label>
+          <textarea
+            className="w-full border rounded-lg p-3 bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            rows={6}
+            placeholder="Describe how you solved the problem..."
+            value={solution}
+            onChange={(e) => setSolution(e.target.value)}
+          />
+        </div>
       </div>
 
       {/* Actions */}
       <div className="flex justify-end gap-3">
         <Button
           onClick={() => navigate(-1)}
-          className="bg-white text-black px-4 py-1 border border-gray-300 rounded-md hover:bg-gray-100 duration-200 hover:shadow-md hover:scale-105"
+          className="bg-white text-black px-4 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 duration-200 hover:shadow-md hover:scale-105"
         >
           Cancel
         </Button>
         <Button
           onClick={handleSolve}
-          className="bg-primary-600 text-white px-4 py-1 border border-gray-300 rounded-md hover:bg-primary-900 duration-200 hover:shadow-md hover:scale-105"
+          className="bg-primary-600 text-white px-4 py-1 border border-gray-300 rounded-lg hover:bg-primary-900 duration-200 hover:shadow-md hover:scale-105"
         >
           Solve
         </Button>

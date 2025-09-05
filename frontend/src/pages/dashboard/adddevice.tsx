@@ -49,25 +49,30 @@ export default function AddDevice() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!filteredUsers.find((u) => u.userId === formData.userId)) {  // ✅ check by userId
-      alert("Selected user is invalid for the chosen department and area.");
-      return;
-    }
-    addDevice({
-      id: Date.now().toString(),
-      type: formData.type,
-      name: formData.name,
-      serial: formData.serial,
-      userId: formData.userId, // ✅ save userId
-      department: formData.department,
-      area: formData.area,
-      image: formData.image,
-      user: ""
-    });
-    navigate("/dashboard/devices");
-  };
+ const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const selectedUser = filteredUsers.find((u) => u.userId === formData.userId);
+  if (!selectedUser) {
+    alert("Selected user is invalid for the chosen department and area.");
+    return;
+  }
+
+  addDevice({
+    id: Date.now().toString(),
+    type: formData.type,
+    name: formData.name,
+    serial: formData.serial,
+    userId: formData.userId,
+    department: formData.department,
+    area: formData.area,
+    image: formData.image,
+    user: `${selectedUser.firstName} ${selectedUser.lastName}` // ✅ store user name
+  });
+
+  navigate("/dashboard/devices");
+};
+
 
   React.useEffect(() => {
     setFormData((prev) => ({ ...prev, userId: "" })); // ✅ reset userId
