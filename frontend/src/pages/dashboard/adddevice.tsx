@@ -32,7 +32,7 @@ export default function AddDevice() {
     type: "",
     name: "",
     serial: "",
-    userId: "", // ✅ store userId instead of user name
+    userId: "", 
     department: "",
     area: "HO",
     image: "/device-image.png",
@@ -67,7 +67,7 @@ export default function AddDevice() {
     department: formData.department,
     area: formData.area,
     image: formData.image,
-    user: `${selectedUser.firstName} ${selectedUser.lastName}` // ✅ store user name
+    user: `${selectedUser.firstName} ${selectedUser.lastName}` 
   });
 
   navigate("/dashboard/devices");
@@ -75,7 +75,7 @@ export default function AddDevice() {
 
 
   React.useEffect(() => {
-    setFormData((prev) => ({ ...prev, userId: "" })); // ✅ reset userId
+    setFormData((prev) => ({ ...prev, userId: "" }));
   }, [formData.department, formData.area]);
 
   return (
@@ -121,8 +121,14 @@ export default function AddDevice() {
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                   <SelectItem value="HO">Head Office</SelectItem>
-                  <SelectItem value="Kality">Kality</SelectItem>
+                  <SelectItem value="Dessie">Dessie</SelectItem>
                   <SelectItem value="Summit">Summit</SelectItem>
+                  <SelectItem value="Nifas Silk">Nifas Silk</SelectItem>
+                  <SelectItem value="Mekelle">Mekelle</SelectItem>  
+                  <SelectItem value="Bure">Bure</SelectItem>
+                  <SelectItem value="Hawassa">Hawassa</SelectItem>
+                  <SelectItem value="Teklehaymanot">Teklehaymanot</SelectItem>
+                  <SelectItem value="Gondar">Gondar</SelectItem>
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>
@@ -145,8 +151,17 @@ export default function AddDevice() {
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
                   <SelectItem value="MIS">MIS</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="HR">HR</SelectItem>
+                  <SelectItem value="Finance">Finance</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Sales">Sales</SelectItem>
+                  <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Procurement">Procurement</SelectItem>
+                  <SelectItem value="Audit">Audit</SelectItem>
+                  <SelectItem value="Project">Project</SelectItem>
+                  <SelectItem value="Law">Law</SelectItem>
+                  <SelectItem value="Quality">Quality</SelectItem>
+                  <SelectItem value="Property">Property</SelectItem>
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>

@@ -3,7 +3,7 @@ import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { useUserContext } from "../../context/UserContext"; // <-- import context
+import { useUserContext } from "../../context/UserContext";
 
 interface UserFormData {
   firstName: string;
@@ -34,6 +34,19 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = "SelectItem";
 
+// Plant -> Departments mapping
+const departmentsByPlant: Record<string, string[]> = {
+  HO: ["HR", "MIS", "Finance","Planning","Project","procrument", "Sales", "Marketing", "Law", "Property","Audit","Quality"],
+  Summit: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  NifasSilk: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  Teklehaymanot: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  Bure:["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  Mekelle: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  Dessie: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  Gonder: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+  Hawassa: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
+};
+
 const AddUser = () => {
   const { addUser } = useUserContext();
   const navigate = useNavigate();
@@ -54,8 +67,13 @@ const AddUser = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Reset department when plant (area) changes
+  React.useEffect(() => {
+    setFormData((prev) => ({ ...prev, department: "" }));
+  }, [formData.area]);
+
   const handleSubmit = () => {
-    addUser(formData); // Save to context
+    addUser(formData);
     setFormData({
       firstName: "",
       lastName: "",
@@ -67,7 +85,7 @@ const AddUser = () => {
       password: "",
       photo: null,
     });
-    navigate("/dashboard/users"); // go back to users page
+    navigate("/dashboard/users");
   };
 
   return (
@@ -80,7 +98,8 @@ const AddUser = () => {
           <input
             value={formData.firstName}
             onChange={(e) => handleChange("firstName", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter first name"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter first name"
           />
         </div>
 
@@ -90,11 +109,12 @@ const AddUser = () => {
           <input
             value={formData.lastName}
             onChange={(e) => handleChange("lastName", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter Last name"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter last name"
           />
         </div>
 
-        {/* Area */}
+        {/* Area (Plant) */}
         <div>
           <Label.Root className="text-lg font-light">Area</Label.Root>
           <Select.Root
@@ -110,15 +130,11 @@ const AddUser = () => {
             <Select.Portal>
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
-                  <SelectItem value="HO">Head Office</SelectItem>
-                  <SelectItem value="Kality">THP</SelectItem>
-                  <SelectItem value="Summit">Summit</SelectItem>
-                  <SelectItem value="Kality">NSP</SelectItem>
-                  <SelectItem value="Summit">Bure</SelectItem>
-                  <SelectItem value="Kality">Mekelle</SelectItem>
-                  <SelectItem value="Summit">Dessie</SelectItem>
-                  <SelectItem value="Kality">Gonder</SelectItem>
-                  <SelectItem value="Summit">Hawassa</SelectItem>
+                  {Object.keys(departmentsByPlant).map((plant) => (
+                    <SelectItem key={plant} value={plant}>
+                      {plant}
+                    </SelectItem>
+                  ))}
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>
@@ -128,11 +144,29 @@ const AddUser = () => {
         {/* Department */}
         <div>
           <Label.Root className="text-lg font-light">Department</Label.Root>
-          <input
+          <Select.Root
             value={formData.department}
-            onChange={(e) => handleChange("department", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter your department"
-          />
+            onValueChange={(value) => handleChange("department", value)}
+            disabled={!formData.area}
+          >
+            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1 disabled:opacity-50">
+              <Select.Value placeholder="Select Department" />
+              <Select.Icon>
+                <ChevronDownIcon />
+              </Select.Icon>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content className="bg-white border rounded shadow-md">
+                <Select.Viewport>
+                  {(departmentsByPlant[formData.area] || []).map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
         </div>
 
         {/* Role */}
@@ -190,7 +224,8 @@ const AddUser = () => {
           <input
             value={formData.userId}
             onChange={(e) => handleChange("userId", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter User ID"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter User ID"
           />
         </div>
 
@@ -201,7 +236,8 @@ const AddUser = () => {
             type="password"
             value={formData.password}
             onChange={(e) => handleChange("password", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1" placeholder="Enter Password"
+            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
+            placeholder="Enter Password"
           />
         </div>
 
@@ -213,9 +249,7 @@ const AddUser = () => {
             <input
               type="file"
               className="hidden"
-              onChange={(e) =>
-                handleChange("photo", e.target.files?.[0] || null)
-              }
+              onChange={(e) => handleChange("photo", e.target.files?.[0] || null)}
             />
           </label>
           {formData.photo && (

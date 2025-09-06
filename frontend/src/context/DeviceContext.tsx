@@ -33,36 +33,7 @@ const initialDevices: Device[] = [
     department: "MIS",
     area: "HO"
   },
-  {
-    id: "2",
-    image: "/device-image.png",
-    name: "HP EliteBook 840",
-    type: "Printer",
-    serial: "PR-7742",
-    user: "abebe",
-    department: "MIS",
-    area: "Kality"
-  },
-  {
-    id: "3",
-    image: "/device-image.png",
-    type: "Desktop",
-    name: "Lenovo ThinkCentre",
-    serial: "DT-1234",
-    user: "alem",
-    department: "Finance",
-    area: "Summit"
-  },
-  {
-    id: "4",
-    image: "/device-image.png",
-    type: "Tablet",
-    name: "iPad Pro",
-    serial: "TB-5678",
-    user: "alex",
-    department: "HR",
-    area: "Kality"
-  }
+
 ];
 
 export const DeviceProvider = ({ children }: { children: ReactNode }) => {

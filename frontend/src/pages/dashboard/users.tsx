@@ -1,4 +1,3 @@
-// src/pages/UserManagement.tsx
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { JSX, useEffect, useState } from "react";
@@ -78,8 +77,17 @@ export default function UserManagement(): JSX.Element {
                   >
                     <option value="">All</option>
                     <option value="MIS">MIS</option>
-                    <option value="Finance">Finance</option>
                     <option value="HR">HR</option>
+                    <option value="Law">Law</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Planning">Planning</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Procurement">Procurement</option>
+                    <option value="Quality">Quality</option>
+                    <option value="Audit">Audit</option>
+                    <option value="Project">Project</option>
+                    <option value="Property">Property</option>
                   </select>
                 </div>
 
@@ -93,8 +101,16 @@ export default function UserManagement(): JSX.Element {
                   >
                     <option value="">All</option>
                     <option value="HO">HO</option>
-                    <option value="Kality">Kality</option>
+                    <option value="Dessie">Dessie</option>
                     <option value="Summit">Summit</option>
+                    <option value="Teklehaymanot">Teklehaymanot</option>
+                    <option value="Mekelle">Mekelle</option>
+                    <option value="Hawassa">Hawassa</option>
+                    <option value="Bure">Bure</option>
+                    <option value="Nifas Silk">Nifas Silk</option>
+
+
+
                   </select>
                 </div>
 
