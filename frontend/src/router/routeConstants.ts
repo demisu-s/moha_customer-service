@@ -16,3 +16,4 @@ export const SOLUTION_ROUTE = "/requests/solve/:requestId";
 export const CLIENT_DASHBOARD_ROUTE = "/client-dashboard";
 export const SUPERVISOR_DASHBOARD_ROUTE = "/supervisor-dashboard";
 export const OVERVIEW_ROUTE="/dashboard/overview"
+export const REPORT_ROUTE="/dashboard/report"

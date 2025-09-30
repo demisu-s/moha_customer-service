@@ -4,7 +4,7 @@ import device1Back from "../assets/device1_back.jpg";
 import screenshot1 from "../assets/screenshot_1.png";
 import screenshot2 from "../assets/screenshot_2.jpg";
 
-export type Status = "Pending" | "Assigned" | "Resolved";
+export type Status = "Pending" | "Assigned" | "Resolved" |"Unresolved";
 
 
 export interface MaintenanceRequest {
@@ -53,6 +53,33 @@ export const maintenanceRequests: MaintenanceRequest[] = [
       serial: "CN-9576-9597",
       submissionDate: "2024-05-07",
       status: "Pending",
+    },
+    requester: {
+      userId: "u1", 
+      name: "Abebe Kebede",
+      location: "Kaliti",
+      department: "Marketing",
+      phone: "+251911111111",
+    },
+    issue: {
+      description: "The laptop screen is flickering frequently...",
+      recommendation: "Replace or check display cable.",
+      solution: "",
+      urgency: "High",
+      attachments: [screenshot1, screenshot2],
+    },
+  },
+
+   {
+    id: "10",
+    device: {
+      image: device1Img,
+      extraImages: [device1Side, device1Back],
+      name: "Latitude 7420 Laptop",
+      type: "Laptop",
+      serial: "CN-9576-9597",
+      submissionDate: "2024-05-07",
+      status: "Unresolved",
     },
     requester: {
       userId: "u1", 

@@ -78,32 +78,57 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   }
 
   // --- COMMON actions ---
- // src/components/dashboardComponents/DeviceCard.tsx
-else if (status === "Resolved") {
-  if (role === "admin" || role === "supervisor") {
-    // Admin & Supervisor can view history
-    buttons.push(
-      <Button
-        key="history"
-        onClick={() => navigate(`history/${id}`)}
-        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
-      >
-        History
-      </Button>
-    );
-  } else {
-    // Normal users only get details view
-    buttons.push(
-      <Button
-        key="details"
-        onClick={() => navigate(`details/${id}`)}
-        className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
-      >
-        Details
-      </Button>
-    );
+  else if (status === "Resolved") {
+    if (role === "admin" || role === "supervisor") {
+      // Admin & Supervisor can view history
+      buttons.push(
+        <Button
+          key="history"
+          onClick={() => navigate(`history/${id}`)}
+          className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+        >
+          History
+        </Button>
+      );
+    } else {
+      // Normal users only get details view
+      buttons.push(
+        <Button
+          key="details"
+          onClick={() => navigate(`details/${id}`)}
+          className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+        >
+          Details
+        </Button>
+      );
+    }
   }
-}
+
+  // --- UNSOLVED actions ---
+  else if (status === "Unresolved") {
+    if (role === "admin" || role === "supervisor") {
+      buttons.push(
+        <Button
+          key="unresolved"
+          onClick={() => navigate(`unresolved/${id}`)}
+          className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+        >
+          Details
+        </Button>
+      );
+    } else {
+      // Normal users just see details
+      buttons.push(
+        <Button
+          key="details"
+          onClick={() => navigate(`details/${id}`)}
+          className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+        >
+          Details
+        </Button>
+      );
+    }
+  }
 
   const buttonContainerClass =
     buttons.length === 1 ? "flex justify-center mt-2" : "flex justify-between mt-2";

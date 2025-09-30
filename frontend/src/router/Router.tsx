@@ -14,6 +14,7 @@ import AddDevice from '../pages/dashboard/adddevice';
 import EditDevice from '../pages/dashboard/editdevice';
 import Plants from '../pages/dashboard/plants';
 import Overview from '../pages/admin/Overview';
+import Report from '../pages/admin/Report';
 import Scheduler from '../pages/dashboard/Scheduler';
 import DeviceDetail from '../pages/dashboard/devicedetail';
 import Home from '../pages/User/Home'; // Assuming you have a Home component for the user dashboard
@@ -23,6 +24,7 @@ import { SupervisorDashboardLayout } from '../pages/layout/SupervisorDashboardLa
 import AskForHelp from '../pages/User/askforhelp';
 import StatusPage from '../pages/User/status';
 import ClientOverview from '../pages/User/overview';
+import UnresolvedPage from '../pages/request/UnresolvedPage';
 
 export const router = createBrowserRouter([
   {
@@ -74,6 +76,10 @@ export const router = createBrowserRouter([
   path: "history/:requestId", 
   element: <RequestHistoryPage/>
 },
+ {
+  path: "unresolved/:requestId", 
+  element: <UnresolvedPage/>
+},
     {
       path: "users", 
       element: <UserManagement />
@@ -110,10 +116,15 @@ export const router = createBrowserRouter([
       path: "overview", 
       element: <Overview/>
     },
+      {
+      path: "report", 
+      element: <Report/>
+    },
     {
       path: "schedules", 
       element: <Scheduler/>
     },
+  
   ]
 },
 {

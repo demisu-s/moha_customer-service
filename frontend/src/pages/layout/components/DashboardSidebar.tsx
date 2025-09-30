@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie } from 'react-icons/fa';
+import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaRegFileAlt } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
-import logo from '../../../assets/nono.png'; // Replace with your actual logo
-import { DASHBOARD_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE, OVERVIEW_ROUTE } from '../../../router/routeConstants';
+import logo from '../../../assets/nono.png'; 
+import { DASHBOARD_ROUTE,REPORT_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE, OVERVIEW_ROUTE } from '../../../router/routeConstants';
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
@@ -17,7 +17,9 @@ export function DashboardSidebar() {
     { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
     { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
     { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    { to: REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },
     { to: OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },
+
   ];
 
   return (
@@ -32,6 +34,7 @@ export function DashboardSidebar() {
             <NavLink
               key={label}
               to={to}
+              end={to === DASHBOARD_ROUTE}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium ${
                   isActive ? 'bg-white text-[#1891C3]' : 'hover:bg-white hover:text-[#1891C3]'

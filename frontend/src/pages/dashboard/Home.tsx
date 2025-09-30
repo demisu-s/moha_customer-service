@@ -4,7 +4,9 @@ import DeviceCard from "../../components/dashboardComponents/DeviceCard";
 import { ServiceRequest } from "../User/askforhelp";
 
 const Home: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"Pending" | "Assigned" | "Resolved">("Pending");
+  const [activeTab, setActiveTab] = useState<
+    "Pending" | "Assigned" | "Resolved" | "Unresolved"
+  >("Pending");
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const userRole = localStorage.getItem("role");
@@ -29,41 +31,37 @@ const Home: React.FC = () => {
   }
 
   // Tabs available
-  const availableTabs: ("Pending" | "Assigned" | "Resolved")[] = [
+  const availableTabs: ("Pending" | "Assigned" | "Resolved" | "Unresolved")[] = [
     "Pending",
     "Assigned",
     "Resolved",
+    "Unresolved",
   ];
 
   // Filtering requests
   const filteredRequests = requests.filter((request) => {
     const matchesTab = request.status === activeTab;
     const matchesSearch =
-      request.deviceSerial.toLowerCase().includes(search.toLowerCase()) ||
-      request.description.toLowerCase().includes(search.toLowerCase()) ||
-      request.requestedBy.toLowerCase().includes(search.toLowerCase()) ||
-      request.urgency.toLowerCase().includes(search.toLowerCase()) ||
-      request.area.toLowerCase().includes(search.toLowerCase()) ||
-      request.department.toLowerCase().includes(search.toLowerCase());
+      request.deviceSerial?.toLowerCase().includes(search.toLowerCase()) ||
+      request.description?.toLowerCase().includes(search.toLowerCase()) ||
+      request.requestedBy?.toLowerCase().includes(search.toLowerCase()) ||
+      request.urgency?.toLowerCase().includes(search.toLowerCase()) ||
+      request.area?.toLowerCase().includes(search.toLowerCase()) ||
+      request.department?.toLowerCase().includes(search.toLowerCase());
 
     if (userRole === "admin") {
       return matchesTab && matchesSearch;
-    } else if (userRole === "supervisor") {
-      if (activeTab === "Pending") {
-        // Supervisors see all pending requests
-        return matchesTab && matchesSearch;
-      }
-     if (activeTab === "Assigned") {
-  // Supervisors see only the ones assigned to them
-  return matchesTab && matchesSearch && request.assignedTo === userId; // userId is string
-}
-
-
-      if (activeTab === "Resolved") {
-         // Supervisors see ALL resolved requests (same as admin)
-        return matchesTab && matchesSearch;
-      }
     }
+
+    if (userRole === "supervisor") {
+      if (activeTab === "Assigned") {
+        // Supervisors see only the ones assigned to them
+        return matchesTab && matchesSearch && request.assignedTo === userId;
+      }
+      // For Pending, Resolved, and Unsolved -> supervisors see all
+      return matchesTab && matchesSearch;
+    }
+
     return false;
   });
 
@@ -76,7 +74,8 @@ const Home: React.FC = () => {
             Welcome, {userName || "User"}!
           </h1>
           <p className="text-sm text-gray-400 max-w-xl">
-            Select a category to view devices. You can search by serial number, username, or department.
+            Select a category to view devices. You can search by serial number,
+            username, or department.
           </p>
         </div>
         <div className="w-full md:w-[300px]">
@@ -110,21 +109,23 @@ const Home: React.FC = () => {
 
       {/* Cards */}
       {filteredRequests.length === 0 ? (
-        <p className="text-gray-500 italic">No devices found for this status.</p>
+        <p className="text-gray-500 italic">
+          No devices found for this status.
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredRequests.map((request) => (
             <DeviceCard
               key={request.id}
               id={request.id}
-              deviceType={"Device"} // placeholder unless your model has type
+              deviceType={request.deviceType || "Device"} // use from request if exists
               serialNo={request.deviceSerial}
               department={request.department}
               area={request.area}
               userName={request.requestedBy}
               problem={request.description}
               status={request.status}
-              supervisorName={request.assignedTo} // supervisor mapping can be added
+              supervisorName={request.assignedTo} // could map ID -> Name later
             />
           ))}
         </div>

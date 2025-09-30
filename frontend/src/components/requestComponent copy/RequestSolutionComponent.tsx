@@ -55,13 +55,35 @@ const RequestSolutionComponent: React.FC = () => {
 
     const requests: ServiceRequest[] = JSON.parse(stored);
 
-    // ✅ Update request with solution + mark as Resolved
     const updatedRequests = requests.map((r) =>
       String(r.id) === String(requestId)
         ? {
             ...r,
             solution,
             status: "Resolved",
+            resolvedDate: resolvedDate
+              ? new Date(resolvedDate).toISOString()
+              : new Date().toISOString(),
+          }
+        : r
+    );
+
+    localStorage.setItem("serviceRequests", JSON.stringify(updatedRequests));
+    navigate("/dashboard");
+  };
+
+  const handleUnresolved = () => {
+    const stored = localStorage.getItem("serviceRequests");
+    if (!stored) return;
+
+    const requests: ServiceRequest[] = JSON.parse(stored);
+
+    const updatedRequests = requests.map((r) =>
+      String(r.id) === String(requestId)
+        ? {
+            ...r,
+            solution,
+            status: "Unresolved", // ✅ consistent with rest of app
             resolvedDate: resolvedDate
               ? new Date(resolvedDate).toISOString()
               : new Date().toISOString(),
@@ -197,9 +219,15 @@ const RequestSolutionComponent: React.FC = () => {
         </Button>
         <Button
           onClick={handleSolve}
-          className="bg-primary-600 text-white px-4 py-1 border border-gray-300 rounded-lg hover:bg-primary-900 duration-200 hover:shadow-md hover:scale-105"
+          className="bg-green-600 text-white px-4 py-1 border border-gray-300 rounded-lg hover:bg-green-700 duration-200 hover:shadow-md hover:scale-105"
         >
-          Solve
+          Resolved
+        </Button>
+        <Button
+          onClick={handleUnresolved}
+          className="bg-red-600 text-white px-4 py-1 border border-gray-300 rounded-lg hover:bg-red-700 duration-200 hover:shadow-md hover:scale-105"
+        >
+          Unsolved
         </Button>
       </div>
     </div>
