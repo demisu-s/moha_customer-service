@@ -2,7 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
-import { ServiceRequest } from "../../pages/User/askforhelp";
+import {
+  useServiceRequests,
+  ServiceRequest,
+} from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
 
@@ -10,10 +13,10 @@ const HistoryDetailsComponent: React.FC = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
   const { users } = useUserContext();
+  const { devices } = useDeviceContext();
   const [request, setRequest] = useState<ServiceRequest | null>(null);
-   const { devices } = useDeviceContext();   // ✅ device lookup
 
-  // ✅ Load request from localStorage
+  // ✅ Load specific request from localStorage
   useEffect(() => {
     const stored = localStorage.getItem("serviceRequests");
     if (stored) {
@@ -34,23 +37,26 @@ const HistoryDetailsComponent: React.FC = () => {
     );
   }
 
-  // ✅ Lookup requester & supervisor from context
+  // ✅ Lookup requester, supervisor, and device
   const requester = users.find((u) => u.userId === request.userId);
   const supervisor = users.find((u) => u.userId === request.assignedTo);
-    const device = devices.find((d) => d.id === request.deviceId);
+  const device = devices.find((d) => d.id === request.deviceId);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      <h2 className="text-3xl font-bold text-gray-800">
-        Request - {request.deviceSerial}
-        {/* Request - {device ? device.name : request.deviceSerial} */}
-      </h2>
-      <p className="text-sm text-gray-400 max-w-xl">
-        View and manage all incoming reported issues and new machine requests.
-      </p>
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-3xl font-bold text-gray-800">
+          Request – {device ? device.name : request.deviceSerial}
+        </h2>
+        <p className="text-sm text-gray-400">
+          Detailed record of this service request.
+        </p>
+      </div>
 
+      {/* Summary Section */}
       <div className="grid md:grid-cols-3 gap-4">
-        {/* Device Image + Request Summary */}
+        {/* Left: Device Image + Summary */}
         <div className="col-span-2 flex gap-0">
           {request.deviceImage && (
             <div className="border rounded-l-lg p-4 flex items-center justify-center bg-white">
@@ -65,42 +71,40 @@ const HistoryDetailsComponent: React.FC = () => {
             <h3 className="font-bold mb-3 text-xl">Request Summary</h3>
             <div className="text-sm space-y-1">
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Device Name:
-                </strong>{" "}
+                <strong className="text-gray-500 pr-2">Device Name:</strong>
                 {device ? device.name : "Unknown"}
               </p>
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-6">
-                  Device Type:
-                </strong>{" "}
+                <strong className="text-gray-500 pr-2">Device Type:</strong>
                 {device ? device.type : "Unknown"}
               </p>
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Device ID/Serial:
-                </strong>{" "}
+                <strong className="text-gray-500 pr-2">Serial:</strong>
                 {request.deviceSerial}
               </p>
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Requested Date:
-                </strong>{" "}
-                 {request.requestedDate
+                <strong className="text-gray-500 pr-2">Requested Date:</strong>
+                {request.requestedDate
                   ? new Date(request.requestedDate).toLocaleString()
                   : "—"}
               </p>
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-2">
-                  Status:
-                </strong>{" "}
-                <span className="text-red-500 font-semibold">
-                  {request.status}{" "}
-                  <span className="text-gray-500 font-normal">by</span>{" "}
-                  {supervisor
-                    ? `${supervisor.firstName} ${supervisor.lastName}`
-                    : request.assignedToName || "Not assigned"}
-                </span>
+                <strong className="text-gray-500 pr-2">Status:</strong>
+                <span
+                  className={`font-semibold ${
+                    request.status === "Resolved"
+                      ? "text-green-600"
+                      : request.status === "Unresolved"
+                      ? "text-red-500"
+                      : "text-yellow-600"
+                  }`}
+                >
+                  {request.status}
+                </span>{" "}
+                <span className="text-gray-500 font-normal">by</span>{" "}
+                {supervisor
+                  ? `${supervisor.firstName} ${supervisor.lastName}`
+                  : request.assignedToName || "Not assigned"}
               </p>
             </div>
           </div>
@@ -111,29 +115,21 @@ const HistoryDetailsComponent: React.FC = () => {
           <h3 className="font-bold mb-3 text-xl">Requester Information</h3>
           <div className="text-sm space-y-1">
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                User Name:
-              </strong>{" "}
+              <strong className="text-gray-500 pr-2">User:</strong>
               {requester
-                ? requester.firstName + " " + requester.lastName
+                ? `${requester.firstName} ${requester.lastName}`
                 : request.requestedBy || "Unknown"}
             </p>
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                Plant Location:
-              </strong>{" "}
+              <strong className="text-gray-500 pr-2">Plant Location:</strong>
               {request.area}
             </p>
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                Department:
-              </strong>{" "}
+              <strong className="text-gray-500 pr-2">Department:</strong>
               {request.department}
             </p>
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                Phone number:
-              </strong>{" "}
+              <strong className="text-gray-500 pr-2">Phone:</strong>
               {request.phone}
             </p>
           </div>
@@ -141,46 +137,46 @@ const HistoryDetailsComponent: React.FC = () => {
       </div>
 
       {/* Issue Description */}
-      <div className="border rounded-lg p-4">
-        <h3 className="font-bold mb-3 text-xl">Issue Description</h3>
-        <div>
+      <div className="border rounded-lg p-4 bg-white">
+        <h3 className="font-bold mb-3 text-xl">Issue Details</h3>
+        <div className="text-sm text-gray-600 space-y-1">
           <p>
-            <strong className="text-lg font-light text-gray-500 pr-4">
-              Assigned Date:
-            </strong>{" "}
+            <strong className="text-gray-500 pr-2">Assigned Date:</strong>
             {request.assignedDate
               ? new Date(request.assignedDate).toLocaleString()
               : "—"}
           </p>
           <p>
-            <strong className="text-lg font-light text-gray-500 pr-4">
-              Resolved Date:
-            </strong>{" "}
+            <strong className="text-gray-500 pr-2">Resolved Date:</strong>
             {request.resolvedDate
               ? new Date(request.resolvedDate).toLocaleString()
               : "—"}
           </p>
+          <p>
+            <strong className="text-gray-500 pr-2">Issue:</strong>
+            {request.issues || "—"}
+          </p>
+          <div className="mt-3">
+            <p className="text-gray-500 font-medium mb-1">Description:</p>
+            <p className="text-gray-700">{request.description}</p>
+          </div>
         </div>
-        <p className="text-md font-light text-gray-500 mb-2">Description</p>
-        <p className="text-md font-light mb-3">{request.description}</p>
       </div>
 
       {/* Recommendation & Solution */}
-      <div className="border rounded-lg p-4 space-y-3">
+      <div className="border rounded-lg p-4 bg-white space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block font-bold mb-3 text-xl">Recommendation</label>
-            <div className="w-full border rounded px-3 py-6 text-sm">
-              <p className="text-md text-gray-500">{request.notes}</p>
+            <h4 className="font-bold mb-2 text-lg">Recommendation</h4>
+            <div className="border rounded px-3 py-3 text-sm text-gray-700 bg-gray-50 min-h-[80px]">
+              {request.notes || "No recommendation provided."}
             </div>
           </div>
 
           <div>
-            <label className="block font-bold mb-3 text-xl">Solution</label>
-            <div className="w-full border rounded px-3 py-6 text-sm">
-              <p className="text-md text-gray-500">
-                {request.solution || "No solution provided yet"}
-              </p>
+            <h4 className="font-bold mb-2 text-lg">Solution</h4>
+            <div className="border rounded px-3 py-3 text-sm text-gray-700 bg-gray-50 min-h-[80px]">
+              {request.solution || "No solution provided yet."}
             </div>
           </div>
         </div>

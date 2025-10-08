@@ -2,7 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
-import { ServiceRequest } from "../../pages/User/askforhelp";
+import {
+  useServiceRequests,
+  ServiceRequest,
+} from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
 
@@ -95,7 +98,7 @@ const UnresolvedComponent: React.FC = () => {
                   Status:
                 </strong>{" "}
                 <span className="text-red-500 font-semibold">
-                  {request.status}{" "}
+                  {request.status}
                  
                   
                 </span>

@@ -1,31 +1,22 @@
-// src/pages/dashboard/AssignFormPage.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
-import { ServiceRequest } from "../User/askforhelp";
-import { useUserContext } from "../../context/UserContext"; // import user context
+import { useServiceRequests, Urgency } from "../../context/ServiceRequestContext";
+import { useUserContext } from "../../context/UserContext";
 
 const AssignFormPage: React.FC = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
-  const { users } = useUserContext(); // get users from context
+  const { users } = useUserContext();
+  const { getRequestById, updateRequest } = useServiceRequests();
 
-  const [request, setRequest] = useState<ServiceRequest | null>(null);
   const [supervisorId, setSupervisorId] = useState("");
   const [notes, setNotes] = useState("");
   const [date, setDate] = useState("");
+  const [urgency, setUrgency] = useState<Urgency>("");
 
-  // filter supervisors
+  const request = getRequestById(requestId || "");
   const supervisors = users.filter((u) => u.role === "Supervisor");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("serviceRequests");
-    if (stored) {
-      const requests: ServiceRequest[] = JSON.parse(stored);
-      const found = requests.find((r) => r.id === requestId);
-      if (found) setRequest(found);
-    }
-  }, [requestId]);
 
   if (!request) {
     return (
@@ -39,37 +30,25 @@ const AssignFormPage: React.FC = () => {
   }
 
   const handleSubmit = () => {
-    if (!supervisorId) {
-      alert("Please select a supervisor");
+    if (!supervisorId || !urgency) {
+      alert("Please select supervisor and urgency");
       return;
     }
 
-    // find selected supervisor object by userId
     const selectedSupervisor = supervisors.find(
       (s) => s.userId === supervisorId
     );
-    if (!selectedSupervisor) {
-      alert("Invalid supervisor selected");
-      return;
-    }
+    if (!selectedSupervisor) return;
 
-    const stored = localStorage.getItem("serviceRequests");
-    let updated: ServiceRequest[] = stored ? JSON.parse(stored) : [];
+    updateRequest(request.id, {
+      status: "Assigned",
+      assignedTo: selectedSupervisor.userId,
+      assignedToName: `${selectedSupervisor.firstName} ${selectedSupervisor.lastName}`,
+      notes,
+      assignedDate: date,
+      urgency,
+    });
 
-    updated = updated.map((r) =>
-      r.id === request.id
-        ? {
-            ...r,
-            status: "Assigned",
-            assignedTo: selectedSupervisor.userId, // ✅ store string userId
-            assignedToName: `${selectedSupervisor.firstName} ${selectedSupervisor.lastName}`, // ✅ store display name
-            notes,
-            assignedDate: date,
-          }
-        : r
-    );
-
-    localStorage.setItem("serviceRequests", JSON.stringify(updated));
     navigate("/dashboard");
   };
 
@@ -79,23 +58,17 @@ const AssignFormPage: React.FC = () => {
         Assign Request - {request.deviceSerial}
       </h2>
 
-      {/* Request Summary */}
       <div className="border rounded-lg p-4 bg-white">
         <h3 className="font-bold mb-3 text-xl">Request Summary</h3>
-        <p>
-          <strong>Description:</strong> {request.description}
-        </p>
-        <p>
-          <strong>Urgency:</strong> {request.urgency}
-        </p>
-        <p>
-          <strong>Status:</strong> {request.status}
-        </p>
+        <p><strong>Description:</strong> {request.description}</p>
+        <p><strong>Status:</strong> {request.status}</p>
+        <p><strong>Problem Category:</strong>{request.problemCategory}</p>
+        <p> <strong>Requested Date:</strong>{request.requestedDate}</p>
       </div>
 
-      {/* Assign Supervisor */}
       <div className="border rounded-lg p-4 space-y-3 bg-white">
         <h3 className="font-bold mb-3 text-xl">Assign Supervisor</h3>
+
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-gray-500 mb-1">Select Supervisor</label>
@@ -116,6 +89,7 @@ const AssignFormPage: React.FC = () => {
               )}
             </select>
           </div>
+
           <div>
             <label className="block text-gray-500 mb-1">Assignment Date</label>
             <input
@@ -127,14 +101,31 @@ const AssignFormPage: React.FC = () => {
           </div>
         </div>
 
-        <div>
+        <div className="mt-4">
+          <label className="block font-semibold text-2xl">Urgency level</label>
+          <p className="text-gray-500 text-sm mb-4">
+            Specify urgency level accurately.
+          </p>
+          <select
+            value={urgency}
+            onChange={(e) => setUrgency(e.target.value as Urgency)}
+            className="w-60 border border-black rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-gray-300"
+          >
+            <option value="">Select urgency</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
           <label className="block font-bold mb-2">Additional Notes</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="w-full border rounded px-3 py-2 text-sm"
             rows={3}
-            placeholder="Add any relevant note for the supervisor."
+            placeholder="Add any relevant note."
           />
         </div>
       </div>

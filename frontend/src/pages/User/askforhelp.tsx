@@ -4,59 +4,32 @@ import { Button } from "@radix-ui/themes";
 import { IoArrowBack } from "react-icons/io5";
 import { useDeviceContext } from "../../context/DeviceContext";
 import { useUserContext } from "../../context/UserContext";
-
-type Urgency = "" | "Low" | "Medium" | "High";
-
-export type ServiceRequest = {
-  map(arg0: (r: any) => any): unknown;
-  id: string;
-  deviceId: string;
-  deviceSerial: string;
-  requestedBy: string;
-  requestedDate: Date | string;
-  area: string;
-  description: string;
-  department: string;
-  userId?: string;
-  phone?: string;
-  resolvedDate?: Date |string; 
-  urgency: "Low" | "Medium" | "High";
-  attachments: string[];
-  createdAt: string;
-  deviceImage?: string;
-  deviceName?: string; 
-  deviceType?: string; 
-  status: "Pending" | "Assigned" | "Resolved"; 
-  assignedTo?: string; 
-  assignedToName?: string; 
-  notes?: string;
-  solution?: string; 
-  supervisorId?: string; 
-  assignedDate:Date | string; 
-};
-
+import { useServiceRequests, ServiceRequest } from "../../context/ServiceRequestContext";
+import { SuccessDialog } from "../../components/ui/SuccessDialog";
 
 const AskForHelp: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { devices } = useDeviceContext();
   const { users } = useUserContext();
-    const [resolvedDate, setResolvedDate] = useState<string>("");
+  const { addRequest } = useServiceRequests();
 
-  
+  const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [ProblemCategory, setProblemCategory] = useState<
+    "Hardware" | "Software" | "Network" | "Other"
+  >("Hardware");
+  const [error, setError] = useState<string | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
+  // Get current device & user
   const device = useMemo(() => devices.find((d) => d.id === id), [devices, id]);
   const currentUserId = localStorage.getItem("userId");
+
   const currentUserName = useMemo(() => {
     const u = users.find((u) => u.userId === currentUserId);
     return u ? `${u.firstName} ${u.lastName}` : currentUserId || "User";
   }, [users, currentUserId]);
-
-  const [description, setDescription] = useState("");
-  const [urgency, setUrgency] = useState<Urgency>("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   if (!device) {
     return (
@@ -69,77 +42,64 @@ const AskForHelp: React.FC = () => {
     );
   }
 
+  // handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
-    }
+    if (e.target.files) setFiles(Array.from(e.target.files));
   };
 
+  // handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (!description.trim()) {
       setError("Please describe the problem.");
       return;
     }
-    if (!urgency) {
-      setError("Please select an urgency level.");
-      return;
-    }
 
-    // ✅ Create new service request
+    const now = new Date().toISOString();
+
     const request: ServiceRequest = {
       id: `${Date.now()}`,
       deviceId: device.id,
       deviceSerial: device.serial,
-      requestedBy: currentUserName || "User",
-      department: device.department,
+      requestedBy: currentUserName,
+      requestedDate: now, // ✅ current date/time automatically
       area: device.area,
-      assignedDate: "",
+      description: description.trim(),
+      department: device.department,
+      userId: currentUserId || "",
       phone: users.find((u) => u.userId === currentUserId)?.phone || "",
-      requestedDate: new Date().toISOString(),
-      resolvedDate: new Date(),
+      attachments: files.map((f) => f.name),
+      createdAt: now,
       deviceImage: device.image || "",
       deviceName: device.name || "",
       deviceType: device.type || "",
-      description: description.trim(),
-      urgency: urgency as "Low" | "Medium" | "High",
-      attachments: files.map((f) => f.name),
-      solution: "",
-      supervisorId: "", // will be assigned later
-      createdAt: new Date().toISOString(),
-      status: "Pending", 
-      notes: "",
-      map: function (arg0: (r: any) => any): unknown {
-        throw new Error("Function not implemented.");
-      }
+      status: "Pending",
+      problemCategory: ProblemCategory,
     };
 
+    // Save in context & localStorage
+    addRequest(request);
+    const existing = JSON.parse(localStorage.getItem("serviceRequests") || "[]");
+    localStorage.setItem("serviceRequests", JSON.stringify([request, ...existing]));
 
-    // ✅ Store in localStorage
-    const key = "serviceRequests";
-    const prevRaw = localStorage.getItem(key);
-    const prev: ServiceRequest[] = prevRaw ? JSON.parse(prevRaw) : [];
-    localStorage.setItem(key, JSON.stringify([request, ...prev]));
-
-    setSuccess("✅ Your request has been submitted successfully. The Admin will review it.");
+    // Reset form
     setDescription("");
-    setUrgency("");
     setFiles([]);
+    setProblemCategory("Hardware");
+
+    // Show success dialog
+    setShowSuccessDialog(true);
+    setTimeout(() => {
+      setShowSuccessDialog(false);
+      navigate("/client-dashboard");
+    }, 3000);
   };
-
-  
-
-
-  function setRequestedDate(value: string): void {
- 
-    localStorage.setItem("requestedDate", value);
-  }
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Header */}
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold text-black">Request Device Service</h1>
         <Button
@@ -152,16 +112,45 @@ const AskForHelp: React.FC = () => {
       </div>
 
       <p className="text-gray-600 mb-3">
-        Fill out the form below to request a repair or replacement of a device/machine. Please
-        provide as much detail as possible to help us process your request efficiently.
+        Fill out the form below to request repair or maintenance. Please provide as much detail as possible.
       </p>
 
+      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white border border-gray-300 rounded-xl p-6 space-y-5"
       >
+        {/* Problem Type + Date */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold text-lg mb-1">Problem Category</label>
+            <select
+              value={ProblemCategory}
+              onChange={(e) => setProblemCategory(e.target.value as any)}
+              className="w-full border rounded px-3 py-2 text-base"
+            >
+              <option value="Hardware">Hardware</option>
+              <option value="Software">Software</option>
+              <option value="Network">Network</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-lg mb-1">Requested Date</label>
+            {/* ✅ Auto-filled, not editable */}
+            <input
+              type="text"
+              disabled
+              value={new Date().toLocaleString()}
+              className="w-full border rounded px-3 py-2 text-base bg-gray-50 text-gray-600 cursor-not-allowed"
+            />
+          </div>
+        </div>
+
+        {/* Description */}
         <div>
-          <label className="block font-semibold mb-4 text-2xl">Problem description</label>
+          <label className="block font-semibold mb-2 text-lg">Problem Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -170,10 +159,11 @@ const AskForHelp: React.FC = () => {
           />
         </div>
 
+        {/* Attachments */}
         <div>
-          <label className="block font-semibold text-2xl">Attachments</label>
-          <p className="text-gray-500 text-sm mb-4">
-            Attach relevant photos or video if available to illustrate the issue (Optional).
+          <label className="block font-semibold text-lg">Attachments</label>
+          <p className="text-gray-500 text-sm mb-2">
+            Attach relevant photos or videos (optional).
           </p>
           <input
             type="file"
@@ -183,55 +173,32 @@ const AskForHelp: React.FC = () => {
             className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
           {files.length > 0 && (
-            <div className="mt-2 text-xs text-gray-600">
-              {files.length} file(s) selected
-            </div>
+            <div className="mt-2 text-xs text-gray-600">{files.length} file(s) selected</div>
           )}
         </div>
 
-        <div>
-          <label className="block font-semibold text-2xl">Urgency level</label>
-          <p className="text-gray-500 text-sm mb-4">
-            Specify urgency level accurately based on operational impact.
-          </p>
-          <select
-            value={urgency}
-            onChange={(e) => setUrgency(e.target.value as Urgency)}
-            className="w-60 border border-black rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-gray-300"
-          >
-            <option value="">Select urgency</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-
-          <label className="block text-gray-500 mb-1">Requested Date</label>
-<input
-  type="date"
-  value={resolvedDate}
-  onChange={(e) => setResolvedDate(e.target.value)}
-  className="w-full border rounded px-3 py-1 text-base"
-/>
-
-        </div>
-
+        {/* Error */}
         {error && <div className="text-red-600 text-sm">{error}</div>}
-        {success && <div className="text-green-700 text-sm">{success}</div>}
 
+        {/* Submit */}
         <div className="pt-3">
           <button
             type="submit"
-            className="px-8 py-1 w-full rounded-lg bg-primary-600 hover:bg-primary-900 text-white text-xl font-bold shadow"
+            className="px-8 py-2 w-full rounded-lg bg-primary-600 hover:bg-primary-900 text-white text-lg font-bold shadow"
           >
             Submit
           </button>
         </div>
       </form>
 
+      {/* Footer */}
       <div className="mt-8 text-sm text-gray-500">
         Submitting for: <span className="font-semibold">{device.name}</span> ({device.serial}) •
         Requested by <span className="font-semibold">{currentUserName}</span>
       </div>
+
+      {/* ✅ Success Popup */}
+      <SuccessDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog} />
     </div>
   );
 };

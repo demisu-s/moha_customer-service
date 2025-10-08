@@ -1,25 +1,18 @@
 // src/pages/dashboard/Home.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DeviceCard from "../../components/dashboardComponents/DeviceCard";
-import { ServiceRequest } from "../User/askforhelp";
+import { useServiceRequests } from "../../context/ServiceRequestContext";
 
 const Home: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<
-    "Pending" | "Assigned" | "Resolved" | "Unresolved"
-  >("Pending");
+  const [activeTab, setActiveTab] = useState<"Pending" | "Assigned" | "Resolved" | "Unresolved">("Pending");
   const [search, setSearch] = useState("");
-  const [requests, setRequests] = useState<ServiceRequest[]>([]);
+
+  // ✅ Use context instead of manually reading localStorage
+  const { requests } = useServiceRequests();
+
   const userRole = localStorage.getItem("role");
   const userId = localStorage.getItem("userId");
   const userName = localStorage.getItem("userName");
-
-  // Load requests from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem("serviceRequests");
-    if (stored) {
-      setRequests(JSON.parse(stored));
-    }
-  }, []);
 
   // Only Admin & Supervisor allowed here
   if (userRole !== "admin" && userRole !== "supervisor") {
@@ -38,7 +31,7 @@ const Home: React.FC = () => {
     "Unresolved",
   ];
 
-  // Filtering requests
+  // ✅ Filter requests from context (no need for localStorage)
   const filteredRequests = requests.filter((request) => {
     const matchesTab = request.status === activeTab;
     const matchesSearch =
@@ -47,7 +40,12 @@ const Home: React.FC = () => {
       request.requestedBy?.toLowerCase().includes(search.toLowerCase()) ||
       request.urgency?.toLowerCase().includes(search.toLowerCase()) ||
       request.area?.toLowerCase().includes(search.toLowerCase()) ||
-      request.department?.toLowerCase().includes(search.toLowerCase());
+      request.department?.toLowerCase().includes(search.toLowerCase()) ||
+      request.problemCategory?.toLowerCase().includes(search.toLowerCase()) ||
+      request.issues?.toLowerCase().includes(search.toLowerCase()) || // ✅ Added search by issues
+      request.assignedToName?.toLowerCase().includes(search.toLowerCase()) ||
+      request.assignedTo?.toLowerCase().includes(search.toLowerCase())
+
 
     if (userRole === "admin") {
       return matchesTab && matchesSearch;
@@ -58,7 +56,7 @@ const Home: React.FC = () => {
         // Supervisors see only the ones assigned to them
         return matchesTab && matchesSearch && request.assignedTo === userId;
       }
-      // For Pending, Resolved, and Unsolved -> supervisors see all
+      // For Pending, Resolved, and Unresolved -> supervisors see all
       return matchesTab && matchesSearch;
     }
 
@@ -75,7 +73,7 @@ const Home: React.FC = () => {
           </h1>
           <p className="text-sm text-gray-400 max-w-xl">
             Select a category to view devices. You can search by serial number,
-            username, or department.
+            username, department, or issues.
           </p>
         </div>
         <div className="w-full md:w-[300px]">
@@ -109,23 +107,23 @@ const Home: React.FC = () => {
 
       {/* Cards */}
       {filteredRequests.length === 0 ? (
-        <p className="text-gray-500 italic">
-          No devices found for this status.
-        </p>
+        <p className="text-gray-500 italic">No devices found for this status.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredRequests.map((request) => (
             <DeviceCard
               key={request.id}
               id={request.id}
-              deviceType={request.deviceType || "Device"} // use from request if exists
+              deviceType={request.deviceType || "Device"}
               serialNo={request.deviceSerial}
               department={request.department}
               area={request.area}
               userName={request.requestedBy}
+              problemCategory={request.problemCategory}
+              issues={request.issues}
               problem={request.description}
               status={request.status}
-              supervisorName={request.assignedTo} // could map ID -> Name later
+              supervisorName={request.assignedToName || request.assignedTo || ""}
             />
           ))}
         </div>
