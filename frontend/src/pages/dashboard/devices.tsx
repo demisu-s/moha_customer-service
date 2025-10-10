@@ -4,7 +4,7 @@ import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useDeviceContext } from "../../context/DeviceContext";
 import DeviceCard2 from "../../components/dashboardComponents/DeviceCard2";
-import { useUserContext } from "../../context/UserContext";
+import { useUserContext, } from "../../context/UserContext";
 
 
 export default function Devices() {

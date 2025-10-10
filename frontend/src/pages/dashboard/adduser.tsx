@@ -3,15 +3,16 @@ import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { useUserContext } from "../../context/UserContext";
+import { useUserContext,Area, Department,Role ,Gender} from "../../context/UserContext";
+
 
 interface UserFormData {
   firstName: string;
   lastName: string;
-  area: string;
-  department: string;
-  role: string;
-  gender: string;
+  area: Area;
+ department: Department | string;
+  role: Role;
+  gender: Gender;
   userId: string;
   password: string;
   photo?: File | null;
@@ -34,21 +35,8 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = "SelectItem";
 
-// Plant -> Departments mapping
-const departmentsByPlant: Record<string, string[]> = {
-  HO: ["HR", "MIS", "Finance","Planning","Project","procrument", "Sales", "Marketing", "Law", "Property","Audit","Quality"],
-  Summit: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  NifasSilk: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  Teklehaymanot: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  Bure:["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  Mekelle: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  Dessie: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  Gonder: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-  Hawassa: ["Production","Operations", "Quality Control","Sales", "Logistics","HR", "Maintenance","Technitian"],
-};
-
 const AddUser = () => {
-  const { addUser } = useUserContext();
+  const { addUser, areas, departments,roles ,genders} = useUserContext();
   const navigate = useNavigate();
 
   const [formData, setFormData] = React.useState<UserFormData>({
@@ -63,7 +51,8 @@ const AddUser = () => {
     photo: null,
   });
 
-  const handleChange = (field: keyof UserFormData, value: string | File | null) => {
+
+ const handleChange = (field: keyof UserFormData, value: string | File | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -72,19 +61,8 @@ const AddUser = () => {
     setFormData((prev) => ({ ...prev, department: "" }));
   }, [formData.area]);
 
-  const handleSubmit = () => {
+   const handleSubmit = () => {
     addUser(formData);
-    setFormData({
-      firstName: "",
-      lastName: "",
-      area: "HO",
-      department: "",
-      role: "User",
-      gender: "Male",
-      userId: "",
-      password: "",
-      photo: null,
-    });
     navigate("/dashboard/users");
   };
 
@@ -116,58 +94,57 @@ const AddUser = () => {
 
         {/* Area (Plant) */}
         <div>
-          <Label.Root className="text-lg font-light">Area</Label.Root>
-          <Select.Root
-            value={formData.area}
-            onValueChange={(value) => handleChange("area", value)}
-          >
-            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
-              <Select.Value />
-              <Select.Icon>
-                <ChevronDownIcon />
-              </Select.Icon>
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Content className="bg-white border rounded shadow-md">
-                <Select.Viewport>
-                  {Object.keys(departmentsByPlant).map((plant) => (
-                    <SelectItem key={plant} value={plant}>
-                      {plant}
-                    </SelectItem>
-                  ))}
-                </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
-          </Select.Root>
-        </div>
+                  <Label.Root className="text-lg font-light">Area</Label.Root>
+                  <Select.Root
+                    value={formData.area}
+                    onValueChange={(value) => handleChange("area", value)}
+                  >
+                    <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
+                      <Select.Value />
+                      <Select.Icon>
+                        <ChevronDownIcon />
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content className="bg-white border rounded shadow-md">
+                        <Select.Viewport>
+                          {areas.map((area) => (
+                            <SelectItem key={area} value={area}>
+                              {area}
+                            </SelectItem>
+                          ))}
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
+                </div>
 
         {/* Department */}
-        <div>
-          <Label.Root className="text-lg font-light">Department</Label.Root>
-          <Select.Root
-            value={formData.department}
-            onValueChange={(value) => handleChange("department", value)}
-            disabled={!formData.area}
-          >
-            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1 disabled:opacity-50">
-              <Select.Value placeholder="Select Department" />
-              <Select.Icon>
-                <ChevronDownIcon />
-              </Select.Icon>
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Content className="bg-white border rounded shadow-md">
-                <Select.Viewport>
-                  {(departmentsByPlant[formData.area] || []).map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
-          </Select.Root>
-        </div>
+      <div>
+                <Label.Root className="text-lg font-light">Department</Label.Root>
+                <Select.Root
+                  value={formData.department}
+                  onValueChange={(value) => handleChange("department", value)}
+                >
+                  <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
+                    <Select.Value placeholder="Select Department" />
+                    <Select.Icon>
+                      <ChevronDownIcon />
+                    </Select.Icon>
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Content className="bg-white border rounded shadow-md">
+                      <Select.Viewport>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {dept}
+                          </SelectItem>
+                        ))}
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
+              </div>
 
         {/* Role */}
         <div>
@@ -185,10 +162,12 @@ const AddUser = () => {
             <Select.Portal>
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
-                  <SelectItem value="User">User</SelectItem>
-                  <SelectItem value="Supervisor">Supervisor</SelectItem>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                </Select.Viewport>
+                                 {roles.map((role) => (
+                                   <SelectItem key={role} value={role}>
+                                     {role}
+                                   </SelectItem>
+                                 ))}
+                               </Select.Viewport>
               </Select.Content>
             </Select.Portal>
           </Select.Root>
@@ -209,10 +188,13 @@ const AddUser = () => {
             </Select.Trigger>
             <Select.Portal>
               <Select.Content className="bg-white border rounded shadow-md">
-                <Select.Viewport>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                </Select.Viewport>
+               <Select.Viewport>
+                          {genders.map((gender) => (
+                            <SelectItem key={gender} value={gender}>
+                              {gender}
+                            </SelectItem>
+                          ))}
+                        </Select.Viewport>
               </Select.Content>
             </Select.Portal>
           </Select.Root>

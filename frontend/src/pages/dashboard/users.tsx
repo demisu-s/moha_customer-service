@@ -2,10 +2,10 @@ import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { JSX, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserContext } from "../../context/UserContext"; // <-- New import
+import { useUserContext } from "../../context/UserContext";
 
 export default function UserManagement(): JSX.Element {
-  const { users, deleteUser} = useUserContext(); // <-- Get users from context
+    const { users, deleteUser, areas, departments,roles } = useUserContext();
   const [search, setSearch] = useState<string>("");
   const [departmentFilter, setDepartmentFilter] = useState<string>("");
   const [areaFilter, setAreaFilter] = useState<string>("");
@@ -60,77 +60,66 @@ export default function UserManagement(): JSX.Element {
 
           {/* Filter Dropdown */}
           <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button className="px-3 py-2 border rounded-md text-sm hover:bg-gray-100">
-                Filter
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-2 w-56 space-y-2">
-                {/* Department Filter */}
-                <div>
-                  <label className="text-xs text-gray-500">Department</label>
-                  <select
-                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                    value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    <option value="MIS">MIS</option>
-                    <option value="HR">HR</option>
-                    <option value="Law">Law</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Planning">Planning</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Sales">Sales</option>
-                    <option value="Procurement">Procurement</option>
-                    <option value="Quality">Quality</option>
-                    <option value="Audit">Audit</option>
-                    <option value="Project">Project</option>
-                    <option value="Property">Property</option>
-                  </select>
-                </div>
-
-                {/* Area Filter */}
-                <div>
-                  <label className="text-xs text-gray-500">Area</label>
-                  <select
-                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                    value={areaFilter}
-                    onChange={(e) => setAreaFilter(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    <option value="HO">HO</option>
-                    <option value="Dessie">Dessie</option>
-                    <option value="Summit">Summit</option>
-                    <option value="Teklehaymanot">Teklehaymanot</option>
-                    <option value="Mekelle">Mekelle</option>
-                    <option value="Hawassa">Hawassa</option>
-                    <option value="Bure">Bure</option>
-                    <option value="Nifas Silk">Nifas Silk</option>
-
-
-
-                  </select>
-                </div>
-
-                {/* Role Filter */}
-                <div>
-                  <label className="text-xs text-gray-500">Role</label>
-                  <select
-                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Supervisor">Supervisor</option>
-                    <option value="User">User</option>
-                  </select>
-                </div>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
+                      <DropdownMenu.Trigger asChild>
+                        <button className="px-3 py-2 border rounded-md text-sm hover:bg-gray-100">
+                          Filter
+                        </button>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Portal>
+                        <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-2 w-56 space-y-2">
+                          {/* Department Filter */}
+                          <div>
+                            <label className="text-xs text-gray-500">Department</label>
+                            <select
+                              className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                              value={departmentFilter}
+                              onChange={(e) => setDepartmentFilter(e.target.value)}
+                            >
+                              <option value="">All</option>
+                              {departments.map((dept) => (
+                                <option key={dept} value={dept}>
+                                  {dept}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+          
+                          {/* Area Filter */}
+                          <div>
+                            <label className="text-xs text-gray-500">Area</label>
+                            <select
+                              className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                              value={areaFilter}
+                              onChange={(e) => setAreaFilter(e.target.value)}
+                            >
+                              <option value="">All</option>
+                              {areas.map((area) => (
+                                <option key={area} value={area}>
+                                  {area}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+          
+                          {/* Role Filter */}
+                          <div>
+                            <label className="text-xs text-gray-500">Role</label>
+                          <select
+                              className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                              value={roleFilter}
+                              onChange={(e) => setRoleFilter(e.target.value)}
+                            >
+                              <option value="">All</option>
+                              {roles.map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
         </div>
 
         <button

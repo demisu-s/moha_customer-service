@@ -75,6 +75,18 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
             History
           </Button>
         );
+         if (status === "Unresolved") {
+                  buttons.push(
+                    <Button
+                      key="reassign"
+                    onClick={() => navigate(`assign/${id}`)}
+                    className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+
+                    >
+                      Reassign
+                    </Button>
+                  );
+                }
       }
     }
 
@@ -109,6 +121,19 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
             History
           </Button>
         );
+         // ✅ Add Resolve button only when Unresolved
+                if (status === "Unresolved") {
+                  buttons.push(
+                    <Button
+                      key="solve"
+                      onClick={() => navigate(`solve/${id}`)}
+                     className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+
+                    >
+                      Resolve
+                    </Button>
+                  );
+                }
       }
     }
 

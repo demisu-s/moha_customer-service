@@ -3,8 +3,19 @@ import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { useDeviceContext } from "../../context/DeviceContext";
-import { useUserContext } from "../../context/UserContext";
+import { useDeviceContext,DeviceType } from "../../context/DeviceContext";
+import { useUserContext, Area, Department } from "../../context/UserContext";
+
+interface DeviceFormData {
+  type: DeviceType;
+  name: string;
+  serial: string;
+  area: Area;
+  department: Department | string;
+  userId: string;
+  image: string;
+  file?: File | null;
+}
 
 const SelectItem = React.forwardRef<
   HTMLDivElement,
@@ -23,21 +34,30 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = "SelectItem";
 
-export default function AddDevice() {
-  const { addDevice } = useDeviceContext();
-  const { users } = useUserContext();
+const AddDevice = () => {
+  const { addDevice,deviceTypes} = useDeviceContext();
+  const { users, areas, departments } = useUserContext();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = React.useState({
-    type: "",
+  const [formData, setFormData] = React.useState<DeviceFormData>({
+    type: "Printer",
     name: "",
     serial: "",
-    userId: "", 
+    userId: "",
     department: "",
     area: "HO",
     image: "/device-image.png",
-    file: null as File | null,
+    file: null,
   });
+
+  const handleChange = (field: keyof DeviceFormData, value: string | File | null) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Reset userId when area or department changes
+  React.useEffect(() => {
+    setFormData((prev) => ({ ...prev, userId: "" }));
+  }, [formData.department, formData.area]);
 
   const filteredUsers = users.filter(
     (u) =>
@@ -45,54 +65,61 @@ export default function AddDevice() {
       (formData.area ? u.area === formData.area : true)
   );
 
-  const handleChange = (field: string, value: string | File | null) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleSubmit = () => {
+    const selectedUser = filteredUsers.find((u) => u.userId === formData.userId);
+    if (!selectedUser) {
+      alert("Selected user is invalid for the chosen department and area.");
+      return;
+    }
+
+    addDevice({
+      id: Date.now().toString(),
+      type: formData.type,
+      name: formData.name,
+      serial: formData.serial,
+      userId: formData.userId,
+      department: formData.department,
+      area: formData.area,
+      image: formData.image,
+      user: `${selectedUser.firstName} ${selectedUser.lastName}`,
+    });
+
+    navigate("/dashboard/devices");
   };
-
- const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const selectedUser = filteredUsers.find((u) => u.userId === formData.userId);
-  if (!selectedUser) {
-    alert("Selected user is invalid for the chosen department and area.");
-    return;
-  }
-
-  addDevice({
-    id: Date.now().toString(),
-    type: formData.type,
-    name: formData.name,
-    serial: formData.serial,
-    userId: formData.userId,
-    department: formData.department,
-    area: formData.area,
-    image: formData.image,
-    user: `${selectedUser.firstName} ${selectedUser.lastName}` 
-  });
-
-  navigate("/dashboard/devices");
-};
-
-
-  React.useEffect(() => {
-    setFormData((prev) => ({ ...prev, userId: "" }));
-  }, [formData.department, formData.area]);
 
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6 border rounded-md shadow-md">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Add Device</h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-8">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+        Add Device
+      </h2>
+      <div className="grid grid-cols-2 gap-8">
         {/* Device Type */}
         <div>
           <Label.Root className="text-lg font-light">Device Type</Label.Root>
-          <input
+          <Select.Root
             value={formData.type}
-            onChange={(e) => handleChange("type", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
-            placeholder="Enter device type"
-            required
-          />
+            onValueChange={(value) => handleChange("type", value)}
+          >
+            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
+              <Select.Value placeholder="Select device type" />
+              <Select.Icon>
+                <ChevronDownIcon />
+              </Select.Icon>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content className="bg-white border rounded shadow-md">
+                <Select.Viewport>
+                  {deviceTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
         </div>
+
         {/* Device Name */}
         <div>
           <Label.Root className="text-lg font-light">Device Name</Label.Root>
@@ -101,9 +128,9 @@ export default function AddDevice() {
             onChange={(e) => handleChange("name", e.target.value)}
             className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
             placeholder="Enter device name"
-            required
           />
         </div>
+
         {/* Area */}
         <div>
           <Label.Root className="text-lg font-light">Area</Label.Root>
@@ -120,20 +147,17 @@ export default function AddDevice() {
             <Select.Portal>
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
-                  <SelectItem value="HO">Head Office</SelectItem>
-                  <SelectItem value="Dessie">Dessie</SelectItem>
-                  <SelectItem value="Summit">Summit</SelectItem>
-                  <SelectItem value="Nifas Silk">Nifas Silk</SelectItem>
-                  <SelectItem value="Mekelle">Mekelle</SelectItem>  
-                  <SelectItem value="Bure">Bure</SelectItem>
-                  <SelectItem value="Hawassa">Hawassa</SelectItem>
-                  <SelectItem value="Teklehaymanot">Teklehaymanot</SelectItem>
-                  <SelectItem value="Gondar">Gondar</SelectItem>
+                  {areas.map((area) => (
+                    <SelectItem key={area} value={area}>
+                      {area}
+                    </SelectItem>
+                  ))}
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>
           </Select.Root>
         </div>
+
         {/* Department */}
         <div>
           <Label.Root className="text-lg font-light">Department</Label.Root>
@@ -142,7 +166,7 @@ export default function AddDevice() {
             onValueChange={(value) => handleChange("department", value)}
           >
             <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
-              <Select.Value placeholder="Select department" />
+              <Select.Value placeholder="Select Department" />
               <Select.Icon>
                 <ChevronDownIcon />
               </Select.Icon>
@@ -150,36 +174,33 @@ export default function AddDevice() {
             <Select.Portal>
               <Select.Content className="bg-white border rounded shadow-md">
                 <Select.Viewport>
-                  <SelectItem value="MIS">MIS</SelectItem>
-                  <SelectItem value="HR">HR</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Sales">Sales</SelectItem>
-                  <SelectItem value="Planning">Planning</SelectItem>
-                  <SelectItem value="Procurement">Procurement</SelectItem>
-                  <SelectItem value="Audit">Audit</SelectItem>
-                  <SelectItem value="Project">Project</SelectItem>
-                  <SelectItem value="Law">Law</SelectItem>
-                  <SelectItem value="Quality">Quality</SelectItem>
-                  <SelectItem value="Property">Property</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>
           </Select.Root>
-        </div>   
+        </div>
+
         {/* User */}
         <div>
           <Label.Root className="text-lg font-light">User</Label.Root>
           <Select.Root
             value={formData.userId}
-            onValueChange={(value) => handleChange("userId", value)}  // ✅ store userId
-            disabled={!formData.department || !formData.area || filteredUsers.length === 0}
+            onValueChange={(value) => handleChange("userId", value)}
+            disabled={!formData.department || !formData.area}
           >
-            <Select.Trigger
-              className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1"
-              disabled={!formData.department || !formData.area || filteredUsers.length === 0}
-            >
-              <Select.Value placeholder={filteredUsers.length === 0 ? "No users found" : "Select user"} />
+            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
+              <Select.Value
+                placeholder={
+                  filteredUsers.length === 0
+                    ? "No users found"
+                    : "Select user"
+                }
+              />
               <Select.Icon>
                 <ChevronDownIcon />
               </Select.Icon>
@@ -189,7 +210,7 @@ export default function AddDevice() {
                 <Select.Content className="bg-white border rounded shadow-md">
                   <Select.Viewport>
                     {filteredUsers.map((u) => (
-                      <SelectItem key={u.id} value={u.userId}>  {/* ✅ use userId */}
+                      <SelectItem key={u.id} value={u.userId}>
                         {u.firstName} {u.lastName}
                       </SelectItem>
                     ))}
@@ -199,9 +220,12 @@ export default function AddDevice() {
             )}
           </Select.Root>
           {filteredUsers.length === 0 && (
-            <div className="text-sm text-red-500 mt-1">No users found for this department and area.</div>
+            <div className="text-sm text-red-500 mt-1">
+              No users found for this department and area.
+            </div>
           )}
         </div>
+
         {/* Serial Number */}
         <div>
           <Label.Root className="text-lg font-light">Serial Number</Label.Root>
@@ -210,9 +234,9 @@ export default function AddDevice() {
             onChange={(e) => handleChange("serial", e.target.value)}
             className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
             placeholder="Enter serial number"
-            required
           />
         </div>
+
         {/* Image Upload */}
         <div className="col-span-2">
           <Label.Root className="text-lg font-light mr-5">Upload Image</Label.Root>
@@ -235,19 +259,21 @@ export default function AddDevice() {
             />
           </label>
           {formData.file && (
-            <span className="ml-2 text-sm text-gray-700">{formData.file.name}</span>
+            <span className="ml-2 text-sm text-gray-700">
+              {formData.file.name}
+            </span>
           )}
         </div>
-        {/* Save Button */}
-        <div className="col-span-2">
-          <button
-            type="submit"
-            className="w-full bg-primary-500 text-lg hover:bg-primary-900 text-white mt-6 py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
-          >
-            Add Device
-          </button>
-        </div>
-      </form>
+      </div>
+
+      <button
+        className="w-full bg-primary-500 text-lg hover:bg-primary-900 text-white mt-6 py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
+        onClick={handleSubmit}
+      >
+        Add Device
+      </button>
     </div>
   );
-}
+};
+
+export default AddDevice;

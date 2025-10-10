@@ -1,31 +1,98 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+
+export type Area =
+  | "HO"
+  | "Nifas Silk"
+  | "Mekelle"
+  | "Summit"
+  | "Bure"
+  | "Hawassa"
+  | "Teklehaymanot"
+  | "Dessie"
+  | "Gonder";
+
+export type Department =
+  | "HR"
+  | "MIS"
+  | "Finance"
+  | "Sales"
+  | "Procurement"
+  | "Marketing"
+  | "Planning"
+  | "Law"
+  | "Quality"
+  | "Project"
+  | "General Manager"
+  | "Security"
+  | "Audit";
+
+export const DEPARTMENTS: Department[] = [
+  "HR",
+  "MIS",
+  "Finance",
+  "Sales",
+  "Procurement",
+  "Marketing",
+  "Planning",
+  "Law",
+  "Quality",
+  "Project",
+  "General Manager",
+  "Security",
+  "Audit",
+];
+
+export const AREAS: Area[] = [
+  "HO",
+  "Nifas Silk",
+  "Mekelle",
+  "Summit",
+  "Bure",
+  "Hawassa",
+  "Teklehaymanot",
+  "Dessie",
+  "Gonder",
+];
+
+export type Role = "User" | "Admin" | "Supervisor";
+export const ROLES: Role[] = ["User", "Admin", "Supervisor"];
+export type Gender = "Male" | "Female";
+export const GENDERS: Gender[] = ["Male", "Female"];
+
+
 
 export type User = {
   id: number;
   firstName: string;
   lastName: string;
-  area: string;
-  department: string;
-  role: string;
-  gender: string;
+  area: Area;
+  department: Department | string;
+  role: Role;
+  gender: Gender;
   userId: string;
   password: string;
   photo?: File | null;
   phone?: string;
 };
 
-
-
-
 type UserContextType = {
   users: User[];
   addUser: (user: Omit<User, "id">) => void;
   deleteUser: (id: number) => void;
-  updateUser: (id: number, updatedData: Omit<User, "id">) => void;
+  updateUser: (id: number, updatedData: Partial<Omit<User, "id">>) => void;
+  areas: Area[];
+  departments: Department[];
+  roles: Role[];
+  genders:Gender[]
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
-
 
 const initialUsers: User[] = [
   {
@@ -38,11 +105,8 @@ const initialUsers: User[] = [
     gender: "Male",
     userId: "admin",
     password: "admin123",
-  }
+  },
 ];
-
-
-
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>(() => {
@@ -61,18 +125,29 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     ]);
   };
 
-    const deleteUser = (id: number) => {
-        setUsers((prev) => prev.filter((user) => user.id !== id));
-    };
-     
-    const updateUser = (id: number, updatedData: Omit<User, "id">) => {
-  setUsers((prev) =>
-    prev.map((user) => (user.id === id ? { ...user, ...updatedData } : user))
-  );
-};
+  const deleteUser = (id: number) => {
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  };
+
+  const updateUser = (id: number, updatedData: Partial<Omit<User, "id">>) => {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === id ? { ...user, ...updatedData } : user))
+    );
+  };
 
   return (
-    <UserContext.Provider value={{ users, addUser, deleteUser, updateUser}}>
+    <UserContext.Provider
+      value={{
+        users,
+        addUser,
+        deleteUser,
+        updateUser,
+        areas: AREAS,
+        departments: DEPARTMENTS,
+        roles: ROLES,
+        genders:GENDERS
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

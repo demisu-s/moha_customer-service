@@ -107,6 +107,10 @@ const RequestSolutionComponent: React.FC = () => {
         </div>
 
         <div className="border-t my-6"></div>
+        <div className="w-full border rounded-md p-3">
+          <p className="text-black font-medium mb-2">Admin Notes</p>
+          <p className="text-gray-700">{request.notes}</p>
+        </div>
 
         {/* 🟣 Problem Type (above Solution) */}
         <div className="mb-6">
