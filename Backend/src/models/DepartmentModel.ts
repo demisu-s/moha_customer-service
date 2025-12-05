@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IDepartment } from "../interfaces/Department";
+import { IDepartment } from "../interfaces/types";
 
 export interface IDepartmentDocument extends Omit<IDepartment, "_id">, Document {}
 

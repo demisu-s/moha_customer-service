@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IPlant } from "../interfaces/Plant";
+import { IPlant } from "../interfaces/types";
 
 export interface IPlantDocument extends Omit<IPlant, "_id">, Document {}
 

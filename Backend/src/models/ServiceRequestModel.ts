@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IServiceRequest } from "../interfaces/ServiceRequest";
-import { buffer } from "stream/consumers";
+import { IServiceRequest } from "../interfaces/types";
 
 export interface IServiceDocument extends Omit<IServiceRequest, "_id">, Document {}
 

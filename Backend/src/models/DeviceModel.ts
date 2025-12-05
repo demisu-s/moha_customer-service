@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IDevice } from "../interfaces/device";
-import { IPlant } from "../interfaces/Plant";
+import { IDevice } from "../interfaces/types";
 
 export interface IDeviceDocument extends Omit<IDevice, "_id">, Document {}
 
