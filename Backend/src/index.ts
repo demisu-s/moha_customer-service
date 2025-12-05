@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
+import plantRoutes from "./routes/plantRoutes";
 import { errorHandler } from "./midllewares/errorMiddleware"
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/plant", plantRoutes);
 app.use(errorHandler);
 
 // MongoDB Connection
