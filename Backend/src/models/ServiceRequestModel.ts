@@ -11,7 +11,10 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Device',
     },
-    deviceSerial: { type: String, required: true },
+    serialNumber: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Device',
+     },
     requestedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

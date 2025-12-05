@@ -6,9 +6,9 @@ export interface IDepartmentDocument extends Omit<IDepartment, "_id">, Document 
 const plantSchema = new Schema<IDepartmentDocument>(
   {
    _id: { type: String, required: true },
-  Name: { type: String, required: true },
-  Block: { type: String },
-  Floor: { type: String},
+  name: { type: String, required: true },
+  block: { type: String },
+  floor: { type: String},
   },
   { timestamps: true }
 );

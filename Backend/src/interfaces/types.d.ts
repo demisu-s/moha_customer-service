@@ -17,25 +17,25 @@ export interface IPlant {
 
 export interface IDepartment {
   _id?: string;
-  Name: string; 
-  Block: string;
-  Floor: string;
+  name: string; 
+  block: string;
+  floor: string;
 }
 export interface IDevice {
   _id?: string;
-  Name: string;
-  Type: string;
-  Plant: IPlant;
-  Department: IDepartment;
-  User: IUser;
-  SerialNumber: string;
-  Image: Buffer | string;
+  deviceName: string;
+  deviceType: string;
+  plant: IPlant;
+  department: IDepartment;
+  user: IUser;
+  serialNumber: string;
+  image: Buffer | string;
 }
 
 export interface IServiceRequest {
   _id?: string;
   deviceId: IDevice;
-  deviceSerial: string;
+  serialNumber: IDevice;
   requestedBy: IUser;
   requestedDate: string;
   description: string;
