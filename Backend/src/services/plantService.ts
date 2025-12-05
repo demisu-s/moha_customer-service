@@ -1,6 +1,6 @@
 
 import PlantModel from "../models/PlantModel";
-import { IPlant } from "../interfaces/Plant";
+import { IPlant } from "../interfaces/types";
 import { Request, Response } from "express";
 
 class plantService {

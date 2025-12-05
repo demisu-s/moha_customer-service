@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import plantRoutes from "./routes/plantRoutes";
 import { errorHandler } from "./midllewares/errorMiddleware"
+import depatmentRoutes from "./routes/departmentRoutes";
+import deviceRoutes from "./routes/deviceRoutes";
+import serviceRequesstRoutes from "./routes/serviceRequestRoutes";
 
 dotenv.config();
 
@@ -21,6 +24,11 @@ app.get("/", (req, res) => {
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/plant", plantRoutes);
+app.use("/api/department", depatmentRoutes);
+app.use("/api/device", deviceRoutes);
+app.use("/api/request",serviceRequesstRoutes);
+
+
 app.use(errorHandler);
 
 // MongoDB Connection

@@ -3,27 +3,26 @@ import { IDevice } from "../interfaces/types";
 
 export interface IDeviceDocument extends Omit<IDevice, "_id">, Document {}
 
-const plantSchema = new Schema<IDeviceDocument>(
+const deviceSchema = new Schema<IDeviceDocument>(
   {
    
    _id: { type: String, required: true },
-    Name: { type: String, required: true },
-    Type: { type: String, required: true },
-    Plant: { 
+    deviceName: { type: String, required: true },
+    deviceType: { type: String, required: true },
+    plant: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Plant',
      },
-    Department: { 
+    department: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department',
      },
-    User: { 
+    user: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
      },
-    SerialNumber: { type: String, required: true },
-    // Use Buffer for binary image data (Node) or string for a URL/base64
-    Image: { 
+    serialNumber: { type: String, required: true },
+    image: { 
         data: Buffer,
         type: String
     },
@@ -31,4 +30,4 @@ const plantSchema = new Schema<IDeviceDocument>(
   { timestamps: true }
 );
 
-export default mongoose.model<IDeviceDocument>("Plant", plantSchema);
+export default mongoose.model<IDeviceDocument>("device", deviceSchema);
