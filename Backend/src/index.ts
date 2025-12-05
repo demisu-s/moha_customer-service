@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes";
+import { errorHandler } from "./midllewares/errorMiddleware"
 
 dotenv.config();
 
@@ -15,11 +17,13 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.use(express.json());
+app.use("/api/auth", authRoutes);
+app.use(errorHandler);
+
 // MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI || "", {
-    // Use .env for real credentials
-  })
+  .connect(process.env.MONGO_URI || "", {})
   .then(() => {
     console.log("MongoDB connected");
     app.listen(PORT, () => {

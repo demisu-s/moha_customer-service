@@ -1,8 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
+import { IUser } from "../interfaces/User";
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true }
-});
+export interface IUserModel extends Omit<IUser, "_id">, Document {}
 
-export default mongoose.model("User", userSchema);
+const userSchema = new Schema<IUserModel>(
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    userId: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model<IUserModel>("User", userSchema);
