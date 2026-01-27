@@ -5,6 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import axios from "axios";
 
 export type DeviceType =
   | "Printer"
@@ -99,7 +100,60 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("devices", JSON.stringify(devices));
   }, [devices]);
 
-  const addDevice = (device: Device) => setDevices((prev) => [...prev, device]);
+  // const addDevice = async (device: Device) => {
+  //   try {
+  //     const response = await axios.post("http://localhost:5000/api/device/createDevice", device);
+  //       setDevices((prev) => [...prev, device]);
+  //   } catch (error) {
+  //     console.error("Failed to add device:", error);
+  //   }
+  // }
+
+
+  const addDevice = async (device: Device) => {
+  try {
+    const response = await axios.post<{ device: Device }>(
+      "http://localhost:5000/api/device/createDevice",
+      device
+    );
+
+    const savedDevice = response.data.device;
+
+    setDevices((prev) => [...prev, savedDevice]);
+  } catch (error) {
+    console.error("Failed to add device:", error);
+  }
+};
+
+
+// const deleteDevice = async (id: string) => {
+//   try {
+//     await axios.delete(`http://localhost:5000/api/device/${id}`);
+//     setDevices((prev) => prev.filter((d) => d.id !== id));
+//   } catch (error) {
+//     console.error("Failed to delete:", error);
+//   }
+// };
+
+// const updateDevice = async (updatedDevice: Device) => {
+//   try {
+//     const response = await axios.put(
+//       `http://localhost:5000/api/device/${updatedDevice.id}`,
+//       updatedDevice
+//     );
+
+//     const saved = response.data.device;
+
+//     setDevices((prev) =>
+//       prev.map((d) => (d.id === saved.id ? saved : d))
+//     );
+//   } catch (error) {
+//     console.error("Failed to update:", error);
+//   }
+// };
+
+
+  
   const deleteDevice = (id: string) =>
     setDevices((prev) => prev.filter((d) => d.id !== id));
   const updateDevice = (updatedDevice: Device) =>

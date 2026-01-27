@@ -1,46 +1,85 @@
 import { Request, Response, NextFunction } from "express";
-
 import plantService from "../services/plantService";
 
-export const createPlant = async (req: Request, res: Response, next: NextFunction) => {
+export const createPlant = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log("In controller",req.body)
-    const result = await plantService.createPlant(req,res);
-    res.status(201).json(result);
+    const plant = await plantService.createPlant(req.body);
+    res.status(201).json({
+      success: true,
+      data: plant,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-export const updatePlant = async (req: Request, res: Response, next: NextFunction) => {
+export const updatePlant = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-     const result = await plantService.updatePlant(req,res);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-};
-export const getPlantById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-     const result = await plantService.getPlantById(req,res);     
-    res.json(result);
+    const plant = await plantService.updatePlant(
+      req.params.id,
+      req.body
+    );
+
+    res.status(200).json({
+      success: true,
+      data: plant,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-export const getPlants = async (req: Request, res: Response, next: NextFunction) => {
+export const getPlantById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-     const result = await plantService.getPlants(req,res);     
-    res.json(result);
+    const plant = await plantService.getPlantById(req.params.id);
+    res.status(200).json({
+      success: true,
+      data: plant,
+    });
   } catch (error) {
     next(error);
   }
 };
-export const deletePlant = async (req: Request, res: Response, next: NextFunction) => {
+
+export const getPlants = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-     const result = await plantService.deletePlant(req,res);  
-    res.json(result);
+    const plants = await plantService.getPlants();
+    res.status(200).json({
+      success: true,
+      data: plants, // ✅ ARRAY
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deletePlant = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await plantService.deletePlant(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: "Plant deleted successfully",
+    });
   } catch (error) {
     next(error);
   }

@@ -1,16 +1,20 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IDepartment } from "../interfaces/types";
-
+import { IDepartment } from "../interfaces/department.interface";
 export interface IDepartmentDocument extends Omit<IDepartment, "_id">, Document {}
 
-const plantSchema = new Schema<IDepartmentDocument>(
+const departmentSchema = new Schema<IDepartmentDocument>(
   {
-   _id: { type: String, required: true },
-  name: { type: String, required: true },
-  block: { type: String },
-  floor: { type: String},
+    name: { type: String, required: true },
+    block: { type: String },
+    floor: { type: String },
+
+    plant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Plant",
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IDepartmentDocument>("Department", plantSchema);
+export default mongoose.model<IDepartmentDocument>("Department", departmentSchema);

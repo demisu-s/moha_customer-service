@@ -1,256 +1,134 @@
-import { useState } from "react";
-import { useUserContext } from "../../context/UserContext";
-
-type PlantName =
-  | "HO"| "Summit"| "NifasSilk"| "Teklehaymanot"| "Bure"| "Gonder"| "Mekelle"| "Dessie"| "Hawassa";
-
-interface Department {
-  id: number;
-  name: string;
-  location: string;
-}
+import { useEffect, useState } from "react";
+import {
+  getPlants,
+  getDepartmentsByPlant,
+} from "../../api/plant.api";
+import CreatePlantModal from "../../components/CreatePlantModal";
+import CreateDepartmentModal from "../../components/CreateDepartmentModal";
+import { Plant, Department } from "../../api/plant.types";
 
 const Plants = () => {
-  const [selectedPlant, setSelectedPlant] = useState<PlantName | null>(null);
-  const [selectedDept, setSelectedDept] = useState<string | null>(null);
-  const { users } = useUserContext();
+  const [plants, setPlants] = useState<Plant[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
 
-  const plants: { name: PlantName; area: string }[] = [
-    { name: "HO", area: "Head Office" },
-    { name: "Summit", area: "Summit" },
-    { name: "NifasSilk", area: "Nifas Silk" },
-    { name: "Teklehaymanot", area: "Teklehaymanot" },
-    { name: "Bure", area: "Bure" },
-    { name: "Gonder", area: "Gonder" },
-    { name: "Mekelle", area: "Mekelle" },
-    { name: "Dessie", area: "Dessie" },
-    { name: "Hawassa", area: "Hawassa" },
-  ];
+  const [showPlantModal, setShowPlantModal] = useState(false);
+  const [showDeptModal, setShowDeptModal] = useState(false);
 
-  const departments: Record<PlantName, Department[]> = {
-    HO: [
-      { id: 1, name: "HR", location: "2rd floor" },
-      { id: 2, name: "MIS", location: "3th floor" },
-      { id: 3, name: "Sales", location: "3th floor" },
-      { id: 4, name: "Planning", location: "4th floor" },
-      { id: 5, name: "Marketing", location: "3th floor" },
-      { id: 6, name: "Finance", location: "4th floor" },
-      { id: 7, name: "Law", location: "3th floor" },
-      { id: 8, name: "Property", location: "3st floor" },
-      { id: 9, name: "Audit", location: "4th floor" },
-      { id: 10, name: "Project", location: "4th floor" },
-      { id: 11, name: "Procurement", location: "3th floor" },
-      { id: 12, name: "Quality", location: "3st floor" },
-    ],
-    Summit: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    Dessie: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    Teklehaymanot: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    Mekelle: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    Bure: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    NifasSilk: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    Hawassa: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
-    Gonder: [
-      { id: 1, name: "Production", location: "1st floor" },
-      { id: 2, name: "Quality Control", location: "2nd floor" },
-      { id: 3, name: "Logistics", location: "1st floor" },
-      { id: 4, name: "Maintenance", location: "2nd floor" },
-      { id: 5, name: "Technitian", location: "2nd floor" },
-      { id: 6, name: "HR", location: "2nd floor" },
-      { id: 7, name: "Sales", location: "2nd floor" },
-    ],
+  const loadPlants = async () => {
+    const res = await getPlants();
+    setPlants(res.data.data); // ✅ FIX
   };
 
-  const handlePlantClick = (plant: PlantName) => {
-    setSelectedPlant(plant);
-    setSelectedDept(null);
+  const loadDepartments = async (plantId: string) => {
+    const res = await getDepartmentsByPlant(plantId);
+    setDepartments(res.data.data); // ✅ FIX
   };
 
-  const handleDeptClick = (dept: string) => {
-    setSelectedDept(dept);
-  };
-
-  const handleBack = () => {
-    if (selectedDept) {
-      setSelectedDept(null);
-    } else if (selectedPlant) {
-      setSelectedPlant(null);
-    }
-  };
-
-  const deptUsers =
-    selectedPlant && selectedDept
-      ? users.filter(
-          (u) => u.area === selectedPlant && u.department === selectedDept
-        )
-      : [];
+  useEffect(() => {
+    loadPlants();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-50 p-4 rounded-lg">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-black mb-8 text-center">
-          {!selectedPlant
-            ? "Plant Locations"
-            : !selectedDept
-            ? `${selectedPlant} Departments`
-            : `${selectedDept} Users`}
+    <div className="p-6">
+      <div className="flex justify-between mb-4">
+        <h1 className="text-3xl font-bold">
+          {selectedPlant ? `${selectedPlant.name} Departments` : "Plants"}
         </h1>
 
-        {(selectedPlant || selectedDept) && (
+        {!selectedPlant && (
           <button
-            className="mb-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-700"
-            onClick={handleBack}
+            className="bg-black text-white px-4 py-2 rounded"
+            onClick={() => setShowPlantModal(true)}
           >
-            ← Back
+            + Create Plant
           </button>
         )}
 
-        {/* PLANT LIST */}
-        {!selectedPlant && (
-          <table className="min-w-full divide-y-4 divide-white">
-            <thead>
-              <tr className="bg-gray-200 font-semibold text-lg">
-                <th className="px-6 py-2">No</th>
-                <th className="px-6 py-2">Plant Name</th>
-                <th className="px-6 py-2">Area</th>
-              </tr>
-            </thead>
-            <tbody className="bg-primary-400 divide-y-4 divide-white text-white">
-              {plants.map((plant, idx) => (
-                <tr
-                  key={idx}
-                  className="hover:bg-gray-200 hover:text-black cursor-pointer"
-                  onClick={() => handlePlantClick(plant.name)}
-                >
-                  <td className="px-6 py-2">{idx + 1}</td>
-                  <td className="px-6 py-2">{plant.name}</td>
-                  <td className="px-6 py-2">{plant.area}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {/* DEPARTMENTS LIST */}
-        {selectedPlant && !selectedDept && (
-          <table className="min-w-full divide-y-4 divide-white">
-            <thead>
-              <tr className="bg-gray-200 font-semibold text-lg">
-                <th className="px-6 py-2">No</th>
-                <th className="px-6 py-2">Department</th>
-                <th className="px-6 py-2">Location</th>
-              </tr>
-            </thead>
-            <tbody className="bg-primary-400 divide-y-4 divide-white text-white">
-              {departments[selectedPlant]?.map((dept) => (
-                <tr
-                  key={dept.id}
-                  className="hover:bg-gray-200 hover:text-black cursor-pointer"
-                  onClick={() => handleDeptClick(dept.name)}
-                >
-                  <td className="px-6 py-2">{dept.id}</td>
-                  <td className="px-6 py-2">{dept.name}</td>
-                  <td className="px-6 py-2">{dept.location}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {/* USERS LIST */}
-        {selectedDept && (
-          <table className="min-w-full divide-y-4 divide-white">
-            <thead>
-              <tr className="bg-gray-200 font-semibold text-lg">
-                <th className="px-6 py-2">No</th>
-                <th className="px-6 py-2">First Name</th>
-                <th className="px-6 py-2">Last Name</th>
-                <th className="px-6 py-2">Role</th>
-                <th className="px-6 py-2">Gender</th>
-                <th className="px-6 py-2">User ID</th>
-              </tr>
-            </thead>
-            <tbody className="bg-primary-400 divide-y-4 divide-white text-white">
-              {deptUsers.length > 0 ? (
-                deptUsers.map((u, idx) => (
-                  <tr key={u.userId}>
-                    <td className="px-6 py-2">{idx + 1}</td>
-                    <td className="px-6 py-2">{u.firstName}</td>
-                    <td className="px-6 py-2">{u.lastName}</td>
-                    <td className="px-6 py-2">{u.role}</td>
-                    <td className="px-6 py-2">{u.gender}</td>
-                    <td className="px-6 py-2">{u.userId}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="text-center px-6 py-4 text-gray-200"
-                  >
-                    No users found in this department.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {selectedPlant && (
+          <button
+            className="bg-black text-white px-4 py-2 rounded"
+            onClick={() => setShowDeptModal(true)}
+          >
+            + Create Department
+          </button>
         )}
       </div>
+
+      {/* PLANTS TABLE */}
+      {!selectedPlant && (
+        <table className="w-full border">
+          <thead>
+            <tr className="bg-gray-200">
+              <th>No</th>
+              <th>Name</th>
+              <th>Area</th>
+            </tr>
+          </thead>
+          <tbody>
+            {plants.map((p, i) => (
+              <tr
+                key={p._id}
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => {
+                  setSelectedPlant(p);
+                  loadDepartments(p._id);
+                }}
+              >
+                <td>{i + 1}</td>
+                <td>{p.name}</td>
+                <td>{p.area}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* DEPARTMENTS TABLE */}
+      {selectedPlant && (
+        <>
+          <button
+            onClick={() => setSelectedPlant(null)}
+            className="mb-4 text-blue-600"
+          >
+            ← Back
+          </button>
+
+          <table className="w-full border">
+            <thead>
+              <tr className="bg-gray-200">
+                <th>No</th>
+                <th>Name</th>
+                <th>Floor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {departments.map((d, i) => (
+                <tr key={d._id}>
+                  <td>{i + 1}</td>
+                  <td>{d.name}</td>
+                  <td>{d.floor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {showPlantModal && (
+        <CreatePlantModal
+          onClose={() => setShowPlantModal(false)}
+          onCreated={loadPlants}
+        />
+      )}
+
+      {showDeptModal && selectedPlant && (
+        <CreateDepartmentModal
+          plantId={selectedPlant._id}
+          onClose={() => setShowDeptModal(false)}
+          onCreated={() => loadDepartments(selectedPlant._id)}
+        />
+      )}
     </div>
   );
 };

@@ -1,20 +1,35 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import User from "../models/User";
 
 export interface AuthRequest extends Request {
-  user?: { id: string };
+  user?: any;
 }
 
-export const protect = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) return res.status(401).json({ message: "Not authorized" });
-
+export const protect = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-    req.user = { id: decoded.id };
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+
+    req.user = await User.findById(decoded.id).populate({
+      path: "department",
+      populate: { path: "plant" },
+    });
+
+    // ✅ Safe logging
+    console.log(req.user?.department?.plant?._id);
+
     next();
   } catch (error) {
-    res.status(401).json({ message: "Token failed" });
+    return res.status(401).json({ message: "Token invalid" });
   }
 };

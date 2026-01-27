@@ -1,37 +1,43 @@
-import bcrypt from "bcryptjs";
+import { IUser } from "../interfaces/user.interface";
 import User from "../models/User";
-import { IUser } from "../interfaces/User";
+import Department from "../models/DepartmentModel";
+import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken";
 
 class AuthService {
-  // Register user
   async register(data: IUser) {
-    const { firstName,lastName, userId, password } = data;
+    const { userId, password, department } = data;
 
-    const userExists = await User.findOne({ userId });
-    if (userExists) throw new Error("User already exists");
+    const exists = await User.findOne({ userId });
+    if (exists) throw new Error("User already exists");
+
+    const departmentExists = await Department.findById(department);
+    if (!departmentExists) throw new Error("Invalid department");
 
     const hashedPassword = await bcrypt.hash(password, 10);
-console.log("",data)
-    const user = await User.create({
-      firstName,
-      lastName,
-      userId,
-      password: hashedPassword,
-    }) as IUser & { _id: any };
+
+    const user = await User.create({ ...data, password: hashedPassword }) as any;
 
     return {
       _id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       userId: user.userId,
+      role: user.role,
+      gender: user.gender,
+      phone: user.phone,
+      photo: user.photo,
+      department: departmentExists,
       token: generateToken(user._id.toString()),
     };
   }
 
-  // Login user
   async login(userId: string, password: string) {
-    const user = await User.findOne({ userId }) as (IUser & { _id: any }) | null;
+    const user = await User.findOne({ userId }).populate({
+      path: "department",
+      populate: { path: "plant" },
+    }) as any;
+
     if (!user) throw new Error("Invalid credentials");
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -40,7 +46,11 @@ console.log("",data)
     return {
       _id: user._id,
       firstName: user.firstName,
+      lastName: user.lastName,
       userId: user.userId,
+      role: user.role,
+      gender: user.gender,
+      department: user.department,
       token: generateToken(user._id.toString()),
     };
   }

@@ -1,6 +1,5 @@
-
 import DeviceModel from "../models/DeviceModel";
-import { IDevice } from "../interfaces/types";
+import { IDevice } from "../interfaces/device.interface";
 import { Request, Response } from "express";
 
 class deviceService {

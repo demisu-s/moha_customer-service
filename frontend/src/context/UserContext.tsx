@@ -2,9 +2,11 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   ReactNode,
 } from "react";
+import { createUser } from "../api/user.api";
+
+/* ------------------ Types ------------------ */
 
 export type Area =
   | "HO"
@@ -32,6 +34,47 @@ export type Department =
   | "Security"
   | "Audit";
 
+/** IMPORTANT: backend enum values */
+export type Role = "user" | "admin" | "supervisor";
+export type Gender = "male" | "female";
+
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  department: string; // ObjectId
+  role: Role;
+  gender: Gender;
+  userId: string;
+  phone?: string;
+  photo?: string;
+}
+
+export interface CreateUserPayload {
+  firstName: string;
+  lastName: string;
+  department: string; // ObjectId
+  role: Role;
+  gender: Gender;
+  userId: string;
+  password: string;
+  photo?: File | null;
+}
+
+/* ------------------ Constants ------------------ */
+
+export const AREAS: Area[] = [
+  "HO",
+  "Nifas Silk",
+  "Mekelle",
+  "Summit",
+  "Bure",
+  "Hawassa",
+  "Teklehaymanot",
+  "Dessie",
+  "Gonder",
+];
+
 export const DEPARTMENTS: Department[] = [
   "HR",
   "MIS",
@@ -48,91 +91,28 @@ export const DEPARTMENTS: Department[] = [
   "Audit",
 ];
 
-export const AREAS: Area[] = [
-  "HO",
-  "Nifas Silk",
-  "Mekelle",
-  "Summit",
-  "Bure",
-  "Hawassa",
-  "Teklehaymanot",
-  "Dessie",
-  "Gonder",
-];
+export const ROLES: Role[] = ["user", "admin", "supervisor"];
+export const GENDERS: Gender[] = ["male", "female"];
 
-export type Role = "User" | "Admin" | "Supervisor";
-export const ROLES: Role[] = ["User", "Admin", "Supervisor"];
-export type Gender = "Male" | "Female";
-export const GENDERS: Gender[] = ["Male", "Female"];
+/* ------------------ Context ------------------ */
 
-
-
-export type User = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  area: Area;
-  department: Department | string;
-  role: Role;
-  gender: Gender;
-  userId: string;
-  password: string;
-  photo?: File | null;
-  phone?: string;
-};
-
-type UserContextType = {
+interface UserContextType {
   users: User[];
-  addUser: (user: Omit<User, "id">) => void;
-  deleteUser: (id: number) => void;
-  updateUser: (id: number, updatedData: Partial<Omit<User, "id">>) => void;
+  addUser: (payload: CreateUserPayload) => Promise<void>;
   areas: Area[];
   departments: Department[];
   roles: Role[];
-  genders:Gender[]
-};
+  genders: Gender[];
+}
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    firstName: "System",
-    lastName: "Admin",
-    area: "HO",
-    department: "MIS",
-    role: "Admin",
-    gender: "Male",
-    userId: "admin",
-    password: "admin123",
-  },
-];
-
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [users, setUsers] = useState<User[]>(() => {
-    const stored = localStorage.getItem("users");
-    return stored ? JSON.parse(stored) : initialUsers;
-  });
+  const [users, setUsers] = useState<User[]>([]);
 
-  useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
-
-  const addUser = (newUser: Omit<User, "id">) => {
-    setUsers((prev) => [
-      ...prev,
-      { id: prev.length ? prev[prev.length - 1].id + 1 : 1, ...newUser },
-    ]);
-  };
-
-  const deleteUser = (id: number) => {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
-  };
-
-  const updateUser = (id: number, updatedData: Partial<Omit<User, "id">>) => {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, ...updatedData } : user))
-    );
+  const addUser = async (payload: CreateUserPayload) => {
+    const created = await createUser(payload);
+    setUsers((prev) => [...prev, created]);
   };
 
   return (
@@ -140,12 +120,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       value={{
         users,
         addUser,
-        deleteUser,
-        updateUser,
         areas: AREAS,
         departments: DEPARTMENTS,
         roles: ROLES,
-        genders:GENDERS
+        genders: GENDERS,
       }}
     >
       {children}
@@ -154,9 +132,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useUserContext = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUserContext must be used within a UserProvider");
-  }
-  return context;
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUserContext must be used within UserProvider");
+  return ctx;
 };

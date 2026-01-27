@@ -1,7 +1,6 @@
-
-import { IDevice } from "../interfaces/types";
 import { Request, Response } from "express";
 import ServiceRequestModel, { IServiceDocument } from "../models/ServiceRequestModel";
+import { IDevice } from "../interfaces/device.interface";
 
 class serviceRequestService {
     deleteServiceRequest: any;
