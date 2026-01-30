@@ -31,6 +31,24 @@ class AuthService {
       token: generateToken(user._id.toString()),
     };
   }
+  async getUsers() {
+    const users = await User.find().populate({  
+      path: "department",
+      populate: { path: "plant" },
+    });
+    return users;
+  }
+
+  async deleteUser(id: string) {
+    await User.findByIdAndDelete(id);
+  }
+  async updateUser(id: string, data: Partial<IUser>) {
+    const updatedUser = await User.findByIdAndUpdate(id, data, { new: true }).populate({  
+      path: "department",
+      populate: { path: "plant" },
+    });
+    return updatedUser;
+  }
 
   async login(userId: string, password: string) {
     const user = await User.findOne({ userId }).populate({
@@ -55,5 +73,6 @@ class AuthService {
     };
   }
 }
+  
 
 export default new AuthService();

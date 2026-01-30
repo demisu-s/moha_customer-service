@@ -6,10 +6,12 @@ import { authorize } from "../midllewares/authorize";
 const router = Router();
 
 router.post("/createPlant", createPlant);
-router.put("/updatePlant",protect, authorize("UPDATE_PLANT"), updatePlant);
+router.put("/updatePlant/:id", updatePlant);
 router.get("/getPlantById/:id", getPlantById);
 router.get("/getPlants", getPlants);
 router.delete("/deletePlant/:id", deletePlant);
+
+
 
 
 export default router;

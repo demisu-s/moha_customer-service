@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { createDepartment } from "../api/plant.api";
+import { useDepartmentContext } from "../context/DepartmentContext";
 
 const CreateDepartmentModal = ({ plantId, onClose, onCreated }: any) => {
+  const { addDepartment } = useDepartmentContext();
+
   const [form, setForm] = useState({
     name: "",
     block: "",
@@ -9,7 +11,10 @@ const CreateDepartmentModal = ({ plantId, onClose, onCreated }: any) => {
   });
 
   const submit = async () => {
-    await createDepartment({ ...form, plant: plantId });
+    await addDepartment({
+      ...form,
+      plant: plantId,
+    });
     onCreated();
     onClose();
   };
@@ -22,23 +27,17 @@ const CreateDepartmentModal = ({ plantId, onClose, onCreated }: any) => {
         <input
           placeholder="Department name"
           className="w-full border p-2 mb-3"
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
         <input
           placeholder="Block"
           className="w-full border p-2 mb-3"
-          onChange={(e) =>
-            setForm({ ...form, block: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, block: e.target.value })}
         />
         <input
           placeholder="Floor"
           className="w-full border p-2 mb-3"
-          onChange={(e) =>
-            setForm({ ...form, floor: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, floor: e.target.value })}
         />
 
         <div className="flex justify-end gap-2">

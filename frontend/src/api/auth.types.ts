@@ -3,7 +3,7 @@ export interface LoginResponse {
   firstName: string;
   lastName: string;
   userId: string;
-  role: "admin" | "supervisor" | "user";
+  role: "admin" | "supervisor" | "user" | "superadmin";
   gender: "male" | "female";
   department: {
     _id: string;

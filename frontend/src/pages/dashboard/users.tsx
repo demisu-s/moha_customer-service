@@ -1,50 +1,81 @@
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { JSX, useEffect, useState } from "react";
+import { JSX, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
 
 export default function UserManagement(): JSX.Element {
-    const { users, deleteUser, areas, departments,roles } = useUserContext();
-  const [search, setSearch] = useState<string>("");
-  const [departmentFilter, setDepartmentFilter] = useState<string>("");
-  const [areaFilter, setAreaFilter] = useState<string>("");
-  const [roleFilter, setRoleFilter] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const {
+    users,
+    deleteUserHandler,
+    plants,
+    departments,
+    roles,
+    loadDepartments,
+  } = useUserContext();
+
+  const [search, setSearch] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [plantFilter, setPlantFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
-
   const [showDialog, setShowDialog] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const filteredUsers = users.filter((user) => {
-    const nameMatch = `${user.firstName} ${user.lastName}`
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const departmentMatch = departmentFilter ? user.department === departmentFilter : true;
-    const areaMatch = areaFilter ? user.area === areaFilter : true;
-    const roleMatch = roleFilter ? user.role === roleFilter : true;
-    return nameMatch && departmentMatch && areaMatch && roleMatch;
-  });
+  /* -------------------- Load Departments on Plant Change -------------------- */
+  useEffect(() => {
+    if (plantFilter) loadDepartments(plantFilter);
+    else setDepartmentFilter("");
+  }, [plantFilter, loadDepartments]);
 
+  /* -------------------- Filtered Departments -------------------- */
+  const filteredDepartments = useMemo(() => {
+    if (!plantFilter) return departments;
+    return departments.filter((dept) => dept.plant === plantFilter);
+  }, [departments, plantFilter]);
+
+  /* -------------------- Filtering Users -------------------- */
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const nameMatch = `${user.firstName ?? ""} ${user.lastName ?? ""}`
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+      const departmentMatch = departmentFilter
+        ? user.department?.name === departmentFilter
+        : true;
+
+      const plantMatch = plantFilter
+        ? user.department?.plant === plantFilter
+        : true;
+
+      const roleMatch = roleFilter ? user.role === roleFilter : true;
+
+      return nameMatch && departmentMatch && plantMatch && roleMatch;
+    });
+  }, [users, search, departmentFilter, plantFilter, roleFilter]);
+
+  /* -------------------- Pagination -------------------- */
   const totalUsers = filteredUsers.length;
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = Math.min(startIndex + usersPerPage, totalUsers);
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
-  useEffect(() => {
-    if (startIndex >= filteredUsers.length && currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [filteredUsers, currentPage, startIndex]);
+  if (startIndex >= filteredUsers.length && currentPage !== 1) {
+    setCurrentPage(1);
+  }
 
+  /* -------------------- UI -------------------- */
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Title */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 pb-1">User Management</h1>
-        <p className="text-sm text-gray-400">Manage users, roles, and departments efficiently.</p>
+        <p className="text-sm text-gray-400">
+          Manage users, roles, and departments efficiently.
+        </p>
       </div>
 
       {/* Controls */}
@@ -58,68 +89,69 @@ export default function UserManagement(): JSX.Element {
             className="w-full border rounded-md px-3 py-2 text-sm"
           />
 
-          {/* Filter Dropdown */}
           <DropdownMenu.Root>
-                      <DropdownMenu.Trigger asChild>
-                        <button className="px-3 py-2 border rounded-md text-sm hover:bg-gray-100">
-                          Filter
-                        </button>
-                      </DropdownMenu.Trigger>
-                      <DropdownMenu.Portal>
-                        <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-2 w-56 space-y-2">
-                          {/* Department Filter */}
-                          <div>
-                            <label className="text-xs text-gray-500">Department</label>
-                            <select
-                              className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                              value={departmentFilter}
-                              onChange={(e) => setDepartmentFilter(e.target.value)}
-                            >
-                              <option value="">All</option>
-                              {departments.map((dept) => (
-                                <option key={dept} value={dept}>
-                                  {dept}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-          
-                          {/* Area Filter */}
-                          <div>
-                            <label className="text-xs text-gray-500">Area</label>
-                            <select
-                              className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                              value={areaFilter}
-                              onChange={(e) => setAreaFilter(e.target.value)}
-                            >
-                              <option value="">All</option>
-                              {areas.map((area) => (
-                                <option key={area} value={area}>
-                                  {area}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-          
-                          {/* Role Filter */}
-                          <div>
-                            <label className="text-xs text-gray-500">Role</label>
-                          <select
-                              className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                              value={roleFilter}
-                              onChange={(e) => setRoleFilter(e.target.value)}
-                            >
-                              <option value="">All</option>
-                              {roles.map((role) => (
-                                <option key={role} value={role}>
-                                  {role}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Portal>
-                    </DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button className="px-3 py-2 border rounded-md text-sm hover:bg-gray-100">
+                Filter
+              </button>
+            </DropdownMenu.Trigger>
+
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-2 w-56 space-y-2">
+                {/* Plant */}
+                <div>
+                  <label className="text-xs text-gray-500">Plant</label>
+                  <select
+                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                    value={plantFilter}
+                    onChange={(e) => setPlantFilter(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    {plants.map((plant) => (
+                      <option key={plant._id} value={plant._id}>
+                        {plant.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Department */}
+                <div>
+                  <label className="text-xs text-gray-500">Department</label>
+                  <select
+                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    disabled={!plantFilter}
+                  >
+                    <option value="">All</option>
+                    {filteredDepartments.map((dept) => (
+                      <option key={dept._id} value={dept.name}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Role */}
+                <div>
+                  <label className="text-xs text-gray-500">Role</label>
+                  <select
+                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    {roles.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </div>
 
         <button
@@ -138,31 +170,35 @@ export default function UserManagement(): JSX.Element {
               <th className="px-4 py-2">No</th>
               <th className="px-4 py-2">First Name</th>
               <th className="px-4 py-2">Last Name</th>
-              <th className="px-4 py-2">Area</th>
+              <th className="px-4 py-2">Plant</th>
               <th className="px-4 py-2">Department</th>
               <th className="px-4 py-2">Role</th>
               <th className="px-4 py-2">Action</th>
             </tr>
           </thead>
+
           <tbody className="text-lg">
             {paginatedUsers.length > 0 ? (
               paginatedUsers.map((user, idx) => (
-                <tr key={user.id} className="border-t">
+                <tr key={user._id} className="border-t">
                   <td className="px-4 py-2">{startIndex + idx + 1}</td>
-                  <td className="px-4 py-2">{user.firstName}</td>
-                  <td className="px-4 py-2">{user.lastName}</td>
-                  <td className="px-4 py-2">{user.area}</td>
-                  <td className="px-4 py-2">{user.department}</td>
-                  <td className="px-4 py-2">{user.role}</td>
+                  <td className="px-4 py-2">{user.firstName ?? "-"}</td>
+                  <td className="px-4 py-2">{user.lastName ?? "-"}</td>
+             <td className="px-4 py-2">{user.department?.plant?.name ?? "-"}</td>
+             <td className="px-4 py-2">{user.department?.name ?? "-"}</td>
+
+                  <td className="px-4 py-2">{user.role ?? "-"}</td>
                   <td className="px-4 py-2 flex gap-2">
-                    <button className="text-blue-600 hover:underline"
-                    onClick={() => navigate(`/dashboard/users/edit/${user.id}`)}>
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => navigate(`/dashboard/users/edit/${user._id}`)}
+                    >
                       <Pencil1Icon className="w-4 h-4" />
                     </button>
                     <button
                       className="text-red-600 hover:underline"
                       onClick={() => {
-                        setUserToDelete(user.id);
+                        setUserToDelete(user._id);
                         setShowDialog(true);
                       }}
                     >
@@ -182,24 +218,24 @@ export default function UserManagement(): JSX.Element {
         </table>
       </div>
 
-      {/* Confirmation Dialog */}
-            {showDialog && (
+      {/* Delete Dialog */}
+      {showDialog && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-            <h2 className="text-lg font-normal mb-4">Are you sure you want to delete this user?</h2>
+            <h2 className="text-lg mb-4">
+              Are you sure you want to delete this user?
+            </h2>
             <div className="flex justify-end gap-2">
               <button
-                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-bold"
+                className="px-4 py-2 rounded-lg bg-gray-200"
                 onClick={() => setShowDialog(false)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 rounded-lg bg-black text-white font-bold hover:bg-red-700"
+                className="px-4 py-2 rounded-lg bg-black text-white"
                 onClick={() => {
-                  if (userToDelete !== null) {
-                    deleteUser(userToDelete);
-                  }
+                  if (userToDelete) deleteUserHandler(userToDelete);
                   setShowDialog(false);
                   setUserToDelete(null);
                 }}
@@ -211,7 +247,7 @@ export default function UserManagement(): JSX.Element {
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-600">
         <span>
           Showing {totalUsers === 0 ? 0 : startIndex + 1}–{endIndex} of {totalUsers} users
@@ -221,20 +257,14 @@ export default function UserManagement(): JSX.Element {
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className={`px-3 py-1 border rounded-md ${
-              currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
-            }`}
+            className="px-3 py-1 border rounded-md"
           >
             Previous
           </button>
           <button
-            onClick={() =>
-              setCurrentPage((prev) => (endIndex < totalUsers ? prev + 1 : prev))
-            }
+            onClick={() => setCurrentPage((prev) => (endIndex < totalUsers ? prev + 1 : prev))}
             disabled={endIndex >= totalUsers}
-            className={`px-3 py-1 border rounded-md ${
-              endIndex >= totalUsers ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
-            }`}
+            className="px-3 py-1 border rounded-md"
           >
             Next
           </button>

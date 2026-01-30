@@ -7,23 +7,17 @@ import {
   CheckIcon,
 } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import {
-  useUserContext,
-  Area,
-  Department,
-  Role,
-  Gender,
-} from "../../context/UserContext";
+import { useUserContext } from "../../context/UserContext";
 
 /* -------------------- Types -------------------- */
 
 interface UserFormData {
   firstName: string;
   lastName: string;
-  area: Area;
-  department: Department | "";
-  role: Role;
-  gender: Gender;
+  plantId: string;
+  departmentId: string;
+  role: "user" | "admin" | "supervisor" | "superadmin";
+  gender: "male" | "female";
   userId: string;
   password: string;
   photo?: File | null;
@@ -52,14 +46,22 @@ SelectItem.displayName = "SelectItem";
 /* -------------------- Component -------------------- */
 
 const AddUser: React.FC = () => {
-  const { addUser, areas, departments, roles, genders } = useUserContext();
+  const {
+    addUser,
+    plants = [],
+    departments = [],
+    loadDepartments,
+    roles = [],
+    genders = [],
+  } = useUserContext();
+
   const navigate = useNavigate();
 
   const [formData, setFormData] = React.useState<UserFormData>({
     firstName: "",
     lastName: "",
-    area: "HO",
-    department: "",
+    plantId: "",
+    departmentId: "",
     role: "user",
     gender: "male",
     userId: "",
@@ -78,27 +80,42 @@ const AddUser: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Reset department when area changes
+  // ✅ Load departments when plant changes
   React.useEffect(() => {
-    setFormData((prev) => ({ ...prev, department: "" }));
-  }, [formData.area]);
+    if (formData.plantId) {
+      loadDepartments(formData.plantId);
+      setFormData((prev) => ({ ...prev, departmentId: "" }));
+    }
+  }, [formData.plantId, loadDepartments]);
 
- const handleSubmit = async () => {
-  await addUser({
-    firstName: formData.firstName,
-    lastName: formData.lastName,
+  // ✅ FILTER departments by selected plant
+  const filteredDepartments = React.useMemo(() => {
+    return departments.filter(
+      (d: any) =>
+        d.plant === formData.plantId ||
+        d.plant?._id === formData.plantId
+    );
+  }, [departments, formData.plantId]);
 
-    // ⚠️ this must be department ObjectId from backend
-    department: formData.department,
-    // department: selectedDepartmentId,
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      await addUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        department: formData.departmentId,
+        role: formData.role,
+        gender: formData.gender,
+        userId: formData.userId,
+        password: formData.password,
+        photo: formData.photo,
+      });
 
-    role: formData.role,
-    gender: formData.gender,
-    userId: formData.userId,
-    password: formData.password,
-    photo: formData.photo,
-  });
-};
+      navigate("/dashboard/users");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* -------------------- UI -------------------- */
 
@@ -114,7 +131,9 @@ const AddUser: React.FC = () => {
           <Label.Root>First Name</Label.Root>
           <input
             value={formData.firstName}
-            onChange={(e) => handleChange("firstName", e.target.value)}
+            onChange={(e) =>
+              handleChange("firstName", e.target.value)
+            }
             className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
@@ -124,27 +143,31 @@ const AddUser: React.FC = () => {
           <Label.Root>Last Name</Label.Root>
           <input
             value={formData.lastName}
-            onChange={(e) => handleChange("lastName", e.target.value)}
+            onChange={(e) =>
+              handleChange("lastName", e.target.value)
+            }
             className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
 
-        {/* Area */}
+        {/* Plant */}
         <div>
-          <Label.Root>Area</Label.Root>
+          <Label.Root>Plant</Label.Root>
           <Select.Root
-            value={formData.area}
-            onValueChange={(v) => handleChange("area", v as Area)}
+            value={formData.plantId}
+            onValueChange={(v) =>
+              handleChange("plantId", v)
+            }
           >
             <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
-              <Select.Value />
+              <Select.Value placeholder="Select Plant" />
               <ChevronDownIcon />
             </Select.Trigger>
             <Select.Content className="bg-white border rounded shadow-md">
               <Select.Viewport>
-                {areas.map((area) => (
-                  <SelectItem key={area} value={area}>
-                    {area}
+                {plants.map((p: any) => (
+                  <SelectItem key={p._id} value={p._id}>
+                    {p.name}
                   </SelectItem>
                 ))}
               </Select.Viewport>
@@ -156,25 +179,32 @@ const AddUser: React.FC = () => {
         <div>
           <Label.Root>Department</Label.Root>
           <Select.Root
-            value={formData.department}
-            onValueChange={(v) =>
-              handleChange("department", v as Department)
-            }
-          >
-            <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
-              <Select.Value placeholder="Select Department" />
-              <ChevronDownIcon />
-            </Select.Trigger>
-            <Select.Content className="bg-white border rounded shadow-md">
-              <Select.Viewport>
-                {departments.map((dept) => (
-                  <SelectItem key={dept} value={dept}>
-                    {dept}
-                  </SelectItem>
-                ))}
-              </Select.Viewport>
-            </Select.Content>
-          </Select.Root>
+  value={formData.departmentId}
+  onValueChange={(v) => handleChange("departmentId", v)}
+  disabled={!formData.plantId}
+>
+  <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
+    <Select.Value placeholder="Select Department" />
+    <ChevronDownIcon />
+  </Select.Trigger>
+
+  <Select.Content className="bg-white border rounded shadow-md">
+    <Select.Viewport>
+      {filteredDepartments.length === 0 && (
+        <div className="px-2 py-1 text-sm text-gray-400">
+          No departments available
+        </div>
+      )}
+
+      {filteredDepartments.map((d: any) => (
+        <SelectItem key={d._id} value={d._id}>
+          {d.name}
+        </SelectItem>
+      ))}
+    </Select.Viewport>
+  </Select.Content>
+</Select.Root>
+
         </div>
 
         {/* Role */}
@@ -182,7 +212,9 @@ const AddUser: React.FC = () => {
           <Label.Root>Role</Label.Root>
           <Select.Root
             value={formData.role}
-            onValueChange={(v) => handleChange("role", v as Role)}
+            onValueChange={(v) =>
+              handleChange("role", v as any)
+            }
           >
             <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
               <Select.Value />
@@ -205,7 +237,9 @@ const AddUser: React.FC = () => {
           <Label.Root>Gender</Label.Root>
           <Select.Root
             value={formData.gender}
-            onValueChange={(v) => handleChange("gender", v as Gender)}
+            onValueChange={(v) =>
+              handleChange("gender", v as any)
+            }
           >
             <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
               <Select.Value />
@@ -228,7 +262,9 @@ const AddUser: React.FC = () => {
           <Label.Root>User ID</Label.Root>
           <input
             value={formData.userId}
-            onChange={(e) => handleChange("userId", e.target.value)}
+            onChange={(e) =>
+              handleChange("userId", e.target.value)
+            }
             className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
@@ -239,7 +275,9 @@ const AddUser: React.FC = () => {
           <input
             type="password"
             value={formData.password}
-            onChange={(e) => handleChange("password", e.target.value)}
+            onChange={(e) =>
+              handleChange("password", e.target.value)
+            }
             className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
@@ -254,7 +292,10 @@ const AddUser: React.FC = () => {
               type="file"
               hidden
               onChange={(e) =>
-                handleChange("photo", e.target.files?.[0] ?? null)
+                handleChange(
+                  "photo",
+                  e.target.files?.[0] ?? null
+                )
               }
             />
           </label>

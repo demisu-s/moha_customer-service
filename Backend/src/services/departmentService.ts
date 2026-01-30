@@ -25,18 +25,14 @@ class DepartmentService {
     return department;
   }
 
-  // UPDATE
-  async updateDepartment(id: string, data: Partial<IDepartment>) {
+    async updateDepartment(id: string, data: Partial<IDepartment>) {
     const department = await DepartmentModel.findByIdAndUpdate(
       id,
       data,
       { new: true, runValidators: true }
     );
 
-    if (!department) {
-      throw new Error("Department not found");
-    }
-
+    if (!department) throw new Error("Department not found");
     return department;
   }
 
@@ -51,7 +47,7 @@ class DepartmentService {
     return department;
   }
 
-  // GET BY PLANT
+
   async getDepartmentsByPlant(plantId: string) {
     const departments = await DepartmentModel.find({ plant: plantId })
       .sort({ createdAt: -1 });
@@ -59,18 +55,20 @@ class DepartmentService {
     return departments; // 👈 ARRAY
   }
 
+//   async getDepartmentsByPlant(plantId: string) {
+//   return await DepartmentModel.find({ plant: plantId });
+// }
+
+
   // GET ALL
   async getDepartments() {
     const departments = await DepartmentModel.find().populate("plant");
     return departments;
   }
 
-  // DELETE
   async deleteDepartment(id: string) {
     const department = await DepartmentModel.findByIdAndDelete(id);
-    if (!department) {
-      throw new Error("Department not found");
-    }
+    if (!department) throw new Error("Department not found");
     return true;
   }
 }

@@ -1,129 +1,128 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useState,
   ReactNode,
+  useCallback,
 } from "react";
-import { createUser } from "../api/user.api";
+import {
+  createUser,
+  getUsers,
+  deleteUser as deleteUserApi,
+  updateUser
+  ,CreateUserPayload
+} from "../api/user.api";
+import { getPlants } from "../api/plant.api";
+import { getDepartmentsByPlant } from "../api/department.api";
+import { UserPayload, PlantPayload, DepartmentPayload, } from "../api/global.types";
 
 /* ------------------ Types ------------------ */
-
-export type Area =
-  | "HO"
-  | "Nifas Silk"
-  | "Mekelle"
-  | "Summit"
-  | "Bure"
-  | "Hawassa"
-  | "Teklehaymanot"
-  | "Dessie"
-  | "Gonder";
-
-export type Department =
-  | "HR"
-  | "MIS"
-  | "Finance"
-  | "Sales"
-  | "Procurement"
-  | "Marketing"
-  | "Planning"
-  | "Law"
-  | "Quality"
-  | "Project"
-  | "General Manager"
-  | "Security"
-  | "Audit";
-
-/** IMPORTANT: backend enum values */
-export type Role = "user" | "admin" | "supervisor";
+export type Role = "user" | "admin" | "supervisor" | "superadmin";
 export type Gender = "male" | "female";
 
 export interface User {
   _id: string;
   firstName: string;
   lastName: string;
-  department: string; // ObjectId
+  department: DepartmentPayload;
   role: Role;
   gender: Gender;
   userId: string;
-  phone?: string;
   photo?: string;
 }
 
-export interface CreateUserPayload {
-  firstName: string;
-  lastName: string;
-  department: string; // ObjectId
-  role: Role;
-  gender: Gender;
-  userId: string;
-  password: string;
-  photo?: File | null;
-}
-
-/* ------------------ Constants ------------------ */
-
-export const AREAS: Area[] = [
-  "HO",
-  "Nifas Silk",
-  "Mekelle",
-  "Summit",
-  "Bure",
-  "Hawassa",
-  "Teklehaymanot",
-  "Dessie",
-  "Gonder",
-];
-
-export const DEPARTMENTS: Department[] = [
-  "HR",
-  "MIS",
-  "Finance",
-  "Sales",
-  "Procurement",
-  "Marketing",
-  "Planning",
-  "Law",
-  "Quality",
-  "Project",
-  "General Manager",
-  "Security",
-  "Audit",
-];
-
-export const ROLES: Role[] = ["user", "admin", "supervisor"];
-export const GENDERS: Gender[] = ["male", "female"];
-
 /* ------------------ Context ------------------ */
-
 interface UserContextType {
   users: User[];
-  addUser: (payload: CreateUserPayload) => Promise<void>;
-  areas: Area[];
-  departments: Department[];
+  plants: PlantPayload[];
+  departments: DepartmentPayload[];
   roles: Role[];
   genders: Gender[];
+  loadDepartments: (plantId: string) => Promise<void>;
+  addUser: (payload: CreateUserPayload) => Promise<void>;
+  refreshUsers: () => Promise<void>;
+  updateUserHandler: (id: string, data: Partial<CreateUserPayload>) => Promise<void>;
+  deleteUserHandler: (id: string) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>([]);
+  const [plants, setPlants] = useState<PlantPayload[]>([]);
+  const [departments, setDepartments] = useState<DepartmentPayload[]>([]);
 
+  /* ------------------ Load Users ------------------ */
+ const refreshUsers = useCallback(async () => {
+  try {
+    const res = await getUsers();
+    console.log("getUsers response:", res.data); // debug
+    setUsers(Array.isArray(res.data) ? res.data : []);
+  } catch (error) {
+    console.error("Failed to load users", error);
+    setUsers([]);
+  }
+}, []);
+
+
+  useEffect(() => {
+    refreshUsers();
+  }, [refreshUsers]);
+
+  /* ------------------ Load Plants ------------------ */
+  useEffect(() => {
+    getPlants()
+      .then((res) => setPlants(res.data.data || []))
+      .catch(() => setPlants([]));
+  }, []);
+
+  /* ------------------ Load Departments by Plant ------------------ */
+  const loadDepartments = useCallback(async (plantId: string) => {
+    try {
+      const deps = await getDepartmentsByPlant(plantId);
+      setDepartments(deps || []);
+    } catch (error) {
+      console.error("Failed to load departments", error);
+      setDepartments([]);
+    }
+  }, []);
+
+  /* ------------------ Create User ------------------ */
   const addUser = async (payload: CreateUserPayload) => {
     const created = await createUser(payload);
     setUsers((prev) => [...prev, created]);
+  };
+
+  /* ------------------ Delete User ------------------ */
+  const deleteUserHandler = async (id: string) => {
+    await deleteUserApi(id);
+    setUsers((prev) => prev.filter((user) => user._id !== id));
+  };
+
+  /* ------------------ Update User ------------------ */
+  const updateUserHandler = async (id: string, data: Partial<CreateUserPayload>) => {
+    const res = await updateUser(id, data);
+    setUsers((prev) =>
+      prev.map((user) =>
+        user._id === id && res && typeof res === "object" ? { ...user, ...res } : user
+      )
+    );
   };
 
   return (
     <UserContext.Provider
       value={{
         users,
+        plants,
+        departments,
+        roles: ["user", "admin", "supervisor", "superadmin"],
+        genders: ["male", "female"],
+        loadDepartments,
         addUser,
-        areas: AREAS,
-        departments: DEPARTMENTS,
-        roles: ROLES,
-        genders: GENDERS,
+        refreshUsers,
+        updateUserHandler,
+        deleteUserHandler,
       }}
     >
       {children}

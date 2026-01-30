@@ -17,26 +17,14 @@ export const createPlant = async (
   }
 };
 
-export const updatePlant = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updatePlant = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const plant = await plantService.updatePlant(
-      req.params.id,
-      req.body
-    );
-
-    res.status(200).json({
-      success: true,
-      data: plant,
-    });
+    const plant = await plantService.updatePlant(req.params.id, req.body);
+    res.json({ success: true, data: plant });
   } catch (error) {
     next(error);
   }
 };
-
 export const getPlantById = async (
   req: Request,
   res: Response,
@@ -69,17 +57,10 @@ export const getPlants = async (
   }
 };
 
-export const deletePlant = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deletePlant = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await plantService.deletePlant(req.params.id);
-    res.status(200).json({
-      success: true,
-      message: "Plant deleted successfully",
-    });
+    res.json({ success: true, message: "Plant deleted successfully" });
   } catch (error) {
     next(error);
   }

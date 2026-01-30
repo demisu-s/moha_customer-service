@@ -1,33 +1,48 @@
 import { useEffect, useState } from "react";
-import {
-  getPlants,
-  getDepartmentsByPlant,
-} from "../../api/plant.api";
+
 import CreatePlantModal from "../../components/CreatePlantModal";
 import CreateDepartmentModal from "../../components/CreateDepartmentModal";
-import { Plant, Department } from "../../api/plant.types";
+import EditPlantModal from "../../components/EditPlantModal";
+import EditDepartmentModal from "../../components/EditDepartmentModal";
+
+import { PlantPayload, DepartmentPayload } from "../../api/global.types";
+import { usePlantContext } from "../../context/PlantContext";
+import { useDepartmentContext } from "../../context/DepartmentContext";
 
 const Plants = () => {
-  const [plants, setPlants] = useState<Plant[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
+  /* 🔹 CONTEXTS */
+  const {
+    plants,
+    refreshPlants,
+    deletePlantHandler,
+  } = usePlantContext();
+
+  const {
+    departments,
+    refreshDepartments,
+    deleteDepartmentHandler,
+  } = useDepartmentContext();
+
+  const [selectedPlant, setSelectedPlant] = useState<PlantPayload | null>(null);
+
+  const [editPlant, setEditPlant] = useState<PlantPayload | null>(null);
+  const [editDepartment, setEditDepartment] =
+    useState<DepartmentPayload | null>(null);
 
   const [showPlantModal, setShowPlantModal] = useState(false);
   const [showDeptModal, setShowDeptModal] = useState(false);
 
-  const loadPlants = async () => {
-    const res = await getPlants();
-    setPlants(res.data.data); // ✅ FIX
-  };
-
-  const loadDepartments = async (plantId: string) => {
-    const res = await getDepartmentsByPlant(plantId);
-    setDepartments(res.data.data); // ✅ FIX
-  };
-
+  /* 🔹 Load plants on mount */
   useEffect(() => {
-    loadPlants();
-  }, []);
+    refreshPlants();
+  }, [refreshPlants]);
+
+  /* 🔹 Load departments when plant changes */
+  useEffect(() => {
+    if (selectedPlant) {
+      refreshDepartments(selectedPlant._id);
+    }
+  }, [selectedPlant, refreshDepartments]);
 
   return (
     <div className="p-6">
@@ -63,21 +78,37 @@ const Plants = () => {
               <th>No</th>
               <th>Name</th>
               <th>Area</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {plants.map((p, i) => (
-              <tr
-                key={p._id}
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => {
-                  setSelectedPlant(p);
-                  loadDepartments(p._id);
-                }}
-              >
+              <tr key={p._id}>
                 <td>{i + 1}</td>
-                <td>{p.name}</td>
+                <td
+                  className="cursor-pointer text-blue-600"
+                  onClick={() => setSelectedPlant(p)}
+                >
+                  {p.name}
+                </td>
                 <td>{p.area}</td>
+                <td className="flex gap-2">
+                  <button
+                    className="text-blue-600"
+                    onClick={() => setEditPlant(p)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-red-600"
+                    onClick={async () => {
+                      await deletePlantHandler(p._id);
+                      refreshPlants();
+                    }}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -100,6 +131,7 @@ const Plants = () => {
                 <th>No</th>
                 <th>Name</th>
                 <th>Floor</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -108,6 +140,25 @@ const Plants = () => {
                   <td>{i + 1}</td>
                   <td>{d.name}</td>
                   <td>{d.floor}</td>
+                  <td className="flex gap-2">
+                    <button
+                      className="text-blue-600"
+                      onClick={() => setEditDepartment(d)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-red-600"
+                      onClick={async () => {
+                        await deleteDepartmentHandler(d._id);
+                        if (selectedPlant) {
+                          refreshDepartments(selectedPlant._id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -115,10 +166,11 @@ const Plants = () => {
         </>
       )}
 
+      {/* MODALS */}
       {showPlantModal && (
         <CreatePlantModal
           onClose={() => setShowPlantModal(false)}
-          onCreated={loadPlants}
+          onCreated={refreshPlants}
         />
       )}
 
@@ -126,7 +178,30 @@ const Plants = () => {
         <CreateDepartmentModal
           plantId={selectedPlant._id}
           onClose={() => setShowDeptModal(false)}
-          onCreated={() => loadDepartments(selectedPlant._id)}
+          onCreated={() => refreshDepartments(selectedPlant._id)}
+        />
+      )}
+
+      {editPlant && (
+        <EditPlantModal
+          plant={editPlant}
+          onClose={() => setEditPlant(null)}
+          onUpdated={async () => {
+            await refreshPlants();
+            setSelectedPlant(null);
+            setEditPlant(null);
+          }}
+        />
+      )}
+
+      {editDepartment && selectedPlant && (
+        <EditDepartmentModal
+          department={editDepartment}
+          onClose={() => setEditDepartment(null)}
+          onUpdated={async () => {
+            refreshDepartments(selectedPlant._id);
+            setEditDepartment(null);
+          }}
         />
       )}
     </div>

@@ -17,20 +17,10 @@ export const createDepartment = async (
   }
 };
 
-export const updateDepartment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateDepartment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const department = await departmentService.updateDepartment(
-      req.params.id,
-      req.body
-    );
-    res.status(200).json({
-      success: true,
-      data: department,
-    });
+    const department = await departmentService.updateDepartment(req.params.id, req.body);
+    res.json({ success: true, data: department });
   } catch (error) {
     next(error);
   }
@@ -72,6 +62,7 @@ export const getDepartmentsByPlant = async (
   }
 };
 
+
 export const getDepartments = async (
   req: Request,
   res: Response,
@@ -88,17 +79,10 @@ export const getDepartments = async (
   }
 };
 
-export const deleteDepartment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteDepartment = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await departmentService.deleteDepartment(req.params.id);
-    res.status(200).json({
-      success: true,
-      message: "Department deleted successfully",
-    });
+    res.json({ success: true, message: "Department deleted successfully" });
   } catch (error) {
     next(error);
   }
