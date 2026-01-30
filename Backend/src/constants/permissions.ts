@@ -1,0 +1,30 @@
+import { Role } from "./roles";
+
+export const PERMISSIONS = {
+  //plant permissions
+  CREATE_PLANT: [Role.SUPER_ADMIN, Role.ADMIN],
+  UPDATE_PLANT: [Role.SUPER_ADMIN, Role.ADMIN],
+  DELETE_PLANT: [Role.SUPER_ADMIN],
+  VIEW_PLANT: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR, Role.USER],
+  //department permissions
+  CREATE_DEPARTMENT: [Role.SUPER_ADMIN],
+  UPDATE_DEPARTMENT: [Role.SUPER_ADMIN, Role.ADMIN],
+  DELETE_DEPARTMENT: [Role.SUPER_ADMIN],
+  VIEW_DEPARTMENT: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR, Role.USER],
+  //user permissions
+  CREATE_USER: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR],
+  UPDATE_USER: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR],
+  DELETE_USER: [Role.SUPER_ADMIN, Role.ADMIN],
+  VIEW_USER: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR, Role.USER],
+
+  //device permissions
+  CREATE_DEVICE: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR],
+  UPDATE_DEVICE: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR],
+  DELETE_DEVICE: [Role.SUPER_ADMIN, Role.ADMIN],
+  VIEW_DEVICE: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR, Role.USER],
+
+  //activity permissions
+  VIEW_USER_ACTIVITY: [Role.USER],
+  USER_ACTIVITY: [Role.USER],
+
+};

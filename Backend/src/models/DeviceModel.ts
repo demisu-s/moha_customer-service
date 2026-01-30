@@ -1,12 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IDevice } from "../interfaces/types";
-
+import { IDevice } from "../interfaces/device.interface";
 export interface IDeviceDocument extends Omit<IDevice, "_id">, Document {}
 
 const deviceSchema = new Schema<IDeviceDocument>(
   {
    
-   _id: { type: String, required: true },
+  //  _id: { type: String, required: true },
     deviceName: { type: String, required: true },
     deviceType: { type: String, required: true },
     plant: { 

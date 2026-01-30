@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IServiceRequest } from "../interfaces/types";
+import { IServiceRequest } from "../interfaces/service-request.interface";
+
 
 export interface IServiceDocument extends Omit<IServiceRequest, "_id">, Document {}
 
@@ -21,7 +22,7 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
     },
     requestedDate: { type: String, required: true },
     description: { type: String, required: true },
-    Plant: {
+    plant: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Plant',
     },

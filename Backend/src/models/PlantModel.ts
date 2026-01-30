@@ -1,13 +1,12 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IPlant } from "../interfaces/types";
-
+import { IPlant } from "../interfaces/plant.interface";
 export interface IPlantDocument extends Omit<IPlant, "_id">, Document {}
 
 const plantSchema = new Schema<IPlantDocument>(
   {
-    Name: { type: String, required: true },
-  City: { type: String, required: true },
-  Area: { type: String, required: true },
+    name: { type: String, required: true },
+    city: { type: String, required: true },
+    area: { type: String, required: true },
   },
   { timestamps: true }
 );

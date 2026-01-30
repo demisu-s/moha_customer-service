@@ -3,7 +3,7 @@ import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { useDeviceContext,DeviceType } from "../../context/DeviceContext";
+import { useDeviceContext,DeviceType, } from "../../context/DeviceContext";
 import { useUserContext, Area, Department } from "../../context/UserContext";
 
 interface DeviceFormData {
@@ -65,27 +65,55 @@ const AddDevice = () => {
       (formData.area ? u.area === formData.area : true)
   );
 
-  const handleSubmit = () => {
-    const selectedUser = filteredUsers.find((u) => u.userId === formData.userId);
-    if (!selectedUser) {
-      alert("Selected user is invalid for the chosen department and area.");
-      return;
-    }
+  // const handleSubmit = () => {
+  //   const selectedUser = filteredUsers.find((u) => u.userId === formData.userId);
+  //   if (!selectedUser) {
+  //     alert("Selected user is invalid for the chosen department and area.");
+  //     return;
+  //   }
 
-    addDevice({
-      id: Date.now().toString(),
-      type: formData.type,
-      name: formData.name,
-      serial: formData.serial,
-      userId: formData.userId,
-      department: formData.department,
-      area: formData.area,
-      image: formData.image,
-      user: `${selectedUser.firstName} ${selectedUser.lastName}`,
-    });
+  //   addDevice({
+  //     id: Date.now().toString(),
+  //     type: formData.type,
+  //     name: formData.name,
+  //     serial: formData.serial,
+  //     userId: formData.userId,
+  //     department: formData.department,
+  //     area: formData.area,
+  //     image: formData.image,
+  //     user: `${selectedUser.firstName} ${selectedUser.lastName}`,
+  //   });
 
-    navigate("/dashboard/devices");
-  };
+  //   navigate("/dashboard/devices");
+  // };
+
+
+
+
+  const handleSubmit = async () => {
+  const selectedUser = filteredUsers.find((u) => u.userId === formData.userId);
+  if (!selectedUser) {
+    alert("Selected user is invalid for the chosen department and area.");
+    return;
+  }
+ 
+    await addDevice({
+    id: "", // backend will generate ID
+    type: formData.type,
+    name: formData.name,
+    serial: formData.serial,
+    userId: formData.userId,
+    department: formData.department,
+    area: formData.area,
+    image: formData.image,
+    user: `${selectedUser.firstName} ${selectedUser.lastName}`,
+  });
+
+  navigate("/dashboard/devices");
+};
+
+
+
 
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6 border rounded-md shadow-md">

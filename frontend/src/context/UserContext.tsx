@@ -1,137 +1,112 @@
 import React, {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
   ReactNode,
+  useCallback,
 } from "react";
+import {
+  createUser,
+  getUsers,
+  deleteUser as deleteUserApi,
+  updateUser
+  ,CreateUserPayload
+} from "../api/user.api";
+import { getPlants } from "../api/plant.api";
+import { getDepartmentsByPlant } from "../api/department.api";
+import { UserPayload, PlantPayload, DepartmentPayload, } from "../api/global.types";
 
-export type Area =
-  | "HO"
-  | "Nifas Silk"
-  | "Mekelle"
-  | "Summit"
-  | "Bure"
-  | "Hawassa"
-  | "Teklehaymanot"
-  | "Dessie"
-  | "Gonder";
+/* ------------------ Types ------------------ */
+export type Role = "user" | "admin" | "supervisor" | "superadmin";
+export type Gender = "male" | "female";
 
-export type Department =
-  | "HR"
-  | "MIS"
-  | "Finance"
-  | "Sales"
-  | "Procurement"
-  | "Marketing"
-  | "Planning"
-  | "Law"
-  | "Quality"
-  | "Project"
-  | "General Manager"
-  | "Security"
-  | "Audit";
-
-export const DEPARTMENTS: Department[] = [
-  "HR",
-  "MIS",
-  "Finance",
-  "Sales",
-  "Procurement",
-  "Marketing",
-  "Planning",
-  "Law",
-  "Quality",
-  "Project",
-  "General Manager",
-  "Security",
-  "Audit",
-];
-
-export const AREAS: Area[] = [
-  "HO",
-  "Nifas Silk",
-  "Mekelle",
-  "Summit",
-  "Bure",
-  "Hawassa",
-  "Teklehaymanot",
-  "Dessie",
-  "Gonder",
-];
-
-export type Role = "User" | "Admin" | "Supervisor";
-export const ROLES: Role[] = ["User", "Admin", "Supervisor"];
-export type Gender = "Male" | "Female";
-export const GENDERS: Gender[] = ["Male", "Female"];
-
-
-
-export type User = {
-  id: number;
+export interface User {
+  _id: string;
   firstName: string;
   lastName: string;
-  area: Area;
-  department: Department | string;
+  department: DepartmentPayload;
   role: Role;
   gender: Gender;
   userId: string;
-  password: string;
-  photo?: File | null;
-  phone?: string;
-};
+  photo?: string;
+}
 
-type UserContextType = {
+/* ------------------ Context ------------------ */
+interface UserContextType {
   users: User[];
-  addUser: (user: Omit<User, "id">) => void;
-  deleteUser: (id: number) => void;
-  updateUser: (id: number, updatedData: Partial<Omit<User, "id">>) => void;
-  areas: Area[];
-  departments: Department[];
+  plants: PlantPayload[];
+  departments: DepartmentPayload[];
   roles: Role[];
-  genders:Gender[]
-};
+  genders: Gender[];
+  loadDepartments: (plantId: string) => Promise<void>;
+  addUser: (payload: CreateUserPayload) => Promise<void>;
+  refreshUsers: () => Promise<void>;
+  updateUserHandler: (id: string, data: Partial<CreateUserPayload>) => Promise<void>;
+  deleteUserHandler: (id: string) => Promise<void>;
+}
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    firstName: "System",
-    lastName: "Admin",
-    area: "HO",
-    department: "MIS",
-    role: "Admin",
-    gender: "Male",
-    userId: "admin",
-    password: "admin123",
-  },
-];
-
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [users, setUsers] = useState<User[]>(() => {
-    const stored = localStorage.getItem("users");
-    return stored ? JSON.parse(stored) : initialUsers;
-  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [plants, setPlants] = useState<PlantPayload[]>([]);
+  const [departments, setDepartments] = useState<DepartmentPayload[]>([]);
+
+  /* ------------------ Load Users ------------------ */
+ const refreshUsers = useCallback(async () => {
+  try {
+    const res = await getUsers();
+    console.log("getUsers response:", res.data); // debug
+    setUsers(Array.isArray(res.data) ? res.data : []);
+  } catch (error) {
+    console.error("Failed to load users", error);
+    setUsers([]);
+  }
+}, []);
+
 
   useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
+    refreshUsers();
+  }, [refreshUsers]);
 
-  const addUser = (newUser: Omit<User, "id">) => {
-    setUsers((prev) => [
-      ...prev,
-      { id: prev.length ? prev[prev.length - 1].id + 1 : 1, ...newUser },
-    ]);
+  /* ------------------ Load Plants ------------------ */
+  useEffect(() => {
+    getPlants()
+      .then((res) => setPlants(res.data.data || []))
+      .catch(() => setPlants([]));
+  }, []);
+
+  /* ------------------ Load Departments by Plant ------------------ */
+  const loadDepartments = useCallback(async (plantId: string) => {
+    try {
+      const deps = await getDepartmentsByPlant(plantId);
+      setDepartments(deps || []);
+    } catch (error) {
+      console.error("Failed to load departments", error);
+      setDepartments([]);
+    }
+  }, []);
+
+  /* ------------------ Create User ------------------ */
+  const addUser = async (payload: CreateUserPayload) => {
+    const created = await createUser(payload);
+    setUsers((prev) => [...prev, created]);
   };
 
-  const deleteUser = (id: number) => {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
+  /* ------------------ Delete User ------------------ */
+  const deleteUserHandler = async (id: string) => {
+    await deleteUserApi(id);
+    setUsers((prev) => prev.filter((user) => user._id !== id));
   };
 
-  const updateUser = (id: number, updatedData: Partial<Omit<User, "id">>) => {
+  /* ------------------ Update User ------------------ */
+  const updateUserHandler = async (id: string, data: Partial<CreateUserPayload>) => {
+    const res = await updateUser(id, data);
     setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, ...updatedData } : user))
+      prev.map((user) =>
+        user._id === id && res && typeof res === "object" ? { ...user, ...res } : user
+      )
     );
   };
 
@@ -139,13 +114,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     <UserContext.Provider
       value={{
         users,
+        plants,
+        departments,
+        roles: ["user", "admin", "supervisor", "superadmin"],
+        genders: ["male", "female"],
+        loadDepartments,
         addUser,
-        deleteUser,
-        updateUser,
-        areas: AREAS,
-        departments: DEPARTMENTS,
-        roles: ROLES,
-        genders:GENDERS
+        refreshUsers,
+        updateUserHandler,
+        deleteUserHandler,
       }}
     >
       {children}
@@ -154,9 +131,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useUserContext = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUserContext must be used within a UserProvider");
-  }
-  return context;
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUserContext must be used within UserProvider");
+  return ctx;
 };

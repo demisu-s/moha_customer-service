@@ -1,91 +1,76 @@
-
-import { IDepartment } from "../interfaces/types";
-import { Request, Response } from "express";
 import DepartmentModel from "../models/DepartmentModel";
+import { IDepartment } from "../interfaces/department.interface";
 
-class departmentService {
-  // Create department
-  async createDepartment(req:Request,res:Response) {
+class DepartmentService {
+  // CREATE
+  async createDepartment(data: IDepartment) {
+    const { name, block, floor, plant } = data;
 
-    const { name,block,  floor} = req.body;
-   
-    const departmentExists = await DepartmentModel.findOne({ Name:name });
-    if (departmentExists) throw new Error("department already exists");
+    const departmentExists = await DepartmentModel.findOne({
+      name,
+      plant,
+    });
+
+    if (departmentExists) {
+      throw new Error("Department already exists for this plant");
+    }
+
     const department = await DepartmentModel.create({
-     name,  
-     block,  
-    floor
-    }) as IDepartment & { _id: any };
+      name,
+      block,
+      floor,
+      plant,
+    });
 
-    return {
-      department
-    };
+    return department;
   }
 
-// update department
-async updateDepartment(req: Request, res: Response) {
-    const { _id,name, block, floor } = req.body;
-  
-    if (!_id) throw new Error("Plant id is required");
-
+    async updateDepartment(id: string, data: Partial<IDepartment>) {
     const department = await DepartmentModel.findByIdAndUpdate(
-        _id,
-        { name, block, floor },
-        { new: true, runValidators: true }
-    ) as (IDepartment & { _id: any }) | null;
+      id,
+      data,
+      { new: true, runValidators: true }
+    );
 
-    if (!department) throw new Error("department not found");
-
-    return res.status(200).json({ department });
-}
-
-// Get department by ID
- async getDepartmentById(req:Request,res:Response) {
-      const department = await DepartmentModel.findOne({_id:req.params.id}); 
-      try{
-
-        if (!department) {
-            throw new Error("department not found");
-        }
-        return res.status(200).json({department});
-      }
-      catch(error){
-            console.error("Error fetching department:", error);
-            throw new Error("Error fetching department");
-      }
+    if (!department) throw new Error("Department not found");
+    return department;
   }
-  
 
-// Get all departments
- async getDepartment(req: Request, res: Response) {
-     try{
-        const department = await DepartmentModel.find()
-       return res.status(200).json({ department})
-     }
-        catch(error){
-            console.error("Error fetching department:", error);
-            return res.status(500).json({ error: "Error fetching department" });
+  // GET BY ID
+  async getDepartmentById(id: string) {
+    const department = await DepartmentModel.findById(id).populate("plant");
+
+    if (!department) {
+      throw new Error("Department not found");
+    }
+
+    return department;
   }
- }
 
-    // Delete department
- async deleteDepartment(req:Request,res:Response) {
-    console.log("Deleting depatment with id:", req.params.id);
-      const department = await DepartmentModel.findByIdAndDelete(req.params.id);
-        try{
-        if (!department) {
-            throw new Error("department not found");
-        }
-        return res.status(200).json({ message: "department deleted successfully" });
-      }
-        catch(error){
-            console.error("Error deleting department:", error);
-            throw new Error("Error deleting department");
-      }
-      
-  
+
+  async getDepartmentsByPlant(plantId: string) {
+    const departments = await DepartmentModel.find({ plant: plantId })
+      .sort({ createdAt: -1 });
+
+    return departments; // 👈 ARRAY
+  }
+
+//   async getDepartmentsByPlant(plantId: string) {
+//   return await DepartmentModel.find({ plant: plantId });
+// }
+
+
+  // GET ALL
+  async getDepartments() {
+    const departments = await DepartmentModel.find().populate("plant");
+    return departments;
+  }
+
+  async deleteDepartment(id: string) {
+    const department = await DepartmentModel.findByIdAndDelete(id);
+    if (!department) throw new Error("Department not found");
+    return true;
+  }
 }
 
-}
-
-export default new departmentService();
+export default new DepartmentService();

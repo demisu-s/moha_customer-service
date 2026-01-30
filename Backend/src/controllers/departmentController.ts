@@ -1,12 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-
 import departmentService from "../services/departmentService";
 
-export const createDepartment = async (req: Request, res: Response, next: NextFunction) => {
+export const createDepartment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log("In controller",req.body)
-    const result = await departmentService.createDepartment(req,res);
-    res.status(201).json(result);
+    const department = await departmentService.createDepartment(req.body);
+    res.status(201).json({
+      success: true,
+      data: department,
+    });
   } catch (error) {
     next(error);
   }
@@ -14,33 +19,70 @@ export const createDepartment = async (req: Request, res: Response, next: NextFu
 
 export const updateDepartment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-     const result = await departmentService.updateDepartment(req,res);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-};
-export const getDepartmentById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-     const result = await departmentService.getDepartmentById(req,res);     
-    res.json(result);
+    const department = await departmentService.updateDepartment(req.params.id, req.body);
+    res.json({ success: true, data: department });
   } catch (error) {
     next(error);
   }
 };
 
-export const getDepartment = async (req: Request, res: Response, next: NextFunction) => {
+export const getDepartmentById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-     const result = await departmentService.getDepartment(req,res);     
-    res.json(result);
+    const department = await departmentService.getDepartmentById(
+      req.params.id
+    );
+    res.status(200).json({
+      success: true,
+      data: department,
+    });
   } catch (error) {
     next(error);
   }
 };
+
+export const getDepartmentsByPlant = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const departments =
+      await departmentService.getDepartmentsByPlant(req.params.plantId);
+
+    res.status(200).json({
+      success: true,
+      data: departments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const getDepartments = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const departments = await departmentService.getDepartments();
+    res.status(200).json({
+      success: true,
+      data: departments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteDepartment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-     const result = await departmentService.deleteDepartment(req,res);  
-    res.json(result);
+    await departmentService.deleteDepartment(req.params.id);
+    res.json({ success: true, message: "Department deleted successfully" });
   } catch (error) {
     next(error);
   }

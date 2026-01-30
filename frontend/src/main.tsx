@@ -6,6 +6,8 @@ import App from './App';
 import { UserProvider } from "./context/UserContext";
 import { DeviceProvider } from './context/DeviceContext';
 import { ServiceRequestProvider } from './context/ServiceRequestContext';
+import { PlantProvider } from "./context/PlantContext";
+import { DepartmentProvider } from './context/DepartmentContext';
 
 
 
@@ -14,7 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <UserProvider>
         <DeviceProvider>
    <ServiceRequestProvider>
+    <PlantProvider>
+       <DepartmentProvider>
             <App />
+            </DepartmentProvider>
+            </PlantProvider>
           </ServiceRequestProvider>
         </DeviceProvider>
         </UserProvider>
