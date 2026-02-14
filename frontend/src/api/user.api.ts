@@ -1,4 +1,5 @@
 import api from "./axios";
+import { User, UserPayload } from "./global.types";
 
 export interface CreateUserPayload {
   firstName: string;
@@ -27,12 +28,17 @@ export const createUser = async (payload: CreateUserPayload): Promise<any> => {
   return res.data.data;
 };
 
-export const getUsers = () =>
-  api.get<{ success: boolean; data: any[] }>("/auth/getUsers");
+export const getUsers = async (): Promise<User[]> => {
+  const res = await api.get<User[]>("/auth/getUsers");
+  return res.data; 
+};
 
 export const deleteUser = (id: string) =>
   api.delete<{ success: boolean }>(`/auth/deleteUser/${id}`);   
-export const updateUser = (id: string, data: Partial<CreateUserPayload>) =>
-  api.put<{ success: boolean; data: any }>(`/auth/updateUser/${id}`, data);
+export const updateUser = async (id: string, data: any) => {
+  const res = await api.put(`/auth/updateUser/${id}`, data);
+  return res.data;
+};
+
 
 

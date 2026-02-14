@@ -3,6 +3,12 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { JSX, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
+import {
+  SUPERVISOR_USERS_ROUTE,
+  DASHBOARD_ROUTE,
+  ADMIN_DASHBOARD_ROUTE,
+  ADMIN_USERS_ROUTE,
+} from "../../router/routeConstants";
 
 export default function UserManagement(): JSX.Element {
   const {
@@ -12,6 +18,7 @@ export default function UserManagement(): JSX.Element {
     departments,
     roles,
     loadDepartments,
+    currentUser,
   } = useUserContext();
 
   const [search, setSearch] = useState("");
@@ -25,60 +32,119 @@ export default function UserManagement(): JSX.Element {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  /* -------------------- Load Departments on Plant Change -------------------- */
+  const isSuperAdmin = currentUser?.role === "superadmin";
+
+  /* ================= AUTO LOAD DEPARTMENT FOR ADMIN/SUPERVISOR ================= */
   useEffect(() => {
-    if (plantFilter) loadDepartments(plantFilter);
-    else setDepartmentFilter("");
-  }, [plantFilter, loadDepartments]);
+    if (!isSuperAdmin && currentUser?.department?.plant) {
+      const plantId =
+        typeof currentUser.department.plant === "object"
+          ? currentUser.department.plant._id
+          : currentUser.department.plant;
 
-  /* -------------------- Filtered Departments -------------------- */
+      if (plantId) {
+        setPlantFilter(plantId);
+        loadDepartments(plantId);
+      }
+    }
+  }, [currentUser, isSuperAdmin, loadDepartments]);
+
+  /* ================= LOAD DEPARTMENTS WHEN SUPERADMIN CHANGES PLANT ================= */
+  useEffect(() => {
+    if (isSuperAdmin && plantFilter) {
+      loadDepartments(plantFilter);
+      setDepartmentFilter("");
+    }
+  }, [plantFilter, isSuperAdmin, loadDepartments]);
+
+  /* ================= FILTERED DEPARTMENTS ================= */
   const filteredDepartments = useMemo(() => {
-    if (!plantFilter) return departments;
-    return departments.filter((dept) => dept.plant === plantFilter);
-  }, [departments, plantFilter]);
+    if (isSuperAdmin) {
+      return plantFilter
+        ? departments.filter((dept) =>
+            typeof dept.plant === "object"
+              ? dept.plant._id === plantFilter
+              : dept.plant === plantFilter
+          )
+        : departments;
+    }
 
-  /* -------------------- Filtering Users -------------------- */
+    // admin / supervisor → already loaded by their plant
+    return departments;
+  }, [departments, plantFilter, isSuperAdmin]);
+
+  /* ================= FILTER USERS ================= */
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      const nameMatch = `${user.firstName ?? ""} ${user.lastName ?? ""}`
+  if (!Array.isArray(users)) return [];
+
+  return users
+    .filter((user) => user && typeof user === "object") // ✅ protect against null
+    .filter((user) => {
+      const nameMatch = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`
         .toLowerCase()
         .includes(search.toLowerCase());
 
-      const departmentMatch = departmentFilter
-        ? user.department?.name === departmentFilter
-        : true;
-
       const plantMatch = plantFilter
-        ? user.department?.plant === plantFilter
+        ? typeof user?.department?.plant === "object" &&
+          user.department.plant?._id === plantFilter
         : true;
 
-      const roleMatch = roleFilter ? user.role === roleFilter : true;
+      const departmentMatch = departmentFilter
+        ? user?.department?._id === departmentFilter
+        : true;
 
-      return nameMatch && departmentMatch && plantMatch && roleMatch;
+      const roleMatch = roleFilter ? user?.role === roleFilter : true;
+
+      const plantAccessMatch =
+        isSuperAdmin ||
+        (typeof user?.department?.plant === "object" &&
+          typeof currentUser?.department?.plant === "object" &&
+          user.department.plant?._id ===
+            currentUser.department.plant?._id);
+
+      return (
+        plantAccessMatch &&
+        nameMatch &&
+        plantMatch &&
+        departmentMatch &&
+        roleMatch
+      );
     });
-  }, [users, search, departmentFilter, plantFilter, roleFilter]);
+}, [
+  users,
+  search,
+  plantFilter,
+  departmentFilter,
+  roleFilter,
+  currentUser,
+  isSuperAdmin,
+]);
 
-  /* -------------------- Pagination -------------------- */
+
+  /* ================= PAGINATION ================= */
   const totalUsers = filteredUsers.length;
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = Math.min(startIndex + usersPerPage, totalUsers);
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
-  if (startIndex >= filteredUsers.length && currentPage !== 1) {
-    setCurrentPage(1);
-  }
+  useEffect(() => {
+    if (startIndex >= filteredUsers.length && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [filteredUsers, currentPage, startIndex]);
 
-  /* -------------------- UI -------------------- */
+  /* ================= UI ================= */
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 pb-1">User Management</h1>
+        <h1 className="text-3xl font-bold text-gray-800 pb-1">
+          User Management
+        </h1>
         <p className="text-sm text-gray-400">
           Manage users, roles, and departments efficiently.
         </p>
       </div>
 
-      {/* Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4">
         <div className="flex items-center gap-2 w-full sm:max-w-md">
           <input
@@ -97,23 +163,26 @@ export default function UserManagement(): JSX.Element {
             </DropdownMenu.Trigger>
 
             <DropdownMenu.Portal>
-              <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-2 w-56 space-y-2">
-                {/* Plant */}
-                <div>
-                  <label className="text-xs text-gray-500">Plant</label>
-                  <select
-                    className="w-full border mt-1 px-2 py-1 rounded text-sm"
-                    value={plantFilter}
-                    onChange={(e) => setPlantFilter(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    {plants.map((plant) => (
-                      <option key={plant._id} value={plant._id}>
-                        {plant.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-3 w-56 space-y-3">
+
+                {/* Plant ONLY for superadmin */}
+                {isSuperAdmin && (
+                  <div>
+                    <label className="text-xs text-gray-500">Plant</label>
+                    <select
+                      className="w-full border mt-1 px-2 py-1 rounded text-sm"
+                      value={plantFilter}
+                      onChange={(e) => setPlantFilter(e.target.value)}
+                    >
+                      <option value="">All</option>
+                      {plants.map((plant) => (
+                        <option key={plant._id} value={plant._id}>
+                          {plant.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Department */}
                 <div>
@@ -122,11 +191,10 @@ export default function UserManagement(): JSX.Element {
                     className="w-full border mt-1 px-2 py-1 rounded text-sm"
                     value={departmentFilter}
                     onChange={(e) => setDepartmentFilter(e.target.value)}
-                    disabled={!plantFilter}
                   >
                     <option value="">All</option>
                     {filteredDepartments.map((dept) => (
-                      <option key={dept._id} value={dept.name}>
+                      <option key={dept._id} value={dept._id}>
                         {dept.name}
                       </option>
                     ))}
@@ -149,14 +217,24 @@ export default function UserManagement(): JSX.Element {
                     ))}
                   </select>
                 </div>
+
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
         </div>
 
+        {/* Button untouched */}
         <button
           className="bg-black text-white px-4 py-2 rounded-md text-sm hover:shadow-md hover:scale-105 hover:bg-gray-400 transition duration-200"
-          onClick={() => navigate("/dashboard/users/adduser")}
+          onClick={() => {
+            if (currentUser?.role === "supervisor") {
+              navigate(SUPERVISOR_USERS_ROUTE + "/adduser");
+            } else if (currentUser?.role === "admin") {
+              navigate(ADMIN_DASHBOARD_ROUTE + "/users/adduser");
+            } else if (currentUser?.role === "superadmin") {
+              navigate(DASHBOARD_ROUTE + "/users/adduser");
+            }
+          }}
         >
           + Add user
         </button>
@@ -184,14 +262,31 @@ export default function UserManagement(): JSX.Element {
                   <td className="px-4 py-2">{startIndex + idx + 1}</td>
                   <td className="px-4 py-2">{user.firstName ?? "-"}</td>
                   <td className="px-4 py-2">{user.lastName ?? "-"}</td>
-             <td className="px-4 py-2">{user.department?.plant?.name ?? "-"}</td>
-             <td className="px-4 py-2">{user.department?.name ?? "-"}</td>
-
+                  <td className="px-4 py-2">
+                    {typeof user.department?.plant === "object" && user.department?.plant !== null && "name" in user.department.plant
+                      ? (user.department.plant as { name: string }).name
+                      : typeof user.department?.plant === "string"
+                        ? user.department.plant
+                        : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {user.department?.name ?? "-"}
+                  </td>
                   <td className="px-4 py-2">{user.role ?? "-"}</td>
                   <td className="px-4 py-2 flex gap-2">
+
                     <button
                       className="text-blue-600 hover:underline"
-                      onClick={() => navigate(`/dashboard/users/edit/${user._id}`)}
+                      onClick={() => {
+            if (currentUser?.role === "supervisor") {
+              navigate(SUPERVISOR_USERS_ROUTE + `/edituser/${user._id}`);
+            } else if (currentUser?.role === "admin") {
+              navigate(ADMIN_USERS_ROUTE + `/edituser/${user._id}`);
+            } else if (currentUser?.role === "superadmin") {
+              navigate(DASHBOARD_ROUTE + `/users/edituser/${user._id}`);
+            }
+          }}
+          
                     >
                       <Pencil1Icon className="w-4 h-4" />
                     </button>
@@ -209,7 +304,10 @@ export default function UserManagement(): JSX.Element {
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center px-4 py-6 text-gray-500">
+                <td
+                  colSpan={7}
+                  className="text-center px-4 py-6 text-gray-500"
+                >
                   No users found.
                 </td>
               </tr>
@@ -250,7 +348,8 @@ export default function UserManagement(): JSX.Element {
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-600">
         <span>
-          Showing {totalUsers === 0 ? 0 : startIndex + 1}–{endIndex} of {totalUsers} users
+          Showing {totalUsers === 0 ? 0 : startIndex + 1}–{endIndex} of{" "}
+          {totalUsers} users
         </span>
 
         <div className="space-x-2">
@@ -262,7 +361,11 @@ export default function UserManagement(): JSX.Element {
             Previous
           </button>
           <button
-            onClick={() => setCurrentPage((prev) => (endIndex < totalUsers ? prev + 1 : prev))}
+            onClick={() =>
+              setCurrentPage((prev) =>
+                endIndex < totalUsers ? prev + 1 : prev
+              )
+            }
             disabled={endIndex >= totalUsers}
             className="px-3 py-1 border rounded-md"
           >

@@ -8,6 +8,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
+import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
 
 /* -------------------- Types -------------------- */
 
@@ -53,6 +54,7 @@ const AddUser: React.FC = () => {
     loadDepartments,
     roles = [],
     genders = [],
+    currentUser,
   } = useUserContext();
 
   const navigate = useNavigate();
@@ -71,6 +73,41 @@ const AddUser: React.FC = () => {
 
   const [loading, setLoading] = React.useState(false);
 
+  /* ================= ROLE PERMISSION LOGIC ================= */
+
+  const allowedRoles = React.useMemo(() => {
+    if (!currentUser) return [];
+
+    switch (currentUser.role) {
+      case "superadmin":
+        return ["superadmin", "admin", "supervisor", "user"];
+      case "admin":
+        return ["supervisor", "user"];
+      case "supervisor":
+        return ["user"];
+      default:
+        return [];
+    }
+  }, [currentUser]);
+
+  /* Ensure selected role is always allowed */
+  React.useEffect(() => {
+    if (!allowedRoles.includes(formData.role)) {
+      setFormData((prev) => ({
+        ...prev,
+        role: allowedRoles[0] as any,
+      }));
+    }
+  }, [allowedRoles]);
+
+  /* -------------------- Role helpers -------------------- */
+
+  const isAdminOrSupervisor =
+    currentUser?.role === "admin" ||
+    currentUser?.role === "supervisor";
+
+  const isSuperAdmin = currentUser?.role === "superadmin";
+
   /* -------------------- Handlers -------------------- */
 
   const handleChange = <K extends keyof UserFormData>(
@@ -80,42 +117,80 @@ const AddUser: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // ✅ Load departments when plant changes
-  React.useEffect(() => {
-    if (formData.plantId) {
-      loadDepartments(formData.plantId);
-      setFormData((prev) => ({ ...prev, departmentId: "" }));
-    }
-  }, [formData.plantId, loadDepartments]);
+  /* -------------------- Effects -------------------- */
 
-  // ✅ FILTER departments by selected plant
+  // Auto set plant for admin & supervisor
+  React.useEffect(() => {
+    if (!currentUser || !isAdminOrSupervisor) return;
+
+    const plantField = currentUser.department?.plant;
+    if (!plantField) return;
+
+    const plantId =
+      typeof plantField === "string"
+        ? plantField
+        : plantField._id;
+
+    setFormData((prev) => ({
+      ...prev,
+      plantId,
+    }));
+
+    loadDepartments(plantId);
+  }, [currentUser, isAdminOrSupervisor, loadDepartments]);
+
+  // Superadmin plant change
+  React.useEffect(() => {
+    if (!isSuperAdmin) return;
+    if (!formData.plantId) return;
+
+    loadDepartments(formData.plantId);
+
+    setFormData((prev) => ({
+      ...prev,
+      departmentId: "",
+    }));
+  }, [formData.plantId, isSuperAdmin, loadDepartments]);
+
+  /* -------------------- Filtered Departments -------------------- */
+
   const filteredDepartments = React.useMemo(() => {
-    return departments.filter(
-      (d: any) =>
-        d.plant === formData.plantId ||
-        d.plant?._id === formData.plantId
+    return departments.filter((d: any) =>
+      typeof d.plant === "string"
+        ? d.plant === formData.plantId
+        : d.plant?._id === formData.plantId
     );
   }, [departments, formData.plantId]);
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      await addUser({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        department: formData.departmentId,
-        role: formData.role,
-        gender: formData.gender,
-        userId: formData.userId,
-        password: formData.password,
-        photo: formData.photo,
-      });
+  /* -------------------- Submit -------------------- */
 
-      navigate("/dashboard/users");
-    } finally {
-      setLoading(false);
+  const handleSubmit = async () => {
+  setLoading(true);
+  try {
+    await addUser({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      department: formData.departmentId,
+      role: formData.role,
+      gender: formData.gender,
+      userId: formData.userId,
+      password: formData.password,
+      photo: formData.photo,
+    });
+
+    // ✅ Role-based redirect
+    if (currentUser?.role === "supervisor") {
+      navigate(`${SUPERVISOR_DASHBOARD_ROUTE}/users`);
+    } else if (currentUser?.role === "admin") {
+      navigate(`${ADMIN_DASHBOARD_ROUTE}/users`);
+    } else if (currentUser?.role === "superadmin") {
+      navigate(`${DASHBOARD_ROUTE}/users`);
     }
-  };
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* -------------------- UI -------------------- */
 
@@ -150,7 +225,7 @@ const AddUser: React.FC = () => {
           />
         </div>
 
-        {/* Plant */}
+         {/* Plant */}
         <div>
           <Label.Root>Plant</Label.Root>
           <Select.Root
@@ -158,11 +233,13 @@ const AddUser: React.FC = () => {
             onValueChange={(v) =>
               handleChange("plantId", v)
             }
+            disabled={isAdminOrSupervisor}
           >
             <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
               <Select.Value placeholder="Select Plant" />
               <ChevronDownIcon />
             </Select.Trigger>
+
             <Select.Content className="bg-white border rounded shadow-md">
               <Select.Viewport>
                 {plants.map((p: any) => (
@@ -179,35 +256,29 @@ const AddUser: React.FC = () => {
         <div>
           <Label.Root>Department</Label.Root>
           <Select.Root
-  value={formData.departmentId}
-  onValueChange={(v) => handleChange("departmentId", v)}
-  disabled={!formData.plantId}
->
-  <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
-    <Select.Value placeholder="Select Department" />
-    <ChevronDownIcon />
-  </Select.Trigger>
+            value={formData.departmentId}
+            onValueChange={(v) =>
+              handleChange("departmentId", v)
+            }
+            disabled={!formData.plantId}
+          >
+            <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
+              <Select.Value placeholder="Select Department" />
+              <ChevronDownIcon />
+            </Select.Trigger>
 
-  <Select.Content className="bg-white border rounded shadow-md">
-    <Select.Viewport>
-      {filteredDepartments.length === 0 && (
-        <div className="px-2 py-1 text-sm text-gray-400">
-          No departments available
+            <Select.Content className="bg-white border rounded shadow-md">
+              <Select.Viewport>
+                {filteredDepartments.map((d: any) => (
+                  <SelectItem key={d._id} value={d._id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Root>
         </div>
-      )}
-
-      {filteredDepartments.map((d: any) => (
-        <SelectItem key={d._id} value={d._id}>
-          {d.name}
-        </SelectItem>
-      ))}
-    </Select.Viewport>
-  </Select.Content>
-</Select.Root>
-
-        </div>
-
-        {/* Role */}
+ {/* ✅ ROLE (FILTERED) */}
         <div>
           <Label.Root>Role</Label.Root>
           <Select.Root
@@ -220,9 +291,10 @@ const AddUser: React.FC = () => {
               <Select.Value />
               <ChevronDownIcon />
             </Select.Trigger>
+
             <Select.Content className="bg-white border rounded shadow-md">
               <Select.Viewport>
-                {roles.map((role) => (
+                {allowedRoles.map((role) => (
                   <SelectItem key={role} value={role}>
                     {role}
                   </SelectItem>

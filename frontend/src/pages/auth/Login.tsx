@@ -1,6 +1,7 @@
 import InputField from "../../components/common/inputField";
 import { Button } from "../../components/ui/button";
 import {
+  ADMIN_DASHBOARD_ROUTE,
   CLIENT_DASHBOARD_ROUTE,
   DASHBOARD_ROUTE,
   SIGN_IN_ROUTE,
@@ -11,6 +12,7 @@ import { validator } from "../../utils/auth.validator";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../../api/auth.api";
+import { useUserContext } from "../../context/UserContext";
 
 export interface ValidationErrors {
   [key: string]: string;
@@ -18,6 +20,7 @@ export interface ValidationErrors {
 
 export const Login = () => {
   const navigate = useNavigate();
+  const { login } = useUserContext(); // ✅ use context login
 
   const [userData, setUserData] = useState<RegisterData>({
     userId: "",
@@ -44,6 +47,7 @@ export const Login = () => {
       "userId",
       "password",
     ];
+
     const errors = validator(userData, fieldsToValidate);
     setValidationError(errors);
 
@@ -54,34 +58,54 @@ export const Login = () => {
 
       const result = await loginUser(userData);
 
-      // 🔐 store auth data
+      login({
+        _id: result._id,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        department: {
+          _id: result.department._id,
+          name: result.department.name,
+          plant: result.department.plant,
+          block: result.department.block,
+          floor: result.department.floor,
+        },
+        role: result.role,
+        gender: result.gender,
+        userId: result.userId,
+        photo: result.photo,
+      });
+
+      // store extra info if needed
       localStorage.setItem("access_token", result.token);
-      localStorage.setItem("role", result.role); // already lowercase
-      localStorage.setItem("userId", result.userId);
       localStorage.setItem(
         "userName",
         `${result.firstName} ${result.lastName}`
       );
-      localStorage.setItem("department", result.department._id);
+      localStorage.setItem("department", result.department?._id);
+
 
       // 🚦 role-based routing
-      if (result.role === "admin") {
-        navigate(DASHBOARD_ROUTE);
+      if (result.role === "superadmin") {
+        navigate(DASHBOARD_ROUTE, { replace: true });
+      } else if (result.role === "admin") {
+        navigate(ADMIN_DASHBOARD_ROUTE, { replace: true });
       } else if (result.role === "supervisor") {
-        navigate(SUPERVISOR_DASHBOARD_ROUTE);
+        navigate(SUPERVISOR_DASHBOARD_ROUTE, { replace: true });
       } else {
-        navigate(CLIENT_DASHBOARD_ROUTE);
+        navigate(CLIENT_DASHBOARD_ROUTE, { replace: true });
       }
+
     } catch (err: any) {
       setValidationError({
-        password: err?.response?.data?.message || "Invalid credentials",
+        password:
+          err?.response?.data?.message || "Invalid credentials",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
+   return (
     <form onSubmit={handleLoginSubmit} className="w-full space-y-4">
       <InputField
         type="text"
