@@ -15,7 +15,7 @@ const Home: React.FC = () => {
   const userName = localStorage.getItem("userName");
 
   // Only Admin & Supervisor allowed here
-  if (userRole !== "admin" && userRole !== "supervisor") {
+  if (userRole !== "admin" && userRole !== "supervisor" && userRole !== "superadmin") {
     return (
       <div className="p-6 text-center text-red-600 font-semibold">
         This dashboard is only available for Admin and Supervisor.

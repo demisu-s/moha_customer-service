@@ -6,16 +6,22 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
+
 import {
   createUser,
   getUsers,
   deleteUser as deleteUserApi,
-  updateUser
-  ,CreateUserPayload
+  updateUser,
 } from "../api/user.api";
+
 import { getPlants } from "../api/plant.api";
 import { getDepartmentsByPlant } from "../api/department.api";
-import { UserPayload, PlantPayload, DepartmentPayload, } from "../api/global.types";
+
+import {
+  PlantPayload,
+  DepartmentPayload,
+  CreateUserPayload,
+} from "../api/global.types";
 
 /* ------------------ Types ------------------ */
 export type Role = "user" | "admin" | "supervisor" | "superadmin";
@@ -25,16 +31,19 @@ export interface User {
   _id: string;
   firstName: string;
   lastName: string;
-  department: DepartmentPayload;
+  department?: DepartmentPayload;
   role: Role;
   gender: Gender;
   userId: string;
   photo?: string;
 }
 
-/* ------------------ Context ------------------ */
+/* ------------------ Context Type ------------------ */
 interface UserContextType {
   users: User[];
+  currentUser: User | null;
+  login: (user: User) => void;
+  logout: () => void;
   plants: PlantPayload[];
   departments: DepartmentPayload[];
   roles: Role[];
@@ -42,57 +51,87 @@ interface UserContextType {
   loadDepartments: (plantId: string) => Promise<void>;
   addUser: (payload: CreateUserPayload) => Promise<void>;
   refreshUsers: () => Promise<void>;
-  updateUserHandler: (id: string, data: Partial<CreateUserPayload>) => Promise<void>;
+  updateUserHandler: (
+    id: string,
+    data: Partial<CreateUserPayload>
+  ) => Promise<void>;
   deleteUserHandler: (id: string) => Promise<void>;
 }
 
+/* ------------------ Context ------------------ */
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+/* ------------------ Provider ------------------ */
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [plants, setPlants] = useState<PlantPayload[]>([]);
   const [departments, setDepartments] = useState<DepartmentPayload[]>([]);
 
   /* ------------------ Load Users ------------------ */
- const refreshUsers = useCallback(async () => {
+  const refreshUsers = useCallback(async () => {
   try {
-    const res = await getUsers();
-    console.log("getUsers response:", res.data); // debug
-    setUsers(Array.isArray(res.data) ? res.data : []);
+    const users = await getUsers();
+    setUsers(users ?? []);
   } catch (error) {
     console.error("Failed to load users", error);
     setUsers([]);
   }
 }, []);
 
-
   useEffect(() => {
     refreshUsers();
   }, [refreshUsers]);
 
+  /* ------------------ Restore Session on Refresh ------------------ */
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   /* ------------------ Load Plants ------------------ */
   useEffect(() => {
     getPlants()
-      .then((res) => setPlants(res.data.data || []))
+      .then((res) => setPlants(res.data?.data ?? []))
       .catch(() => setPlants([]));
   }, []);
 
-  /* ------------------ Load Departments by Plant ------------------ */
+  /* ------------------ Load Departments ------------------ */
   const loadDepartments = useCallback(async (plantId: string) => {
     try {
       const deps = await getDepartmentsByPlant(plantId);
-      setDepartments(deps || []);
+      setDepartments(deps ?? []);
     } catch (error) {
       console.error("Failed to load departments", error);
       setDepartments([]);
     }
   }, []);
 
+  /* ------------------ Login ------------------ */
+  const login = (user: User) => {
+    setCurrentUser(user);
+    localStorage.setItem("userId", user.userId);
+    localStorage.setItem("currentUser", JSON.stringify(user));
+  };
+
+  /* ------------------ Logout ------------------ */
+  const logout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("currentUser");
+
+    setCurrentUser(null);
+    setUsers([]);
+  };
+
   /* ------------------ Create User ------------------ */
   const addUser = async (payload: CreateUserPayload) => {
-    const created = await createUser(payload);
-    setUsers((prev) => [...prev, created]);
-  };
+  await createUser(payload); // create user on backend
+  await refreshUsers();      // fetch all users again
+};
 
   /* ------------------ Delete User ------------------ */
   const deleteUserHandler = async (id: string) => {
@@ -101,11 +140,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /* ------------------ Update User ------------------ */
-  const updateUserHandler = async (id: string, data: Partial<CreateUserPayload>) => {
-    const res = await updateUser(id, data);
+  const updateUserHandler = async (
+    id: string,
+    data: Partial<CreateUserPayload>
+  ) => {
+    const updatedUser = await updateUser(id, data) as User;
     setUsers((prev) =>
       prev.map((user) =>
-        user._id === id && res && typeof res === "object" ? { ...user, ...res } : user
+        user._id === id ? updatedUser : user
       )
     );
   };
@@ -114,6 +156,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     <UserContext.Provider
       value={{
         users,
+        currentUser,
+        login,
+        logout,
         plants,
         departments,
         roles: ["user", "admin", "supervisor", "superadmin"],
@@ -130,8 +175,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/* ------------------ Hook ------------------ */
 export const useUserContext = () => {
   const ctx = useContext(UserContext);
-  if (!ctx) throw new Error("useUserContext must be used within UserProvider");
+  if (!ctx) {
+    throw new Error("useUserContext must be used within UserProvider");
+  }
   return ctx;
 };

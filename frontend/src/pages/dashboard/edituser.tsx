@@ -3,13 +3,15 @@ import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
-import { useUserContext,Department,Role,Area,Gender } from "../../context/UserContext";
+import { useUserContext, Role, Gender } from "../../context/UserContext";
+import { ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE, SUPERVISOR_USERS_ROUTE } from "../../router/routeConstants";
 
+/* -------------------- Types -------------------- */
 interface UserFormData {
   firstName: string;
   lastName: string;
-  area: Area;
-  department: Department | string;
+  plantId: string;
+  departmentId: string;
   role: Role;
   gender: Gender;
   userId: string;
@@ -17,14 +19,15 @@ interface UserFormData {
   photo?: File | null;
 }
 
+/* -------------------- Select Item -------------------- */
 const SelectItem = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof Select.Item>
->(({ children, ...props }, forwardedRef) => (
+>(({ children, ...props }, ref) => (
   <Select.Item
-    className="text-sm leading-none text-black rounded-sm flex items-center h-8 px-2 relative select-none data-[highlighted]:bg-gray-100"
+    ref={ref}
     {...props}
-    ref={forwardedRef}
+    className="text-sm leading-none text-black rounded-sm flex items-center h-8 px-2 relative select-none data-[highlighted]:bg-gray-100"
   >
     <Select.ItemText>{children}</Select.ItemText>
     <Select.ItemIndicator className="absolute right-2">
@@ -32,237 +35,328 @@ const SelectItem = React.forwardRef<
     </Select.ItemIndicator>
   </Select.Item>
 ));
+
 SelectItem.displayName = "SelectItem";
 
-const EditUser = () => {
-  const { users, updateUser,genders,roles,departments,areas } = useUserContext();
-  const navigate = useNavigate();
+/* -------------------- EditUser Component -------------------- */
+const EditUser: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const {
+    users,
+    currentUser,
+    plants,
+    departments,
+    loadDepartments,
+    updateUserHandler,
+    refreshUsers,
+    roles,
+    genders,
+  } = useUserContext();
 
-  const user = users.find((u) => u.id === Number(id));
+  const [loadingUser, setLoadingUser] = React.useState(true);
 
-  const [formData, setFormData] = React.useState<UserFormData>(
-    user || {
-      firstName: "",
-      lastName: "",
-      area: "HO",
-      department: "",
-      role: "User",
-      gender: "Male",
-      userId: "",
+  // Load users if not already loaded
+  React.useEffect(() => {
+    const loadUser = async () => {
+      if (!users || users.length === 0) {
+        await refreshUsers();
+      }
+      setLoadingUser(false);
+    };
+    loadUser();
+  }, [users, refreshUsers]);
+
+  const userToEdit = users.find((u) => u._id === id);
+
+  const [formData, setFormData] = React.useState<UserFormData>({
+    firstName: "",
+    lastName: "",
+    plantId: "",
+    departmentId: "",
+    role: "user",
+    gender: "male",
+    userId: "",
+    password: "",
+    photo: null,
+  });
+
+  const [loading, setLoading] = React.useState(false);
+
+  /* -------------------- Initialize Form -------------------- */
+  React.useEffect(() => {
+    if (!userToEdit) return;
+
+    setFormData({
+      firstName: userToEdit.firstName,
+      lastName: userToEdit.lastName,
+      plantId:
+        typeof userToEdit.department?.plant === "string"
+          ? userToEdit.department.plant
+          : userToEdit.department?.plant?._id || "",
+      departmentId: userToEdit.department?._id || "",
+      role: userToEdit.role,
+      gender: userToEdit.gender,
+      userId: userToEdit.userId,
       password: "",
       photo: null,
+    });
+  }, [userToEdit]);
+
+  /* -------------------- Load Departments on Plant Change -------------------- */
+  React.useEffect(() => {
+    if (formData.plantId) loadDepartments(formData.plantId);
+  }, [formData.plantId, loadDepartments]);
+
+  /* -------------------- Filtered Departments -------------------- */
+  const filteredDepartments = React.useMemo(() => {
+    return departments.filter((d) =>
+      typeof d.plant === "string"
+        ? d.plant === formData.plantId
+        : d.plant?._id === formData.plantId
+    );
+  }, [departments, formData.plantId]);
+
+  /* -------------------- Allowed Roles -------------------- */
+  const allowedRoles = React.useMemo(() => {
+    if (!currentUser) return [];
+    switch (currentUser.role) {
+      case "superadmin":
+        return ["superadmin", "admin", "supervisor", "user"];
+      case "admin":
+        return ["supervisor", "user"];
+      case "supervisor":
+        return ["user"];
+      default:
+        return [];
     }
-  );
+  }, [currentUser]);
 
   React.useEffect(() => {
-    if (!user) {
-      navigate("/dashboard/users");
+    if (allowedRoles.length && !allowedRoles.includes(formData.role)) {
+      setFormData((prev) => ({ ...prev, role: allowedRoles[0] as Role }));
     }
-  }, [user, navigate]);
+  }, [allowedRoles, formData.role]);
 
-  const handleChange = (field: keyof UserFormData, value: string | File | null) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  /* -------------------- Handlers -------------------- */
+  const handleChange = <K extends keyof UserFormData>(
+    field: K,
+    value: UserFormData[K]
+  ) => setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = () => {
-    if (user) {
-      updateUser(user.id, formData); // update in context
-    }
-    navigate("/dashboard/users");
-  };
+  const handleSubmit = async () => {
+    if (!userToEdit) return;
 
-  const handleCancel = () => {
-    navigate("/dashboard/users");
-  };
+    setLoading(true);
+    try {
+      await updateUserHandler(userToEdit._id, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        department: formData.departmentId,
+        role: formData.role,
+        gender: formData.gender,
+        userId: formData.userId,
+        password: formData.password || undefined,
+        photo: formData.photo,
+      });
 
+      // ✅ Role-based redirect
+          if (currentUser?.role === "supervisor") {
+            navigate(`${SUPERVISOR_USERS_ROUTE}`);
+          } else if (currentUser?.role === "admin") {
+            navigate(`${ADMIN_USERS_ROUTE}`);
+          } else if (currentUser?.role === "superadmin") {
+            navigate(`${DASHBOARD_ROUTE}/users`);
+          }
+      
+        } finally {
+          setLoading(false);
+        }
+      };
+
+  const handleCancel = () => navigate("/dashboard/users");
+
+  /* -------------------- Loading / Error States -------------------- */
+  if (loadingUser) return <div className="text-center mt-8">Loading user...</div>;
+  if (!userToEdit) return <div className="text-center mt-8">User not found</div>;
+
+  /* -------------------- UI -------------------- */
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6 border rounded-md shadow-md">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Edit User</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+        Edit User
+      </h2>
+
       <div className="grid grid-cols-2 gap-8">
         {/* First Name */}
         <div>
-          <Label.Root className="text-lg font-light">First Name</Label.Root>
+          <Label.Root>First Name</Label.Root>
           <input
             value={formData.firstName}
             onChange={(e) => handleChange("firstName", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
-            placeholder="Enter first name"
+            className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
 
         {/* Last Name */}
         <div>
-          <Label.Root className="text-lg font-light">Last Name</Label.Root>
+          <Label.Root>Last Name</Label.Root>
           <input
             value={formData.lastName}
             onChange={(e) => handleChange("lastName", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
-            placeholder="Enter Last name"
+            className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
 
-        {/* Area */}
+        {/* Plant */}
         <div>
-          <Label.Root className="text-lg font-light">Area</Label.Root>
+          <Label.Root>Plant</Label.Root>
           <Select.Root
-            value={formData.area}
-            onValueChange={(value) => handleChange("area", value)}
+            value={formData.plantId}
+            onValueChange={(v) => handleChange("plantId", v)}
+            disabled={currentUser?.role !== "superadmin"}
           >
-            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
-              <Select.Value />
-              <Select.Icon>
-                <ChevronDownIcon />
-              </Select.Icon>
+            <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
+              <Select.Value placeholder="Select Plant" />
+              <ChevronDownIcon />
             </Select.Trigger>
-            <Select.Portal>
-              <Select.Content className="bg-white border rounded shadow-md">
-                 <Select.Viewport>
-                                          {areas.map((area) => (
-                                            <SelectItem key={area} value={area}>
-                                              {area}
-                                            </SelectItem>
-                                          ))}
-                                        </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
+
+            <Select.Content className="bg-white border rounded shadow-md">
+              <Select.Viewport>
+                {plants.map((p) => (
+                  <SelectItem key={p._id} value={p._id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
           </Select.Root>
         </div>
 
         {/* Department */}
-         <div>
-                       <Label.Root className="text-lg font-light">Department</Label.Root>
-                       <Select.Root
-                         value={formData.department}
-                         onValueChange={(value) => handleChange("department", value)}
-                       >
-                         <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
-                           <Select.Value placeholder="Select Department" />
-                           <Select.Icon>
-                             <ChevronDownIcon />
-                           </Select.Icon>
-                         </Select.Trigger>
-                         <Select.Portal>
-                           <Select.Content className="bg-white border rounded shadow-md">
-                             <Select.Viewport>
-                               {departments.map((dept) => (
-                                 <SelectItem key={dept} value={dept}>
-                                   {dept}
-                                 </SelectItem>
-                               ))}
-                             </Select.Viewport>
-                           </Select.Content>
-                         </Select.Portal>
-                       </Select.Root>
-                     </div>
+        <div>
+          <Label.Root>Department</Label.Root>
+          <Select.Root
+            value={formData.departmentId}
+            onValueChange={(v) => handleChange("departmentId", v)}
+            disabled={!formData.plantId}
+          >
+            <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
+              <Select.Value placeholder="Select Department" />
+              <ChevronDownIcon />
+            </Select.Trigger>
+
+            <Select.Content className="bg-white border rounded shadow-md">
+              <Select.Viewport>
+                {filteredDepartments.map((d) => (
+                  <SelectItem key={d._id} value={d._id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Root>
+        </div>
 
         {/* Role */}
         <div>
-          <Label.Root className="text-lg font-light">Role</Label.Root>
+          <Label.Root>Role</Label.Root>
           <Select.Root
             value={formData.role}
-            onValueChange={(value) => handleChange("role", value)}
+            onValueChange={(v) => handleChange("role", v as Role)}
           >
-            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
+            <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
               <Select.Value />
-              <Select.Icon>
-                <ChevronDownIcon />
-              </Select.Icon>
+              <ChevronDownIcon />
             </Select.Trigger>
-            <Select.Portal>
-              <Select.Content className="bg-white border rounded shadow-md">
-                <Select.Viewport>
-                                         {roles.map((role) => (
-                                           <SelectItem key={role} value={role}>
-                                             {role}
-                                           </SelectItem>
-                                         ))}
-                                       </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
+
+            <Select.Content className="bg-white border rounded shadow-md">
+              <Select.Viewport>
+                {allowedRoles.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
           </Select.Root>
         </div>
 
         {/* Gender */}
         <div>
-          <Label.Root className="text-lg font-light">Gender</Label.Root>
+          <Label.Root>Gender</Label.Root>
           <Select.Root
             value={formData.gender}
-            onValueChange={(value) => handleChange("gender", value)}
+            onValueChange={(v) => handleChange("gender", v as Gender)}
           >
-            <Select.Trigger className="inline-flex items-center justify-between border border-gray-500 shadow-md w-full px-2 py-1 rounded mt-1">
+            <Select.Trigger className="border w-full px-2 py-1 rounded mt-1 flex justify-between">
               <Select.Value />
-              <Select.Icon>
-                <ChevronDownIcon />
-              </Select.Icon>
+              <ChevronDownIcon />
             </Select.Trigger>
-            <Select.Portal>
-              <Select.Content className="bg-white border rounded shadow-md">
-                 <Select.Viewport>
-                                          {genders.map((gender) => (
-                                            <SelectItem key={gender} value={gender}>
-                                              {gender}
-                                            </SelectItem>
-                                          ))}
-                                        </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
+
+            <Select.Content className="bg-white border rounded shadow-md">
+              <Select.Viewport>
+                {genders.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
           </Select.Root>
         </div>
 
         {/* User ID */}
         <div>
-          <Label.Root className="text-lg font-light">User ID</Label.Root>
+          <Label.Root>User ID</Label.Root>
           <input
             value={formData.userId}
             onChange={(e) => handleChange("userId", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
-            placeholder="Enter User ID"
+            className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
 
         {/* Password */}
         <div>
-          <Label.Root className="text-lg font-light">Password</Label.Root>
+          <Label.Root>Password</Label.Root>
           <input
             type="password"
             value={formData.password}
             onChange={(e) => handleChange("password", e.target.value)}
-            className="w-full border border-gray-500 shadow-md rounded px-2 py-1 mt-1"
-            placeholder="Enter Password"
+            placeholder="Leave blank to keep current"
+            className="w-full border rounded px-2 py-1 mt-1"
           />
         </div>
 
-        {/* Photo Upload */}
+        {/* Photo */}
         <div className="col-span-2">
-          <Label.Root className="text-lg font-light mr-5">Upload Photo</Label.Root>
-          <label className="inline-flex items-center gap-2 border px-3 py-2 rounded border-gray-500 shadow-md mt-1 cursor-pointer">
-            <UploadIcon /> Upload
+          <Label.Root>Upload Photo</Label.Root>
+          <label className="inline-flex items-center gap-2 border px-3 py-2 rounded cursor-pointer mt-1">
+            <UploadIcon />
+            Upload
             <input
               type="file"
-              className="hidden"
+              hidden
               onChange={(e) =>
-                handleChange("photo", e.target.files?.[0] || null)
+                handleChange("photo", e.target.files?.[0] ?? null)
               }
             />
           </label>
-          {formData.photo && (
-            <span className="ml-2 text-sm text-gray-700">{formData.photo.name}</span>
-          )}
         </div>
       </div>
 
       {/* Buttons */}
       <div className="flex gap-4 mt-6">
         <button
-          className="w-1/2 bg-primary-500 text-lg hover:bg-primary-900 text-white py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
           onClick={handleSubmit}
+          disabled={loading}
+          className="w-1/2 py-2 bg-blue-600 text-white rounded font-bold disabled:opacity-50"
         >
-          Save
+          {loading ? "Updating..." : "Save Changes"}
         </button>
         <button
-          className="w-1/2 bg-gray-400 text-lg hover:bg-gray-600 text-white py-1 rounded-lg font-bold shadow-md transition duration-200 hover:scale-105"
           onClick={handleCancel}
+          className="w-1/2 py-2 bg-gray-400 text-white rounded font-bold"
         >
           Cancel
         </button>

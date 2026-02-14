@@ -50,3 +50,14 @@ export interface CreateUserPayload {
   password: string;
   photo?: File | null;
 }
+
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  department: DepartmentPayload; // object, because backend populates
+  role: "admin" | "supervisor" | "user" | "superadmin";
+  gender: "male" | "female";
+  userId: string;
+  photo?: string;
+}

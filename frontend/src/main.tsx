@@ -18,7 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
    <ServiceRequestProvider>
     <PlantProvider>
        <DepartmentProvider>
-            <App />
+      <App />
             </DepartmentProvider>
             </PlantProvider>
           </ServiceRequestProvider>

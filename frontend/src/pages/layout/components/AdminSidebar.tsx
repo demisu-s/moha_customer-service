@@ -1,24 +1,28 @@
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaRegFileAlt } from 'react-icons/fa';
+import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaRegFileAlt,FaBuilding } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/nono.png'; 
-import { DASHBOARD_ROUTE,REPORT_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE, OVERVIEW_ROUTE } from '../../../router/routeConstants';
+import {  SIGN_IN_ROUTE, ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE, ADMIN_DEVICES_ROUTE, ADMIN_SCHEDULES_ROUTE, ADMIN_REPORT_ROUTE, ADMIN_OVERVIEW_ROUTE, ADMIN_DEPARTMENT_ROUTE } from '../../../router/routeConstants';
 import { useUserContext } from '../../../context/UserContext';
-export function DashboardSidebar() {
+
+export function AdminSidebar() {
   const navigate = useNavigate();
-  const { logout } = useUserContext();
- const handleLogout = () => {
+   const { logout } = useUserContext();
+
+const handleLogout = () => {
     logout();
     navigate(SIGN_IN_ROUTE, { replace: true });
   };
+
   const navItems = [
-    { to: DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
-    { to: USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
-    { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
-    { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
-    { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
-    { to: REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },
-    { to: OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },
+    { to: ADMIN_DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
+    { to: ADMIN_USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
+     { to: ADMIN_DEPARTMENT_ROUTE, icon: <FaBuilding />, label: 'department' },
+    { to: ADMIN_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
+    { to: ADMIN_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    { to: ADMIN_REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },
+    { to: ADMIN_OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },
+   
 
   ];
 
@@ -34,7 +38,7 @@ export function DashboardSidebar() {
             <NavLink
               key={label}
               to={to}
-              end={to === DASHBOARD_ROUTE}
+              end={to === ADMIN_DASHBOARD_ROUTE}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium ${
                   isActive ? 'bg-white text-[#1891C3]' : 'hover:bg-white hover:text-[#1891C3]'
