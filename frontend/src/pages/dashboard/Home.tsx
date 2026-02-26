@@ -2,20 +2,34 @@
 import React, { useState } from "react";
 import DeviceCard from "../../components/dashboardComponents/DeviceCard";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
+import { useUserContext } from "../../context/UserContext";
 
 const Home: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"Pending" | "Assigned" | "Resolved" | "Unresolved">("Pending");
+  const [activeTab, setActiveTab] = useState<
+    "Pending" | "Assigned" | "Resolved" | "Unresolved"
+  >("Pending");
+
   const [search, setSearch] = useState("");
 
-  // ✅ Use context instead of manually reading localStorage
   const { requests } = useServiceRequests();
+  const { currentUser } = useUserContext();
 
-  const userRole = localStorage.getItem("role");
-  const userId = localStorage.getItem("userId");
-  const userName = localStorage.getItem("userName");
+  /* =========================
+     1️⃣ Wait for user restore
+  ========================== */
+  if (!currentUser) {
+    return <div className="p-6 text-center">Loading...</div>;
+  }
 
-  // Only Admin & Supervisor allowed here
-  if (userRole !== "admin" && userRole !== "supervisor" && userRole !== "superadmin") {
+  const userRole = currentUser.role;
+  const userId = currentUser.userId;
+  const userName = `${currentUser.firstName} ${currentUser.lastName}`;
+
+  /* =========================
+     2️⃣ Role Protection
+  ========================== */
+
+  if (!["admin", "supervisor", "superadmin"].includes(userRole)) {
     return (
       <div className="p-6 text-center text-red-600 font-semibold">
         This dashboard is only available for Admin and Supervisor.
@@ -23,17 +37,24 @@ const Home: React.FC = () => {
     );
   }
 
-  // Tabs available
-  const availableTabs: ("Pending" | "Assigned" | "Resolved" | "Unresolved")[] = [
-    "Pending",
-    "Assigned",
-    "Resolved",
-    "Unresolved",
-  ];
+  /* =========================
+     3️⃣ Tabs
+  ========================== */
 
-  // ✅ Filter requests from context (no need for localStorage)
+  const availableTabs: (
+    | "Pending"
+    | "Assigned"
+    | "Resolved"
+    | "Unresolved"
+  )[] = ["Pending", "Assigned", "Resolved", "Unresolved"];
+
+  /* =========================
+     4️⃣ Filtering Logic
+  ========================== */
+
   const filteredRequests = requests.filter((request) => {
     const matchesTab = request.status === activeTab;
+
     const matchesSearch =
       request.deviceSerial?.toLowerCase().includes(search.toLowerCase()) ||
       request.description?.toLowerCase().includes(search.toLowerCase()) ||
@@ -42,26 +63,34 @@ const Home: React.FC = () => {
       request.area?.toLowerCase().includes(search.toLowerCase()) ||
       request.department?.toLowerCase().includes(search.toLowerCase()) ||
       request.problemCategory?.toLowerCase().includes(search.toLowerCase()) ||
-      request.issues?.toLowerCase().includes(search.toLowerCase()) || // ✅ Added search by issues
+      request.issues?.toLowerCase().includes(search.toLowerCase()) ||
       request.assignedToName?.toLowerCase().includes(search.toLowerCase()) ||
-      request.assignedTo?.toLowerCase().includes(search.toLowerCase())
+      request.assignedTo?.toLowerCase().includes(search.toLowerCase());
 
-
-    if (userRole === "admin") {
+    // ADMIN & SUPERADMIN → see everything
+    if (userRole === "admin" || userRole === "superadmin") {
       return matchesTab && matchesSearch;
     }
 
+    // SUPERVISOR logic
     if (userRole === "supervisor") {
       if (activeTab === "Assigned") {
-        // Supervisors see only the ones assigned to them
-        return matchesTab && matchesSearch && request.assignedTo === userId;
+        return (
+          matchesTab &&
+          matchesSearch &&
+          request.assignedTo === userId
+        );
       }
-      // For Pending, Resolved, and Unresolved -> supervisors see all
+
       return matchesTab && matchesSearch;
     }
 
     return false;
   });
+
+  /* =========================
+     5️⃣ UI
+  ========================== */
 
   return (
     <div className="px-4 space-y-6 font-sans">
@@ -69,13 +98,14 @@ const Home: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 pb-1">
-            Welcome, {userName || "User"}!
+            Welcome, {userName}!
           </h1>
           <p className="text-sm text-gray-400 max-w-xl">
             Select a category to view devices. You can search by serial number,
             username, department, or issues.
           </p>
         </div>
+
         <div className="w-full md:w-[300px]">
           <input
             type="text"
@@ -94,7 +124,9 @@ const Home: React.FC = () => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`relative px-4 pb-2 text-xl font-bold capitalize transition-all duration-200 ${
-              activeTab === tab ? "text-primary-500" : "text-gray-600"
+              activeTab === tab
+                ? "text-primary-500"
+                : "text-gray-600"
             }`}
           >
             {tab}
@@ -107,7 +139,9 @@ const Home: React.FC = () => {
 
       {/* Cards */}
       {filteredRequests.length === 0 ? (
-        <p className="text-gray-500 italic">No devices found for this status.</p>
+        <p className="text-gray-500 italic">
+          No devices found for this status.
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredRequests.map((request) => (
@@ -123,7 +157,11 @@ const Home: React.FC = () => {
               issues={request.issues}
               problem={request.description}
               status={request.status}
-              supervisorName={request.assignedToName || request.assignedTo || ""}
+              supervisorName={
+                request.assignedToName ||
+                request.assignedTo ||
+                ""
+              }
             />
           ))}
         </div>
