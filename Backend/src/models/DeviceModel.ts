@@ -1,32 +1,43 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { IDevice } from "../interfaces/device.interface";
-export interface IDeviceDocument extends Omit<IDevice, "_id">, Document {}
+import mongoose from "mongoose";
 
-const deviceSchema = new Schema<IDeviceDocument>(
+const deviceSchema = new mongoose.Schema(
   {
-   
-  //  _id: { type: String, required: true },
-    deviceName: { type: String, required: true },
-    deviceType: { type: String, required: true },
-    plant: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Plant',
-     },
-    department: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
-     },
-    user: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-     },
-    serialNumber: { type: String, required: true },
-    image: { 
-        data: Buffer,
-        type: String
+    deviceName: {
+      type: String,
+      required: true,
     },
+    deviceType: {
+      type: String,
+      required: true,
+    },
+    deviceId: {
+      type: String,
+      required: false,
+      unique: true,
+    },
+    serialNumber: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      required: true,
+    },
+    plant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Plant",
+      required: true,
+    },
+    image: String,
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IDeviceDocument>("device", deviceSchema);
+export default mongoose.model("Device", deviceSchema);

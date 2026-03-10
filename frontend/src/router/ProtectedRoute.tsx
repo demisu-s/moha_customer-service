@@ -6,7 +6,6 @@ import {
   ADMIN_DASHBOARD_ROUTE,
   DASHBOARD_ROUTE,
 } from "./routeConstants";
-import { getAccessToken } from "../utils/localStorage";
 import { JSX } from "react";
 import { useUserContext } from "../context/UserContext";
 
@@ -16,19 +15,20 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
-  
-   const location = useLocation();
-  const { currentUser } = useUserContext();
-  const isAuthenticated = Boolean(getAccessToken());
+  const location = useLocation();
+  const { currentUser, isLoadingUser } = useUserContext();
 
- 
+  // ✅ WAIT until user loading finishes
+  if (isLoadingUser) {
+    return null; // or spinner
+  }
 
-  /* 🔴 Not logged in */
-  if (!isAuthenticated || !currentUser) {
+  // 🔴 Not logged in
+  if (!currentUser) {
     return <Navigate to={SIGN_IN_ROUTE} state={{ from: location }} replace />;
   }
 
-   /* 🚫 Role not allowed */
+  // 🚫 Role not allowed
   if (allowedRole && currentUser.role !== allowedRole.toLowerCase()) {
     switch (currentUser.role) {
       case "superadmin":
@@ -42,6 +42,5 @@ export const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) =
     }
   }
 
-  /* ✅ Access granted */
   return children;
 };

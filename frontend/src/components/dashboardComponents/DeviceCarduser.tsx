@@ -11,7 +11,7 @@ type DeviceCardProps = {
   deviceType: string;
   serialNo: string;
   department: string;
-  area: string;
+  plant: string;
 };
 
 const DeviceCardUser: React.FC<DeviceCardProps> = ({
@@ -19,7 +19,7 @@ const DeviceCardUser: React.FC<DeviceCardProps> = ({
   deviceType,
   serialNo,
   department,
-  area,
+  plant,
 }) => {
   const navigate = useNavigate();
 
@@ -35,7 +35,7 @@ const DeviceCardUser: React.FC<DeviceCardProps> = ({
         <Field label="Device type" value={deviceType} />
         <Field label="Serial No" value={serialNo} />
         <Field label="Department" value={department} />
-        <Field label="Area" value={area} />
+        <Field label="Plant" value={plant} />
       </div>
 
       <div className="flex justify-between mt-2">

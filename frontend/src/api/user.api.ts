@@ -40,5 +40,16 @@ export const updateUser = async (id: string, data: any) => {
   return res.data;
 };
 
+/* ================= USERS BY DEPARTMENT ✅ ================= */
 
+export const getUsersByDepartment = async (
+  departmentId: string
+): Promise<User[]> => {
+  const res = await api.get<{
+    success: boolean;
+    users: User[];
+  }>(`/auth/users-by-department/${departmentId}`);
+
+  return res.data.users ?? [];
+};
 

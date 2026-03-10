@@ -4,7 +4,7 @@ import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUserContext, Role, Gender } from "../../context/UserContext";
-import { ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE, SUPERVISOR_USERS_ROUTE } from "../../router/routeConstants";
+import {ADMIN_USERS_ROUTE, DASHBOARD_ROUTE,SUPERVISOR_USERS_ROUTE } from "../../router/routeConstants";
 
 /* -------------------- Types -------------------- */
 interface UserFormData {

@@ -61,3 +61,17 @@ export interface User {
   userId: string;
   photo?: string;
 }
+
+
+// ---------- DEVICE (from backend) ----------
+export interface Device {
+  _id: string;
+  deviceName: string;
+  deviceType: "Printer" | "Laptop" | "Desktop" | "Scanner" |"Router" | "Switch"|"Other";
+  deviceId: string;
+  serialNumber: string;
+  user: User; // full object
+  department: DepartmentPayload; // full object
+  plant: PlantPayload; // full object
+  image?: string;
+}

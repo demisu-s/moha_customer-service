@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createPlant, updatePlant, getPlantById, getPlants, deletePlant } from "../controllers/plantController";
-import { protect } from "../midllewares/authMiddleware";
-import { authorize } from "../midllewares/authorize";
+import { protect } from "../middlewares/authMiddleware";
+import { authorize } from "../middlewares/authorize";
 
 const router = Router();
 

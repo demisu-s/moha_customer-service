@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import plantRoutes from "./routes/plantRoutes";
-import { errorHandler } from "./midllewares/errorMiddleware"
+import { errorHandler } from "./middlewares/errorMiddleware"
 import depatmentRoutes from "./routes/departmentRoutes";
 import deviceRoutes from "./routes/deviceRoutes";
 import serviceRequesstRoutes from "./routes/serviceRequestRoutes";
