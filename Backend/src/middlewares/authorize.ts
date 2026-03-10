@@ -5,6 +5,7 @@ export const authorize = (permission: keyof typeof PERMISSIONS) => {
     if (!PERMISSIONS[permission].includes(req.user.role)) {
       return res.status(403).json({ message: "Forbidden" });
     }
+    console.log("Authorize middleware - req.user:", req.user);
     next();
   };
 };

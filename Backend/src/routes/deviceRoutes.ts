@@ -1,13 +1,19 @@
-import { Router } from "express";
-import { createDevice, updateDevice, getDeviceById, getDevices, deleteDevice } from "../controllers/deviceController";
+import express from "express";
+import {
+  createDevice,
+  getDevices,
+  deleteDevice,
+  updateDevice,
+} from "../controllers/deviceController";
+import { protect } from "../middlewares/authMiddleware";
+import { authorize } from "../middlewares/authorize";
 
-const router = Router();
 
-router.post("/createDevice",createDevice);
-router.put("/updateDevice", updateDevice);
-router.get("/getDeviceById/:id", getDeviceById);
-router.get("/getDevice", getDevices);
-router.delete("/deleteDevice/:id", deleteDevice);
+const router = express.Router();
 
+router.post("/createDevice",protect,authorize("CREATE_DEVICE"),createDevice);
+router.get("/getDevice",protect,authorize("VIEW_DEVICE"), getDevices);
+router.put("/updateDevice/:id", protect,authorize("UPDATE_DEVICE"),updateDevice);
+router.delete("/deleteDevice/:id",protect,authorize("DELETE_DEVICE"),deleteDevice);
 
 export default router;

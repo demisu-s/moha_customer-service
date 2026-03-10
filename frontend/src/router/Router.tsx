@@ -71,7 +71,7 @@ export const router = createBrowserRouter([
     {path: "users/editUser/:id",element: <EditUser />},
     {path: "devices",element: <Devices />},
     {path: "devices/adddevice", element: <AddDevice />},
-    {path: "devices/edit/:id",element: <EditDevice/>},
+    {path: "devices/editDevice/:id",element: <EditDevice/>},
     {path: "devices/detail/:id",element: <DeviceDetail/>},
     { path: "plants",element: <Plants/>},
     {path: "overview",element: <Overview/>},
@@ -101,7 +101,7 @@ export const router = createBrowserRouter([
     {path: `users/editUser/:id`,element: <EditUser />},
     {path: "devices",element: <Devices />},
     {path: "devices/adddevice", element: <AddDevice />},
-    {path: "devices/edit/:id",element: <EditDevice/>},
+    {path: "devices/editDevice/:id",element: <EditDevice/>},
     {path: "devices/detail/:id",element: <DeviceDetail/>},
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
@@ -116,7 +116,7 @@ export const router = createBrowserRouter([
   {
     path: SUPERVISOR_DASHBOARD_ROUTE,
     element: (
-      <ProtectedRoute allowedRole="Supervisor">
+      <ProtectedRoute allowedRole="supervisor">
         <SupervisorDashboardLayout/>
       </ProtectedRoute>
     ),
@@ -133,7 +133,7 @@ export const router = createBrowserRouter([
     {path: `users/editUser/:id`,element: <EditUser />},
     {path: "devices",element: <Devices />},
     {path: "devices/adddevice", element: <AddDevice />},
-    {path: "devices/edit/:id",element: <EditDevice/>},
+    {path: "devices/editDevice/:id",element: <EditDevice/>},
     {path: "devices/detail/:id",element: <DeviceDetail/>},
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },

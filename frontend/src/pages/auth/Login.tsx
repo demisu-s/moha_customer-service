@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../../api/auth.api";
 import { useUserContext } from "../../context/UserContext";
+import { STORAGE_KEYS } from "../../constants/storageKeys";
 
 export interface ValidationErrors {
   [key: string]: string;
@@ -20,7 +21,7 @@ export interface ValidationErrors {
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { login } = useUserContext(); // ✅ use context login
+  const { login } = useUserContext(); 
 
   const [userData, setUserData] = useState<RegisterData>({
     userId: "",
@@ -73,12 +74,12 @@ export const Login = () => {
         gender: result.gender,
         userId: result.userId,
         photo: result.photo,
-      });
+      }, result.token);
 
       // store extra info if needed
-      localStorage.setItem("access_token", result.token);
+
       localStorage.setItem(
-        "userName",
+        STORAGE_KEYS.USER_NAME,
         `${result.firstName} ${result.lastName}`
       );
       localStorage.setItem("department", result.department?._id);

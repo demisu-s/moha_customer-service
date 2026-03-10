@@ -1,177 +1,105 @@
-import React, {
+import {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
   ReactNode,
 } from "react";
-import axios from "axios";
+import { getDevices, createDevice, deleteDevice,updateDevice } from "../api/device.api";
+import { Device } from "../api/global.types";
+import { useUserContext } from "./UserContext";
 
-export type DeviceType =
-  | "Printer"
-  | "Scanner"
-  | "Laptop"
-  | "Desktop"
-  | "Tablet"
-  | "Smartphone"
-  | "Switch"
-  | "Router"
-  | "Firewall"
-  | "Access Point"
-  | "Server"
-  | "Storage"
-  | "Network Cable"
-  | "Projector"
-  | "Monitor"
-  | "TV"
-  | "Camera"
-  | "Copy Machine"
-  | "UPS"
-  | "Fax Machine";
-
-export const DEVICE_TYPE: DeviceType[] = [
-  "Printer",
-  "Scanner",
-  "Laptop",
-  "Desktop",
-  "Tablet",
-  "Smartphone",
-  "Switch",
-  "Router",
-  "Firewall",
-  "Access Point",
-  "Server",
-  "Storage",
-  "Network Cable",
-  "Projector",
-  "Monitor",
-  "TV",
-  "Camera",
-  "Copy Machine",
-  "UPS",
-  "Fax Machine",
-];
-
-export interface Device {
-  id: string;
-  image: string;
-  type: DeviceType;
-  name: string;
-  serial: string;
-  user: string;
-  userId?: string;
-  department: string;
-  area: string;
-}
-
-type DeviceContextType = {
+interface DeviceContextType {
   devices: Device[];
-  addDevice: (device: Device) => void;
-  deleteDevice: (id: string) => void;
-  updateDevice: (updatedDevice: Device) => void;
+  addDevice: (data: Omit<Device, "_id">) => Promise<void>;
+  deleteDevice: (id: string) => Promise<void>;
+  updateDevice: (id: string, data: Omit<Device, "_id">) => Promise<void>;
+  
+  // ✅ ADD THIS
   getDevicesByUser: (userId: string) => Device[];
-  deviceTypes: DeviceType[];
-};
+}
 
 const DeviceContext = createContext<DeviceContextType | undefined>(undefined);
 
-const initialDevices: Device[] = [
-  {
-    id: "1",
-    image: "/device-image.png",
-    type: "Laptop",
-    name: "Dell XPS 15",
-    serial: "CN-9576-9597",
-    user: "Kebede",
-    department: "MIS",
-    area: "HO",
-  },
-];
-
 export const DeviceProvider = ({ children }: { children: ReactNode }) => {
-  const [devices, setDevices] = useState<Device[]>(() => {
-    const stored = localStorage.getItem("devices");
-    return stored ? JSON.parse(stored) : initialDevices;
-  });
+  const [devices, setDevices] = useState<Device[]>([]);
+  const { currentUser } = useUserContext();
 
-  const deviceTypes = DEVICE_TYPE; // ✅ define here
+  /* ================= FETCH DEVICES ================= */
+
+  const fetchDevices = async () => {
+    try {
+      const data = await getDevices(); // data is Device[]
+      setDevices(data ?? []); // ✅ NOT data.devices
+    } catch (error) {
+      console.error("Failed to fetch devices:", error);
+      setDevices([]);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem("devices", JSON.stringify(devices));
-  }, [devices]);
-
-  // const addDevice = async (device: Device) => {
-  //   try {
-  //     const response = await axios.post("http://localhost:5000/api/device/createDevice", device);
-  //       setDevices((prev) => [...prev, device]);
-  //   } catch (error) {
-  //     console.error("Failed to add device:", error);
-  //   }
-  // }
+    if (currentUser) {
+      fetchDevices();
+    } else {
+      setDevices([]);
+    }
+  }, [currentUser]);
 
 
-  const addDevice = async (device: Device) => {
-  try {
-    const response = await axios.post<{ device: Device }>(
-      "http://localhost:5000/api/device/createDevice",
-      device
-    );
+  /* ================= ADD DEVICE ================= */
 
-    const savedDevice = response.data.device;
+  const addDevice = async (data: Omit<Device, "_id">) => {
+    try {
+      const saved = await createDevice(data);
+      setDevices((prev) => [...prev, saved]);
+    } catch (error) {
+      console.error("Failed to add device:", error);
+    }
+  };
 
-    setDevices((prev) => [...prev, savedDevice]);
-  } catch (error) {
-    console.error("Failed to add device:", error);
-  }
-};
-
-
-// const deleteDevice = async (id: string) => {
-//   try {
-//     await axios.delete(`http://localhost:5000/api/device/${id}`);
-//     setDevices((prev) => prev.filter((d) => d.id !== id));
-//   } catch (error) {
-//     console.error("Failed to delete:", error);
-//   }
-// };
-
-// const updateDevice = async (updatedDevice: Device) => {
-//   try {
-//     const response = await axios.put(
-//       `http://localhost:5000/api/device/${updatedDevice.id}`,
-//       updatedDevice
-//     );
-
-//     const saved = response.data.device;
-
-//     setDevices((prev) =>
-//       prev.map((d) => (d.id === saved.id ? saved : d))
-//     );
-//   } catch (error) {
-//     console.error("Failed to update:", error);
-//   }
-// };
-
-
+  /* ================= UPDATE DEVICE ================= */
   
-  const deleteDevice = (id: string) =>
-    setDevices((prev) => prev.filter((d) => d.id !== id));
-  const updateDevice = (updatedDevice: Device) =>
-    setDevices((prev) =>
-      prev.map((d) => (d.id === updatedDevice.id ? updatedDevice : d))
-    );
-  const getDevicesByUser = (userId: string) =>
-    devices.filter((d) => d.userId === userId);
+  const updateDeviceHandler = async (id: string, data: Omit<Device, "_id">) => {
+    try {
+      const updated = await updateDevice(id, data);
+      setDevices((prev) =>
+        prev.map((d) => (d._id === id ? updated : d))
+      );
+    } catch (error) {
+      console.error("Failed to update device:", error);
+    }
+  };
+
+  /* ================= DELETE DEVICE ================= */
+
+  const deleteDeviceHandler = async (id: string) => {
+    try {
+      await deleteDevice(id);
+      setDevices((prev) => prev.filter((d) => d._id !== id));
+    } catch (error) {
+      console.error("Failed to delete device:", error);
+    }
+  };
+
+  /* ================= DEVICES BY USER ================= */
+
+const getDevicesByUser = (userId: string) => {
+  return devices.filter(
+    (device) =>
+      device.user?._id === userId
+  );
+};
 
   return (
     <DeviceContext.Provider
       value={{
         devices,
         addDevice,
-        deleteDevice,
-        updateDevice,
         getDevicesByUser,
-        deviceTypes, // ✅ now provided
+        deleteDevice: deleteDeviceHandler,
+        updateDevice: updateDeviceHandler
+
+        
       }}
     >
       {children}
@@ -180,8 +108,9 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useDeviceContext = () => {
-  const ctx = useContext(DeviceContext);
-  if (!ctx)
+  const context = useContext(DeviceContext);
+  if (!context) {
     throw new Error("useDeviceContext must be used within DeviceProvider");
-  return ctx;
+  }
+  return context;
 };

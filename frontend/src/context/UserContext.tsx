@@ -23,6 +23,8 @@ import {
   CreateUserPayload,
 } from "../api/global.types";
 
+import { STORAGE_KEYS } from "../constants/storageKeys";
+
 /* ========================= TYPES ========================= */
 
 export type Role = "user" | "admin" | "supervisor" | "superadmin";
@@ -44,7 +46,8 @@ export interface User {
 interface UserContextType {
   users: User[];
   currentUser: User | null;
-  login: (user: User) => void;
+  isLoadingUser: boolean;
+  login: (user: User, token: string) => void;
   logout: () => void;
   plants: PlantPayload[];
   departments: DepartmentPayload[];
@@ -92,26 +95,33 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   /* ========================= RESTORE SESSION ========================= */
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser");
-
-    if (storedUser) {
+    const restoreSession = () => {
       try {
-        const parsedUser: User = JSON.parse(storedUser);
+        const storedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+        const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
 
-        // Normalize role to lowercase (IMPORTANT FIX)
-        const normalizedUser: User = {
-          ...parsedUser,
-          role: parsedUser.role.toLowerCase() as Role,
-        };
+        if (storedUser && storedToken) {
+          const parsedUser: User = JSON.parse(storedUser);
 
-        setCurrentUser(normalizedUser);
+          const normalizedUser: User = {
+            ...parsedUser,
+            role: parsedUser.role.toLowerCase() as Role,
+          };
+
+          setCurrentUser(normalizedUser);
+        } else {
+          setCurrentUser(null);
+        }
       } catch (error) {
-        console.error("Failed to parse stored user:", error);
-        localStorage.removeItem("currentUser");
+        console.error("Session restore failed. Clearing storage.");
+        localStorage.clear();
+        setCurrentUser(null);
+      } finally {
+        setIsLoadingUser(false);
       }
-    }
+    };
 
-    setIsLoadingUser(false);
+    restoreSession();
   }, []);
 
   /* ========================= LOAD PLANTS ========================= */
@@ -144,24 +154,28 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   /* ========================= LOGIN ========================= */
 
-  const login = (user: User) => {
+  const login = (user: User, token: string) => {
     const normalizedUser: User = {
       ...user,
-      role: user.role.toLowerCase() as Role, // FIXED
+      role: user.role.toLowerCase() as Role,
     };
 
-    setCurrentUser(normalizedUser);
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER_ID, normalizedUser.userId);
+    localStorage.setItem(
+      STORAGE_KEYS.CURRENT_USER,
+      JSON.stringify(normalizedUser)
+    );
 
-    localStorage.setItem("userId", normalizedUser.userId);
-    localStorage.setItem("currentUser", JSON.stringify(normalizedUser));
+    setCurrentUser(normalizedUser);
   };
 
   /* ========================= LOGOUT ========================= */
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_ID);
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
 
     setCurrentUser(null);
     setUsers([]);
@@ -201,6 +215,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       value={{
         users,
         currentUser,
+        isLoadingUser,
         login,
         logout,
         plants,
@@ -214,7 +229,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         deleteUserHandler,
       }}
     >
-      {!isLoadingUser && children}
+      {children}
     </UserContext.Provider>
   );
 };

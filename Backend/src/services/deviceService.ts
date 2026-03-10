@@ -1,102 +1,137 @@
 import DeviceModel from "../models/DeviceModel";
-import { IDevice } from "../interfaces/device.interface";
-import { Request, Response } from "express";
+import User from "../models/User";
+import { Role } from "../constants/roles";
 
-class deviceService {
-  // Create device
-  async createDevice(req:Request,res:Response) {
-     //console.log("In service",req.body)
+class DeviceService {
+  async createDevice(data: any, loggedInUser: any) {
+    const { deviceName, deviceType, deviceId, serialNumber, user, image } = data;
 
-    const { deviceName,deviceType,  plant,department,user,serialNumber,image} = req.body;
-   
-    const deviceExists = await DeviceModel.findOne({ deviceName:deviceName });
-    if (deviceExists) throw new Error("Device already exists");
-console.log("",req.body)
-    const device = await DeviceModel.create({
-     deviceName,  
-     deviceType,  
-      plant,
-      department,
-        user,
-        serialNumber,
-        image
-    }) as IDevice & { _id: any };
+    if (!loggedInUser) throw new Error("Unauthorized");
 
-    return {
-      device
-    };
+    if (
+      ![Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR].includes(
+        loggedInUser.role
+      )
+    ) {
+      throw new Error("Not allowed");
+    }
+
+    const targetUser = await User.findById(user).populate({
+      path: "department",
+      populate: { path: "plant" },
+    });
+
+    if (!targetUser) throw new Error("Target user not found");
+
+    const targetPlantId =
+      (targetUser.department as any).plant._id.toString();
+
+    const loggedPlantId =
+      loggedInUser.department.plant._id.toString();
+
+    if (
+      loggedInUser.role !== Role.SUPER_ADMIN &&
+      targetPlantId !== loggedPlantId
+    ) {
+      throw new Error("Cannot create device outside your plant");
+    }
+
+    const exists = await DeviceModel.findOne({
+      $or: [{ deviceId }, { serialNumber }],
+    });
+
+    if (exists) throw new Error("Device already exists");
+
+    return await DeviceModel.create({
+      deviceName,
+      deviceType,
+      deviceId,
+      serialNumber,
+      user,
+      department: targetUser.department._id,
+      plant: targetPlantId,
+      image,
+    });
   }
 
-// update device
-async updateDevice(req: Request, res: Response) {
-    const { _id,deviceName, deviceType,department,plant,serialNumber,image} = req.body;
-  
-    if (!_id) throw new Error("device id is required");
+     /* ================= UPDATE DEVICE ================= */
 
-    const device = await DeviceModel.findByIdAndUpdate(
-        _id,
-        { 
-        deviceName,
-        deviceType, 
-        department,
-        plant,
-        serialNumber,
-        image },
-        { new: true, runValidators: true }
-    ) as (IDevice & { _id: any }) | null;
+  async updateDevice(id: string, data: any, loggedInUser: any) {
+    const { deviceName, deviceType, deviceId, serialNumber, user, image } = data;
+
+    if (!loggedInUser) throw new Error("Unauthorized");
+
+    const device = await DeviceModel.findById(id);
 
     if (!device) throw new Error("Device not found");
 
-    return res.status(200).json({ device });
-}
+    if (
+      loggedInUser.role !== Role.SUPER_ADMIN &&
+      device.plant.toString() !== loggedInUser.department.plant._id.toString()
+    ) {
+      throw new Error("Access denied");
+    }
 
-// Get device by ID
- async getDeviceById(req:Request,res:Response) {
-      const device = await DeviceModel.findOne({_id:req.params.id}); 
-      try{
+    const targetUser = await User.findById(user).populate({
+      path: "department",
+      populate: { path: "plant" },
+    });
 
-        if (!device) {
-            throw new Error("Device not found");
-        }
-        return res.status(200).json({device});
-      }
-      catch(error){
-            console.error("Error fetching device:", error);
-            throw new Error("Error fetching device");
-      }
+    if (!targetUser) throw new Error("Target user not found");
+
+    const plantId = (targetUser.department as any).plant._id;
+
+    device.deviceName = deviceName;
+    device.deviceType = deviceType;
+    device.deviceId = deviceId;
+    device.serialNumber = serialNumber;
+    device.user = user;
+    if (!targetUser.department || !targetUser.department._id) {
+      throw new Error("Target user's department not found");
+    }
+    device.department = targetUser.department._id;
+    device.plant = plantId;
+    device.image = image;
+
+    await device.save();
+
+    return device;
   }
-  
+    
 
-// Get all devices
- async getDevices(req: Request, res: Response) {
-     try{
-        const device = await DeviceModel.find()
-       return res.status(200).json({ device})
-     }
-        catch(error){
-            console.error("Error fetching device:", error);
-            return res.status(500).json({ error: "Error fetching device" });
+  async getDevices(loggedInUser: any) {
+    // console.log("my service device", loggedInUser);
+    if (loggedInUser.role === Role.SUPER_ADMIN) {
+      return DeviceModel.find()
+        .populate("user")
+        .populate("department")
+        .populate("plant");
+    }
+
+    return DeviceModel.find({
+      plant: loggedInUser.department.plant._id,
+    })
+      .populate("user")
+      .populate("department")
+      .populate("plant");
   }
- }
 
-    // Delete device
- async deleteDevice(req:Request,res:Response) {
-    console.log("Deleting device with id:", req.params.id);
-      const device = await DeviceModel.findByIdAndDelete(req.params.id);
-        try{
-        if (!device) {
-            throw new Error("Device not found");
-        }
-        return res.status(200).json({ message: "Device deleted successfully" });
-      }
-        catch(error){
-            console.error("Error deleting device:", error);
-            throw new Error("Error deleting device");
-      }
-      
-  
+  async deleteDevice(id: string, loggedInUser: any) {
+    const device = await DeviceModel.findById(id);
+
+    if (!device) throw new Error("Device not found");
+
+    if (
+      loggedInUser.role !== Role.SUPER_ADMIN &&
+      device.plant.toString() !==
+        loggedInUser.department.plant._id.toString()
+    ) {
+      throw new Error("Access denied");
+    }
+
+    await device.deleteOne();
+    return true;
+  }
 }
 
-}
-
-export default new deviceService();
+export default new DeviceService();
