@@ -75,3 +75,19 @@ export interface Device {
   plant: PlantPayload; // full object
   image?: string;
 }
+
+/* ================= CREATE REQUEST ================= */
+
+export interface CreateServiceRequestPayload {
+  description: string;
+
+  attachments?: File[];
+  problemCategory:
+    | "Hardware"
+    | "Software"
+    | "Network"
+    | "Other";
+
+  issues?: string;
+  requestedDate?: string;
+}

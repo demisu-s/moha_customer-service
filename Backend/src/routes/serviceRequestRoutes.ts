@@ -1,13 +1,29 @@
-import { Router } from "express";
-import { createRequest, updateSeviceRequest, getServiceRequestById, getServiceRequests, deleteRequest } from "../controllers/serviceRequestController";
+import express from "express";
 
-const router = Router();
+import {
+  createRequest,
+  getAllRequests,
+  getRequestById,
+  updateRequest,
+  assignSupervisor,
+  resolveRequest,
+} from "../controllers/serviceRequestController";
 
-router.post("/createRequest",createRequest);
-router.put("/updateRequest", updateSeviceRequest);
-router.get("/getRequestById/:id", getServiceRequestById);
-router.get("/getRequest", getServiceRequests);
-router.delete("/deleteRequest/:id", deleteRequest);
+import { protect } from "../middlewares/authMiddleware";
+import { authorize } from "../middlewares/authorize";
 
+const router = express.Router();
+
+router.post("/createRequest", protect, createRequest);
+
+router.get("/getRequests",getAllRequests);
+
+router.get("/getRequestById/:id", protect, getRequestById);
+
+router.put("/updateRequestById/:id", protect, updateRequest);
+
+router.put("/assign/assignedSupervisor/:id", protect, assignSupervisor);
+
+router.put("/resolve/:id", protect, resolveRequest);
 
 export default router;

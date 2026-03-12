@@ -1,63 +1,110 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IServiceRequest } from "../interfaces/service-request.interface";
+import { RequestStatus } from "../constants/request-status";
 
+export interface IServiceDocument extends Document {
+  deviceId?: mongoose.Types.ObjectId;
+  requestedBy: mongoose.Types.ObjectId;
 
-export interface IServiceDocument extends Omit<IServiceRequest, "_id">, Document {}
+  urgency?: "Low" | "Medium" | "High";
+
+  problemCategory:
+    | "HardDisk Failer"
+    | "Window corruption"
+    | "Virues"
+    | "Window Activation"
+    | "Jet Report"
+    | "Office Activation"
+    | "Other";
+
+  status: RequestStatus;
+
+  assignedTo?: mongoose.Types.ObjectId;
+
+  plant?: mongoose.Types.ObjectId;
+  department?: mongoose.Types.ObjectId;
+
+  description: string;
+
+  attachments?: string[];
+
+  requestedDate?: string;
+  resolvedDate?: string;
+  assignedDate?: string;
+
+  solution?: string;
+}
 
 const ServiceRequestSchema = new Schema<IServiceDocument>(
   {
-   
-  id: { type: String, required: true },
     deviceId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Device',
+      type: Schema.Types.ObjectId,
+      ref: "Device",
     },
-    serialNumber: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Device',
-     },
+
     requestedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    requestedDate: { type: String, required: true },
-    description: { type: String, required: true },
-    plant: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Plant',
+
+    urgency: {
+      type: String,
+      enum: ["Low", "Medium", "High"],
     },
-    department: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
+
+    problemCategory: {
+      type: String,
+      enum: [
+        "HardDisk Failer",
+        "Window corruption",
+        "Virues",
+        "Window Activation",
+        "Jet Report",
+        "Office Activation",
+        "Other",
+      ],
     },
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+
+    status: {
+      type: String,
+      enum: Object.values(RequestStatus),
+      default: RequestStatus.PENDING,
     },
-    phone: { type: String, required: true },
-    resolvedDate: { type: String },
-    attachments: { 
-        data: Buffer,
-        type: String
-    },
-    createdAt: { type: String, required: true },
-    status: { type: String, required: true },
+
     assignedTo: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
-    notes: { type: String, required: true },
-    solution: { type: String },
-    issues: { type: String },
-    supervisorId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+
+    plant: {
+      type: Schema.Types.ObjectId,
+      ref: "Plant",
     },
-    assignedDate: { type: String },
-    urgency: { type: String },
-    problemCategory: { type: String },
+
+    department: {
+      type: Schema.Types.ObjectId,
+      ref: "Department",
+    },
+
+    description: {
+      type: String,
+      required: true,
+    },
+
+    attachments: [String],
+
+    requestedDate: String,
+
+    resolvedDate: String,
+
+    assignedDate: String,
+
+    solution: String,
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IServiceDocument>("ServiceRequest", ServiceRequestSchema);
+export default mongoose.model<IServiceDocument>(
+  "ServiceRequest",
+  ServiceRequestSchema
+);
