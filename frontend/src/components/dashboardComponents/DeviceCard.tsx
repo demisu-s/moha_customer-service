@@ -13,9 +13,9 @@ import {
 type DeviceCardProps = {
   id: string;
   deviceType: string;
-  serialNo: string;
+  serialNumber: string;
   department: string;
-  area: string;
+  plant: string;
   userName: string;
   problem?: string;
   status: RequestStatus;
@@ -29,9 +29,9 @@ type DeviceCardProps = {
 const DeviceCard: React.FC<DeviceCardProps> = ({
   id,
   deviceType,
-  serialNo,
+  serialNumber,
   department,
-  area,
+  plant,
   userName,
   problem,
   status,
@@ -166,9 +166,9 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
 
       <div className="space-y-2">
         <Field label="Device Type" value={deviceType} />
-        <Field label="Serial No" value={serialNo} />
+        <Field label="Serial No" value={serialNumber} />
         <Field label="Department" value={department} />
-        <Field label="Area" value={area} />
+        <Field label="Plant" value={plant} />
         <Field label="User" value={userName} />
 
         {problemCategory && <Field label="Problem Category" value={problemCategory} />}

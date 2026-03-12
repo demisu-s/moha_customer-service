@@ -56,16 +56,17 @@ const Home: React.FC = () => {
     const matchesTab = request.status === activeTab;
 
     const matchesSearch =
-      request.deviceSerial?.toLowerCase().includes(search.toLowerCase()) ||
+      request.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
       request.description?.toLowerCase().includes(search.toLowerCase()) ||
       request.requestedBy?.toLowerCase().includes(search.toLowerCase()) ||
       request.urgency?.toLowerCase().includes(search.toLowerCase()) ||
-      request.area?.toLowerCase().includes(search.toLowerCase()) ||
+      request.plant?.toLowerCase().includes(search.toLowerCase()) ||
       request.department?.toLowerCase().includes(search.toLowerCase()) ||
       request.problemCategory?.toLowerCase().includes(search.toLowerCase()) ||
       request.issues?.toLowerCase().includes(search.toLowerCase()) ||
       request.assignedToName?.toLowerCase().includes(search.toLowerCase()) ||
       request.assignedTo?.toLowerCase().includes(search.toLowerCase());
+      
 
     // ADMIN & SUPERADMIN → see everything
     if (userRole === "admin" || userRole === "superadmin") {
@@ -149,14 +150,15 @@ const Home: React.FC = () => {
               key={request.id}
               id={request.id}
               deviceType={request.deviceType || "Device"}
-              serialNo={request.deviceSerial}
+              serialNumber={request.serialNumber}
               department={request.department}
-              area={request.area}
+              plant={request.plant}
               userName={request.requestedBy}
               problemCategory={request.problemCategory}
               issues={request.issues}
               problem={request.description}
               status={request.status}
+              
               supervisorName={
                 request.assignedToName ||
                 request.assignedTo ||
