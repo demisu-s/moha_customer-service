@@ -51,7 +51,7 @@ const AskForHelp: React.FC = () => {
 
     try {
       await addRequest({
-        deviceId: device._id,
+       deviceId: device._id, // ✅ PERFECT
         description: description.trim(),
         problemCategory: problemCategory as any,
         attachments: files,

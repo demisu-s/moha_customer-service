@@ -15,6 +15,7 @@ export const createServiceRequest = async (requestData: CreateServiceRequestPayl
       requestedDate: requestData.requestedDate,
       attachments: requestData.attachments || [],
       issues: requestData.issues,
+     deviceId: requestData.deviceId,
     }
   );
 

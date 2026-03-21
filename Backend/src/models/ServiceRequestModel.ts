@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 import { RequestStatus } from "../constants/request-status";
 
 export interface IServiceDocument extends Document {
-  deviceId?: mongoose.Types.ObjectId;
+  device?: mongoose.Types.ObjectId;
   requestedBy: mongoose.Types.ObjectId;
 
   urgency?: "Low" | "Medium" | "High";
@@ -36,9 +36,12 @@ export interface IServiceDocument extends Document {
 
 const ServiceRequestSchema = new Schema<IServiceDocument>(
   {
-    deviceId: {
+
+
+ device: {
       type: Schema.Types.ObjectId,
       ref: "Device",
+      required: true, // ✅ important
     },
 
     requestedBy: {

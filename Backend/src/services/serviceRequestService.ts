@@ -3,57 +3,48 @@ import Device from "../models/DeviceModel";
 import { RequestStatus } from "../constants/request-status";
 
 class ServiceRequestService {
-
-  
   async createRequest(data: any, userId: string) {
+    if (!data.deviceId) {
+      throw new Error("Device is required");
+    }
 
-    let plant = null;
-    let department = null;
+    const device = await Device.findById(data.deviceId);
 
-    if (data.deviceId) {
-      const device = await Device.findById(data.deviceId);
-
-      if (device) {
-        plant = device.plant;
-        department = device.department;
-      }
+    if (!device) {
+      throw new Error("Device not found");
     }
 
     const request = await ServiceRequest.create({
-      deviceId: data.deviceId,   // this is Mongo _id
       description: data.description,
       problemCategory: data.problemCategory,
       requestedBy: userId,
-      plant,
-      department,
+      device: data.deviceId, // ✅ correct
       requestedDate: new Date().toISOString(),
-      status: RequestStatus.PENDING
     });
 
     return request;
   }
+
   async getAllRequests() {
     return ServiceRequest.find()
       .populate({
-        path: "deviceId",
+        path: "device",
         populate: ["plant", "department", "user"],
       })
       .populate("requestedBy", "-password")
       .populate("assignedTo", "-password");
   }
-
 
   async getRequestById(id: string) {
     return ServiceRequest.findById(id)
       .populate({
-        path: "deviceId",
+        path: "device",
         populate: ["plant", "department", "user"],
       })
       .populate("requestedBy", "-password")
       .populate("assignedTo", "-password");
   }
-
-  async updateRequest(id: string, data: any) {
+async updateRequest(id: string, data: any) {
     return ServiceRequest.findByIdAndUpdate(id, data, {
       new: true,
     });
