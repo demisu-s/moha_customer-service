@@ -24,6 +24,10 @@ const Home: React.FC = () => {
   const userRole = currentUser.role;
   const userId = currentUser.userId;
   const userName = `${currentUser.firstName} ${currentUser.lastName}`;
+  const userPlant =
+    typeof currentUser.department?.plant === "string"
+      ? currentUser.department.plant
+      : currentUser.department?.plant?.name;
 
   /* =========================
      2️⃣ Role Protection
@@ -53,42 +57,44 @@ const Home: React.FC = () => {
   ========================== */
 
   const filteredRequests = requests.filter((request) => {
-    const matchesTab = request.status === activeTab;
+  const matchesTab = request.status === activeTab;
 
-    const matchesSearch =
-      request.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
-      request.description?.toLowerCase().includes(search.toLowerCase()) ||
-      request.requestedBy?.toLowerCase().includes(search.toLowerCase()) ||
-      request.urgency?.toLowerCase().includes(search.toLowerCase()) ||
-      request.plant?.toLowerCase().includes(search.toLowerCase()) ||
-      request.department?.toLowerCase().includes(search.toLowerCase()) ||
-      request.problemCategory?.toLowerCase().includes(search.toLowerCase()) ||
-      request.issues?.toLowerCase().includes(search.toLowerCase()) ||
-      request.assignedToName?.toLowerCase().includes(search.toLowerCase()) ||
-      request.assignedTo?.toLowerCase().includes(search.toLowerCase());
-      
+  const matchesSearch =
+    request.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    request.description?.toLowerCase().includes(search.toLowerCase()) ||
+    request.requestedBy?.toLowerCase().includes(search.toLowerCase()) ||
+    request.urgency?.toLowerCase().includes(search.toLowerCase()) ||
+    request.plant?.toLowerCase().includes(search.toLowerCase()) ||
+    request.department?.toLowerCase().includes(search.toLowerCase()) ||
+    request.problemCategory?.toLowerCase().includes(search.toLowerCase()) ||
+    request.issues?.toLowerCase().includes(search.toLowerCase()) ||
+    request.assignedToName?.toLowerCase().includes(search.toLowerCase()) ||
+    request.assignedTo?.toLowerCase().includes(search.toLowerCase());
 
-    // ADMIN & SUPERADMIN → see everything
-    if (userRole === "admin" || userRole === "superadmin") {
-      return matchesTab && matchesSearch;
+     // ✅ SUPERADMIN → see everything
+  if (userRole === "superadmin") {
+    return matchesTab && matchesSearch;
+  }
+
+  // ✅ ADMIN & SUPERVISOR → only same plant
+  const samePlant = request.plant === userPlant;
+
+  if (userRole === "admin" || userRole === "supervisor") {
+    // Special case for supervisor Assigned tab
+    if (userRole === "supervisor" && activeTab === "Assigned") {
+      return (
+        matchesTab &&
+        matchesSearch &&
+        samePlant &&
+        request.assignedTo === userId
+      );
     }
 
-    // SUPERVISOR logic
-    if (userRole === "supervisor") {
-      if (activeTab === "Assigned") {
-        return (
-          matchesTab &&
-          matchesSearch &&
-          request.assignedTo === userId
-        );
-      }
+    return matchesTab && matchesSearch && samePlant;
+  }
 
-      return matchesTab && matchesSearch;
-    }
-
-    return false;
-  });
-
+  return false;
+});
   /* =========================
      5️⃣ UI
   ========================== */

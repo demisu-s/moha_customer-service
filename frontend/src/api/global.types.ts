@@ -80,6 +80,7 @@ export interface Device {
 
 export interface CreateServiceRequestPayload {
   description: string;
+  deviceId: string;
 
   attachments?: File[];
   problemCategory:

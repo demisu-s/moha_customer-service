@@ -98,13 +98,18 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
   /* ================= ADD REQUEST ================= */
   const addRequest = async (requestData: Partial<ServiceRequest>) => {
     if (!requestData.description) {
-      throw new Error("description are required");
-    }
+    throw new Error("description are required");
+  }
+
+  if (!requestData.deviceId) {
+    throw new Error("Device is required");
+  }
 
     await apiCreateRequest({
       description: requestData.description,
       problemCategory: requestData.problemCategory || "Hardware",
       attachments: requestData.attachments || [],
+      deviceId: requestData.deviceId
     
     });
 
