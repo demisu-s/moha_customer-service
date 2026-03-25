@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
 import {
@@ -8,23 +8,32 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "../../components/ui/carousel";
-import { ServiceRequest } from "../../pages/User/askforhelp";
+import { useServiceRequests } from "../../context/ServiceRequestContext";
 
 const RequestDetailsComponent: React.FC = () => {
+  // ✅ FIX 1: use correct param name (requestId)
   const { requestId } = useParams();
+
   const navigate = useNavigate();
 
-  const [request, setRequest] = useState<ServiceRequest | null>(null);
+  // ✅ get data from context
+  const { requests, loading } = useServiceRequests();
 
-  useEffect(() => {
-    const stored = localStorage.getItem("serviceRequests");
-    if (stored) {
-      const requests: ServiceRequest[] = JSON.parse(stored);
-      const found = requests.find((req) => req.id === requestId);
-      if (found) setRequest(found);
-    }
-  }, [requestId]);
+  // ✅ FIX 2: find request safely
+  const request = requests.find(
+    (r) => String(r.id) === String(requestId)
+  );
 
+  // ✅ FIX 3: loading state
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading request...
+      </div>
+    );
+  }
+
+  // ✅ FIX 4: not found state
   if (!request) {
     return (
       <div className="max-w-3xl mx-auto p-6 text-center text-red-600">
@@ -36,124 +45,117 @@ const RequestDetailsComponent: React.FC = () => {
     );
   }
 
-  // Merge device images into carousel (deviceImage + attachments)
-  const allImages = [request.deviceImage, ...(request.attachments || [])];
+  // ✅ Images
+  const allImages = [
+    request.deviceImage,
+    ...(request.attachments || []),
+  ].filter(Boolean);
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       <h2 className="text-3xl font-bold text-gray-800">
-        Request Details - {request.deviceSerial}
+        Request Details - {request.serialNumber}
       </h2>
+
       <p className="text-sm text-gray-400 max-w-xl">
         Full details of the reported issue, requester, and device information.
       </p>
 
-      {/* Top section with images & summary */}
+      {/* Top Section */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="col-span-2 flex">
-          {/* Device Image Carousel */}
+          {/* Carousel */}
           <div className="border rounded-l-lg p-2 flex items-center justify-center bg-white relative">
             <Carousel className="w-72 relative">
               <CarouselContent>
-                {allImages.map((img, idx) => (
-                  <CarouselItem key={idx}>
-                    <img
-                      src={img}
-                      alt={`Device ${idx + 1}`}
-                      className="w-full h-60 object-contain rounded"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/placeholder-image.png";
-                      }}
-                    />
-                  </CarouselItem>
-                ))}
+                {allImages.length > 0 ? (
+                  allImages.map((img, idx) => (
+                    <CarouselItem key={idx}>
+                      <img
+                        src={img as string}
+                        alt={`Device ${idx + 1}`}
+                        className="w-full h-60 object-contain rounded"
+                      />
+                    </CarouselItem>
+                  ))
+                ) : (
+                  <p className="text-gray-400">No images</p>
+                )}
               </CarouselContent>
 
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow-md" />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow-md" />
+              <CarouselPrevious />
+              <CarouselNext />
             </Carousel>
           </div>
 
-          {/* Request Summary */}
+          {/* Summary */}
           <div className="border-t border-b border-r rounded-r-lg p-4 flex-1 bg-white">
-            <h3 className="font-bold mb-3 text-xl">Request Summary</h3>
-            <div className="text-sm space-y-1">
+            <h3 className="font-bold mb-3 text-xl">Request Device Info</h3>
+
+            <div className="text-sm space-y-2">
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Device Serial:
-                </strong>
-                {request.deviceSerial}
+                <strong>Device Name:</strong> {request.deviceName}
               </p>
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-6">
-                  Submission Date:
-                </strong>
-                {request.submissionDate
-                  ? (request.submissionDate instanceof Date
-                      ? request.submissionDate.toLocaleString()
-                      : request.submissionDate.toString())
-                  : "N/A"}
+                <strong>Device Type:</strong> {request.deviceType}
               </p>
               <p>
-                <strong className="text-lg font-light text-gray-500 pr-4">
-                  Status:
-                </strong>
-                {request.status}
+                <strong>Serial:</strong> {request.serialNumber}
               </p>
-              {request.assignedTo && (
-                <p>
-                  <strong className="text-lg font-light text-gray-500 pr-4">
-                    Assigned To:
-                  </strong>
-                  {request.assignedTo}
-                </p>
-              )}
+
+              <p>
+                <strong>Requested Date:</strong>{" "}
+                {new Date(request.createdAt).toLocaleString()}
+              </p>
+
+              <p>
+                <strong>Status:</strong> {request.status}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Requester Information */}
+        {/* Requester Info */}
         <div className="border rounded-lg p-4 bg-white">
-          <h3 className="font-bold mb-3 text-xl">Requester Information</h3>
-          <div className="text-sm space-y-1">
+          <h3 className="font-bold mb-3 text-xl">Requester Info</h3>
+
+          <div className="text-sm space-y-2">
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                Requested By:
-              </strong>
-              {request.requestedBy}
+              <strong>Name:</strong> {request.requestedBy}
             </p>
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                Department:
-              </strong>
-              {request.department}
+              <strong>Plant:</strong> {request.plant}
             </p>
+
             <p>
-              <strong className="text-lg font-light text-gray-500 pr-4">
-                Area:
-              </strong>
-              {request.area}
+              <strong>Department:</strong> {request.department}
+            </p>
+             
+            <p>
+              <strong>phone:</strong> +25194243543
             </p>
           </div>
         </div>
       </div>
-
-      {/* Issue Description */}
+ <div className="border rounded-lg p-4 bg-white">
+       {request.problemCategory && (
+          <p>
+            <strong>Problem Category:</strong> {request.problemCategory}
+          </p>
+        )}
+     </div>
+      {/* Issue */}
       <div className="border rounded-lg p-4 bg-white">
-        <h3 className="font-bold mb-3 text-xl">Issue Description</h3>
-        <p className="text-lg font-light mb-3">{request.description}</p>
-        <p className="text-lg font-light text-gray-500 mb-2">Urgency:</p>
-        <p className="text-red-500 font-bold text-lg mb-3">{request.urgency}</p>
+        <h3 className="font-bold mb-3 text-xl">Issue Note:</h3>
+
+        <p className="mb-2">{request.description}</p>
+
+
       </div>
 
       {/* Buttons */}
       <div className="flex justify-end gap-3">
-        <Button
-          onClick={() => navigate(-1)}
-          className="bg-white text-black px-4 py-1 border border-gray-300 rounded-md hover:bg-gray-100 duration-200 hover:shadow-md hover:scale-105"
-        >
-          Back
-        </Button>
+        <Button onClick={() => navigate(-1)}>Back</Button>
       </div>
     </div>
   );

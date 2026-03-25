@@ -52,6 +52,7 @@ export interface ServiceRequest {
 
 type ServiceRequestContextType = {
   requests: ServiceRequest[];
+  loading: boolean;
   refreshRequests: () => Promise<void>;
   updateRequest: (id: string, data: Partial<ServiceRequest>) => Promise<void>;
   addRequest: (requestData: Partial<ServiceRequest>) => Promise<void>;
@@ -64,6 +65,7 @@ const ServiceRequestContext = createContext<ServiceRequestContextType | null>(nu
 export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const problemTypes = PROBLEM_TYPES;
+  const [loading, setLoading] = useState(true);
 
   /* ================= FETCH REQUESTS ================= */
   const refreshRequests = async () => {
@@ -89,6 +91,7 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
       issues: r.issues,
     }));
     setRequests(formatted);
+    setLoading(false); // ✅ IMPORTANT
   };
 
   useEffect(() => {
@@ -126,7 +129,7 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
 
   return (
     <ServiceRequestContext.Provider
-      value={{ requests, refreshRequests, updateRequest, addRequest, getRequestById, problemTypes }}
+      value={{ requests,loading, refreshRequests, updateRequest, addRequest, getRequestById, problemTypes }}
     >
       {children}
     </ServiceRequestContext.Provider>

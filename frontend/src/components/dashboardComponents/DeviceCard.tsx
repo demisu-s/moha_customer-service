@@ -9,6 +9,7 @@ import {
   ProblemCategory,
   Issues,
 } from "../../context/ServiceRequestContext";
+import { useUserContext } from "../../context/UserContext";
 
 type DeviceCardProps = {
   id: string;
@@ -41,18 +42,24 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   issues,
 }) => {
   const navigate = useNavigate();
-  const role = localStorage.getItem("role");
+  // const role = localStorage.getItem("role");
 
+  const { currentUser } = useUserContext();
+const role = currentUser?.role;
+
+
+// console.log("ROLE:", role);
+// console.log("STATUS:", status);
   // ✅ Build role-based buttons
   const renderButtons = () => {
     const buttons: JSX.Element[] = [];
 
-    if (role === "admin") {
+  if (role === "admin" || role === "superadmin") {
       if (status === "Pending") {
         buttons.push(
           <Button
             key="details"
-            onClick={() => navigate(`details/${id}`)}
+            onClick={() => navigate(`/dashboard/details/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             Details
