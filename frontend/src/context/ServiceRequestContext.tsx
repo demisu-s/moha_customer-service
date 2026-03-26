@@ -48,6 +48,8 @@ export interface ServiceRequest {
   urgency?: Urgency;
   problemCategory?: ProblemCategory;
   attachments?: File[];
+  notes?:string;
+  assignedDate:string;
 }
 
 type ServiceRequestContextType = {
@@ -79,6 +81,7 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
       plant: r.device?.plant?.name,
       department: r.device?.department?.name,
       createdAt: r.createdAt,
+      assignedDate:r.assignedDate,
       deviceImage: r.device?.image,
       deviceName: r.device?.deviceName,
       deviceType: r.device?.deviceType,

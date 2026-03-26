@@ -32,6 +32,7 @@ export interface IServiceDocument extends Document {
   assignedDate?: string;
 
   solution?: string;
+  notes?:string;
 }
 
 const ServiceRequestSchema = new Schema<IServiceDocument>(
@@ -103,6 +104,7 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
     assignedDate: String,
 
     solution: String,
+    notes:String,
   },
   { timestamps: true }
 );

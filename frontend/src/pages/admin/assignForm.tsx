@@ -14,9 +14,32 @@ const AssignFormPage: React.FC = () => {
   const [notes, setNotes] = useState("");
   const [date, setDate] = useState("");
   const [urgency, setUrgency] = useState<Urgency>("");
+  const urgencyOptions: Urgency[] = ["Low", "Medium", "High"];
 
-  const request = getRequestById(requestId || "");
-  const supervisors = users.filter((u) => u.role === "Supervisor");
+ const request = getRequestById(requestId || "");
+
+if (!request) {
+  return (
+    <div className="max-w-3xl mx-auto p-6 text-center text-red-600">
+      <h2 className="text-xl font-semibold">Request not found</h2>
+      <Button onClick={() => navigate(-1)} className="mt-4">
+        Go Back
+      </Button>
+    </div>
+  );
+}
+
+// ✅ NOW safe to use request
+const supervisors = users.filter((u) => {
+  if (u.role !== "supervisor") return false;
+
+  const userPlant =
+    typeof u.department?.plant === "string"
+      ? u.department.plant
+      : u.department?.plant?.name;
+
+  return userPlant === request.plant;
+});
 
   if (!request) {
     return (
@@ -40,22 +63,25 @@ const AssignFormPage: React.FC = () => {
     );
     if (!selectedSupervisor) return;
 
-    updateRequest(request.id, {
-      status: "Assigned",
-      assignedTo: selectedSupervisor.userId,
-      assignedToName: `${selectedSupervisor.firstName} ${selectedSupervisor.lastName}`,
-      notes,
-      assignedDate: date,
-      urgency,
-    });
+   updateRequest(request.id, {
+  status: "Assigned",
+  assignedTo: selectedSupervisor.userId, // ✅ ObjectId
+  assignedToName: `${selectedSupervisor.firstName} ${selectedSupervisor.lastName}`, // display only
+  notes,
+  assignedDate: date,
+  urgency,
+});
+
 
     navigate("/dashboard");
+    console.log("Supervisor ID:", selectedSupervisor.userId);
+console.log("Supervisor Name:", selectedSupervisor.firstName);
   };
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       <h2 className="text-3xl font-bold text-gray-800">
-        Assign Request - {request.deviceSerial}
+        Assign Request - {request.deviceName}
       </h2>
 
       <div className="border rounded-lg p-4 bg-white">
@@ -63,7 +89,7 @@ const AssignFormPage: React.FC = () => {
         <p><strong>Description:</strong> {request.description}</p>
         <p><strong>Status:</strong> {request.status}</p>
         <p><strong>Problem Category:</strong>{request.problemCategory}</p>
-        <p> <strong>Requested Date:</strong>{request.requestedDate}</p>
+        <p> <strong>Requested Date:</strong>{new Date(request.createdAt).toLocaleString()}</p>
       </div>
 
       <div className="border rounded-lg p-4 space-y-3 bg-white">
@@ -80,9 +106,9 @@ const AssignFormPage: React.FC = () => {
               <option value="">Choose a supervisor</option>
               {supervisors.length > 0 ? (
                 supervisors.map((s) => (
-                  <option key={s.userId} value={s.userId}>
-                    {s.firstName} {s.lastName}
-                  </option>
+                 <option key={s.userId} value={s.userId}>
+  {s.firstName} {s.lastName}
+</option>
                 ))
               ) : (
                 <option disabled>No supervisors found</option>
@@ -106,16 +132,19 @@ const AssignFormPage: React.FC = () => {
           <p className="text-gray-500 text-sm mb-4">
             Specify urgency level accurately.
           </p>
-          <select
-            value={urgency}
-            onChange={(e) => setUrgency(e.target.value as Urgency)}
-            className="w-60 border border-black rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-gray-300"
-          >
-            <option value="">Select urgency</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
+         <select
+  value={urgency}
+  onChange={(e) => setUrgency(e.target.value as Urgency)}
+  className="w-60 border border-black rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-gray-300"
+>
+  <option value="">Select urgency</option>
+
+  {urgencyOptions.map((level) => (
+    <option key={level} value={level}>
+      {level}
+    </option>
+  ))}
+</select>
         </div>
 
         <div className="mt-4">
