@@ -50,18 +50,17 @@ async updateRequest(id: string, data: any) {
     });
   }
 
-  async assignSupervisor(requestId: string, supervisorId: string) {
-    return ServiceRequest.findByIdAndUpdate(
-      requestId,
-      {
-        assignedTo: supervisorId,
-        status: RequestStatus.ASSIGNED,
-        assignedDate: new Date().toISOString(),
-      },
-      { new: true }
-    );
-  }
-
+ async assignSupervisor(requestId: string, data: any) {
+  return ServiceRequest.findByIdAndUpdate(
+    requestId,
+    {
+      ...data,
+      status: RequestStatus.ASSIGNED,
+    },
+    { new: true }
+  );
+}
+    
   async resolveRequest(id: string, solution: string) {
     return ServiceRequest.findByIdAndUpdate(
       id,

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import ServiceRequestService from "../services/serviceRequestService";
+import { RequestStatus } from "../constants/request-status";
 
 interface AuthRequest extends Request {
   user?: {
@@ -83,15 +84,20 @@ export const updateRequest = async (req: Request, res: Response) => {
   }
 };
 
+
 export const assignSupervisor = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { supervisorId } = req.body;
 
-    const request = await ServiceRequestService.assignSupervisor(
-      id,
-      supervisorId
-    );
+    const { assignedTo, notes, assignedDate, urgency } = req.body;
+
+    const request = await ServiceRequestService.updateRequest(id, {
+      assignedTo,          // ✅ ObjectId 
+      notes,
+      assignedDate,
+      urgency,
+      status: RequestStatus.ASSIGNED,
+    });
 
     res.json({
       success: true,

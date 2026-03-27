@@ -3,12 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
 import { useServiceRequests, Urgency } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
-
+import { assignRequest } from "../../api/request.api";
 const AssignFormPage: React.FC = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
   const { users } = useUserContext();
-  const { getRequestById, updateRequest } = useServiceRequests();
+  const { getRequestById, refreshRequests } = useServiceRequests();
 
   const [supervisorId, setSupervisorId] = useState("");
   const [notes, setNotes] = useState("");
@@ -52,31 +52,29 @@ const supervisors = users.filter((u) => {
     );
   }
 
-  const handleSubmit = () => {
-    if (!supervisorId || !urgency) {
-      alert("Please select supervisor and urgency");
-      return;
-    }
+ const handleSubmit = async () => {
+  if (!supervisorId || !urgency) {
+    alert("Please select supervisor and urgency");
+    return;
+  }
 
-    const selectedSupervisor = supervisors.find(
-      (s) => s.userId === supervisorId
-    );
-    if (!selectedSupervisor) return;
+ const selectedSupervisor = supervisors.find(
+  (s) => s._id === supervisorId
+);
+  if (!selectedSupervisor) return;
 
-   updateRequest(request.id, {
-  status: "Assigned",
-  assignedTo: selectedSupervisor.userId, // ✅ ObjectId
-  assignedToName: `${selectedSupervisor.firstName} ${selectedSupervisor.lastName}`, // display only
-  notes,
-  assignedDate: date,
-  urgency,
-});
+  await assignRequest(request.id, {
+    assignedTo: selectedSupervisor._id, // ✅ ObjectId
+    notes,
+    assignedDate: date,
+    urgency,
+  });
 
+  
+await refreshRequests(); // ✅ refresh data
 
-    navigate("/dashboard");
-    console.log("Supervisor ID:", selectedSupervisor.userId);
-console.log("Supervisor Name:", selectedSupervisor.firstName);
-  };
+  navigate("/dashboard");
+};
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
@@ -106,7 +104,7 @@ console.log("Supervisor Name:", selectedSupervisor.firstName);
               <option value="">Choose a supervisor</option>
               {supervisors.length > 0 ? (
                 supervisors.map((s) => (
-                 <option key={s.userId} value={s.userId}>
+                 <option key={s._id} value={s._id}>
   {s.firstName} {s.lastName}
 </option>
                 ))
