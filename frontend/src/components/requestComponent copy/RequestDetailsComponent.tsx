@@ -7,7 +7,7 @@ import {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
-} from "../../components/ui/carousel";
+} from "../ui/carousel";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
 
 const RequestDetailsComponent: React.FC = () => {

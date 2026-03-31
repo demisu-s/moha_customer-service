@@ -17,7 +17,7 @@ const RequestSolutionComponent: React.FC = () => {
   const { devices } = useDeviceContext();
 
   const [solution, setSolution] = useState("");
-  const [issues, setIssues] = useState<Issues>("");
+  const [issues, setIssues] = useState<Issues>("HardDisk Failure");
 
   const request = getRequestById(requestId || "");
 
@@ -32,9 +32,14 @@ const RequestSolutionComponent: React.FC = () => {
     );
   }
 
-  const requester = users.find((u) => u.userId === request.userId);
-  const supervisor = users.find((u) => u.userId === request.assignedTo);
-  const device = devices.find((d) => d.id === request.deviceId);
+  // ✅ requester (Mongo _id)
+const requester = users.find((u) => u._id === request.requestedBy);
+
+// ✅ supervisor (Mongo _id)
+const supervisor = users.find((u) => u._id === request.assignedTo);
+
+// ✅ device (match your context shape)
+const device = devices.find((d) => d._id === request.deviceId);
 
   // 🟢 Handle Resolved/Unresolved
   const handleSolve = (status: "Resolved" | "Unresolved") => {
@@ -53,7 +58,7 @@ const RequestSolutionComponent: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <h2 className="text-3xl font-bold text-gray-800">
-        Solve Request – {device ? device.name : request.deviceSerial}
+        Solve Request – {device ? device.deviceName : request.serialNumber}
       </h2>
       <p className="text-sm text-gray-400 max-w-xl">
         Review the issue and provide a solution.
@@ -79,10 +84,11 @@ const RequestSolutionComponent: React.FC = () => {
                 : request.assignedToName || "Not assigned"}
             </span>
           </div>
+          
           <div>
             <span className="text-gray-500 font-medium">Device</span>
             <span className="block text-gray-900">
-              {device ? `${device.name} (${device.type})` : "Unknown"}
+              {device ? `${device.deviceName} (${device.deviceType})` : "Unknown"}
             </span>
           </div>
           <div>
@@ -99,6 +105,19 @@ const RequestSolutionComponent: React.FC = () => {
               {request.urgency || "N/A"}
             </span>
           </div>
+          <div>
+            <span className="text-gray-500 font-medium">Requested Date</span>
+            <span className="block text-gray-900">
+              {request.createdAt}
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-500 font-medium">Assigned Date</span>
+            <span className="block text-gray-900">
+              {request.assignedDate}
+            </span>
+          </div>
+          
         </div>
 
         <div className="mb-4">
@@ -107,11 +126,18 @@ const RequestSolutionComponent: React.FC = () => {
         </div>
 
         <div className="border-t my-6"></div>
-        <div className="w-full border rounded-md p-3">
+<div className="w-full border rounded-md p-3">
+           <p className="text-gray-700">Problem Category:<strong>{request.problemCategory}</strong></p>
+         
+        </div>
+
+        <div className="w-full border rounded-md mt-4 p-3">
           <p className="text-black font-medium mb-2">Admin Notes</p>
           <p className="text-gray-700">{request.notes}</p>
         </div>
 
+
+        
         {/* 🟣 Problem Type (above Solution) */}
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">

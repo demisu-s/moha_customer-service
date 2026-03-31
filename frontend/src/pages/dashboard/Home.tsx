@@ -22,7 +22,7 @@ const Home: React.FC = () => {
   }
 
   const userRole = currentUser.role;
-  const userId = currentUser.userId;
+  const userId = currentUser._id;
   const userName = `${currentUser.firstName} ${currentUser.lastName}`;
   const userPlant =
     typeof currentUser.department?.plant === "string"

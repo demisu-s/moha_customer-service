@@ -5,7 +5,7 @@ import { IoArrowBack } from "react-icons/io5";
 import { useDeviceContext } from "../../context/DeviceContext";
 import { useUserContext } from "../../context/UserContext";
 import { SuccessDialog } from "../../components/ui/SuccessDialog";
-import { useServiceRequests } from "../../context/ServiceRequestContext";
+import { useServiceRequests, ProblemCategory } from "../../context/ServiceRequestContext";
 
 const AskForHelp: React.FC = () => {
   const { id } = useParams();
@@ -13,11 +13,12 @@ const AskForHelp: React.FC = () => {
 
   const { devices } = useDeviceContext();
   const { users } = useUserContext();
-  const { addRequest, problemTypes } = useServiceRequests();
+  const { addRequest, problemCategory: categories } = useServiceRequests();
 
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [problemCategory, setProblemCategory] = useState<string>(problemTypes[0] || "");
+ 
+const [problemCategory, setProblemCategory] = useState<ProblemCategory>("Hardware");
   const [error, setError] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
@@ -59,7 +60,7 @@ const AskForHelp: React.FC = () => {
 
       setDescription("");
       setFiles([]);
-      setProblemCategory(problemTypes[0] || "");
+      setProblemCategory("Hardware");
 
       setShowSuccessDialog(true);
 
@@ -92,15 +93,22 @@ const AskForHelp: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block font-semibold text-lg mb-1">Problem Category</label>
-            <select
+       
+
+
+ <select
               value={problemCategory}
-              onChange={(e) => setProblemCategory(e.target.value)}
+              onChange={(e) => setProblemCategory(e.target.value as ProblemCategory)}
               className="w-full border rounded px-3 py-2 text-base"
             >
-              {problemTypes.map((type) => (
+              {categories.map((type) => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
+
+
+
+
           </div>
 
           <div>

@@ -47,19 +47,7 @@ export const updateServiceRequest = async (
 
 /* ================= ASSIGN SUPERVISOR ================= */
 
-// export const assignSupervisor = async (
-//   id: string,
-//   supervisorId: string
-// ) => {
-//   const response = await api.put<ApiResponse<any>>(
-//     `/request/assign/assignedSupervisor/${id}`,
-//     { supervisorId }
-//   );
 
-//   return response.data.data;
-// };
-
-// request.api.ts
 export const assignRequest = async (id: string, data: any) => {
   const response = await api.put<ApiResponse<any>>(
     `/request/assign/assignedSupervisor/${id}`,

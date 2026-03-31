@@ -7,7 +7,7 @@ export interface IServiceDocument extends Document {
 
   urgency?: "Low" | "Medium" | "High";
 
-  problemCategory:
+  problemTypes:
     | "HardDisk Failer"
     | "Window corruption"
     | "Virues"
@@ -15,6 +15,9 @@ export interface IServiceDocument extends Document {
     | "Jet Report"
     | "Office Activation"
     | "Other";
+problemCategory:"Hardware" | "Software" | "Network" | "Other";
+
+    
 
   status: RequestStatus;
 
@@ -56,7 +59,7 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
       enum: ["Low", "Medium", "High"],
     },
 
-    problemCategory: {
+    problemTypes: {
       type: String,
       enum: [
         "HardDisk Failer",
@@ -67,6 +70,16 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
         "Office Activation",
         "Other",
       ],
+    },
+
+    problemCategory:{
+      type:String,
+      enum:[
+        "Hardware",
+        "Software",
+        "Network",
+        "Other",
+      ]
     },
 
     status: {

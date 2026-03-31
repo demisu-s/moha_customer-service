@@ -7,24 +7,30 @@ import {
 
 export type Urgency = "Low" | "Medium" | "High" | "";
 export type RequestStatus = "Pending" | "Assigned" | "Resolved" | "Unresolved";
-export type ProblemCategory = "Hardware" | "Software" | "Network" | "Other" | "";
+export type ProblemCategory = "Hardware" | "Software" | "Network" | "Other";
 export type Issues =
-  | "HardDisk Failer"
-  | "Window corruption"
-  | "Virues"
-  | "Window Activation"
+  | "HardDisk Failure"
+  | "Windows Corruption"
+  | "Virus"
+  | "Windows Activation"
   | "Jet Report"
   | "Office Activation"
-  | "Other"
-  | "";
+  | "Other";
 
 export const PROBLEM_TYPES: Issues[] = [
-  "HardDisk Failer",
-  "Window corruption",
-  "Virues",
-  "Window Activation",
+  "HardDisk Failure",
+  "Windows Corruption",
+  "Virus",
+  "Windows Activation",
   "Jet Report",
   "Office Activation",
+  "Other",
+];
+
+export const PROBLEM_CATEGORY: ProblemCategory[] = [
+  "Hardware",
+  "Software",
+  "Network",
   "Other",
 ];
 
@@ -46,10 +52,12 @@ export interface ServiceRequest {
   solution?: string;
   issues?: Issues;
   urgency?: Urgency;
-  problemCategory?: ProblemCategory;
   attachments?: File[];
   notes?:string;
   assignedDate:string;
+  resolvedDate:string;
+  problemCategory: ProblemCategory; // ✅ ADD THIS
+
 }
 
 type ServiceRequestContextType = {
@@ -60,6 +68,7 @@ type ServiceRequestContextType = {
   addRequest: (requestData: Partial<ServiceRequest>) => Promise<void>;
   getRequestById: (id: string) => ServiceRequest | undefined;
   problemTypes: Issues[];
+  problemCategory:ProblemCategory[];
 };
 
 const ServiceRequestContext = createContext<ServiceRequestContextType | null>(null);
@@ -67,6 +76,7 @@ const ServiceRequestContext = createContext<ServiceRequestContextType | null>(nu
 export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const problemTypes = PROBLEM_TYPES;
+const problemCategory = PROBLEM_CATEGORY;
   const [loading, setLoading] = useState(true);
 
   /* ================= FETCH REQUESTS ================= */
@@ -90,8 +100,10 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
       assignedToName: r.assignedTo ? r.assignedTo?.firstName + " " + r.assignedTo?.lastName : undefined,
       solution: r.solution,
       urgency: r.urgency,
-      problemCategory: r.problemCategory,
       issues: r.issues,
+      resolvedDate:r.resolvedDate,
+      notes:r.notes,
+      problemCategory: r.problemCategory,
     }));
     setRequests(formatted);
     setLoading(false); // ✅ IMPORTANT
@@ -113,7 +125,7 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
 
     await apiCreateRequest({
       description: requestData.description,
-      problemCategory: requestData.problemCategory || "Hardware",
+       problemCategory: requestData.problemCategory|| "Hardware",
       attachments: requestData.attachments || [],
       deviceId: requestData.deviceId
     
@@ -132,7 +144,7 @@ export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = (
 
   return (
     <ServiceRequestContext.Provider
-      value={{ requests,loading, refreshRequests, updateRequest, addRequest, getRequestById, problemTypes }}
+      value={{ requests,loading, refreshRequests, updateRequest, addRequest, getRequestById, problemTypes,problemCategory}}
     >
       {children}
     </ServiceRequestContext.Provider>
