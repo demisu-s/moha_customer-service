@@ -61,11 +61,12 @@ async updateRequest(id: string, data: any) {
   );
 }
     
-  async resolveRequest(id: string, solution: string) {
+  async resolveRequest(id: string, solution: string, issues?: string) {
     return ServiceRequest.findByIdAndUpdate(
       id,
       {
         solution,
+        issues,
         status: RequestStatus.RESOLVED,
         resolvedDate: new Date().toISOString(),
       },

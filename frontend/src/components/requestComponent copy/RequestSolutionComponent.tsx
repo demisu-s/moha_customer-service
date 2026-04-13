@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
 import {
@@ -17,9 +17,16 @@ const RequestSolutionComponent: React.FC = () => {
   const { devices } = useDeviceContext();
 
   const [solution, setSolution] = useState("");
-  const [issues, setIssues] = useState<Issues>("HardDisk Failure");
+  // const [issues, setIssues] = useState<Issues>("HardDisk Failure");
+ const [issues, setIssues] = useState<Issues | undefined>(undefined);
 
   const request = getRequestById(requestId || "");
+  // ✅ FIX: load existing issue
+useEffect(() => {
+  if (request?.issues) {
+    setIssues(request.issues);
+  }
+}, [request]);
 
   if (!request) {
     return (
@@ -144,7 +151,7 @@ const device = devices.find((d) => d._id === request.deviceId);
             Problem Type
           </label>
           <select
-            value={issues}
+             value={issues || ""}
             onChange={(e) => setIssues(e.target.value as Issues)}
             className="w-full border rounded-md p-2 text-sm focus:ring-1 focus:ring-gray-400"
           >

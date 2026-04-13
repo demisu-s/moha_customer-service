@@ -7,14 +7,14 @@ export interface IServiceDocument extends Document {
 
   urgency?: "Low" | "Medium" | "High";
 
-  problemTypes:
-    | "HardDisk Failer"
-    | "Window corruption"
-    | "Virues"
-    | "Window Activation"
-    | "Jet Report"
-    | "Office Activation"
-    | "Other";
+ issues?:
+  | "HardDisk Failure"
+  | "Windows Corruption"
+  | "Virus"
+  | "Windows Activation"
+  | "Jet Report"
+  | "Office Activation"
+  | "Other";
 problemCategory:"Hardware" | "Software" | "Network" | "Other";
 
     
@@ -59,19 +59,18 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
       enum: ["Low", "Medium", "High"],
     },
 
-    problemTypes: {
-      type: String,
-      enum: [
-        "HardDisk Failer",
-        "Window corruption",
-        "Virues",
-        "Window Activation",
-        "Jet Report",
-        "Office Activation",
-        "Other",
-      ],
-    },
-
+   issues: {
+  type: String,
+  enum: [
+    "HardDisk Failure",
+    "Windows Corruption",
+    "Virus",
+    "Windows Activation",
+    "Jet Report",
+    "Office Activation",
+    "Other",
+  ],
+},
     problemCategory:{
       type:String,
       enum:[

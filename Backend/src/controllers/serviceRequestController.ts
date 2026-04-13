@@ -114,11 +114,12 @@ export const assignSupervisor = async (req: Request, res: Response) => {
 export const resolveRequest = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { solution } = req.body;
+   const { solution, issues } = req.body;
 
     const request = await ServiceRequestService.resolveRequest(
       id,
-      solution
+      solution,
+      issues
     );
 
     res.json({

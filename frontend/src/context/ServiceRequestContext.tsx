@@ -136,10 +136,11 @@ const problemCategory = PROBLEM_CATEGORY;
 
   /* ================= UPDATE REQUEST ================= */
   const updateRequest = async (id: string, data: Partial<ServiceRequest>) => {
-    const updated = await updateServiceRequest(id, data);
-    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated } : r)));
-  };
+  await updateServiceRequest(id, data);
 
+  // 🔥 ALWAYS REFRESH FROM BACKEND
+  await refreshRequests();
+};
   const getRequestById = (id: string) => requests.find((r) => r.id === id);
 
   return (
