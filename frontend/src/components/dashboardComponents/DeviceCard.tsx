@@ -10,6 +10,24 @@ import {
   Issues,
 } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
+import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
+
+
+
+
+// ✅ Helper to get base route by role
+const getBaseRoute = (role?: string) => {
+  switch (role) {
+    case "superadmin":
+      return DASHBOARD_ROUTE;
+    case "admin":
+      return ADMIN_DASHBOARD_ROUTE;
+    case "supervisor":
+      return SUPERVISOR_DASHBOARD_ROUTE;
+    default:
+      return "";
+  }
+};
 
 type DeviceCardProps = {
   id: string;
@@ -42,31 +60,30 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   issues,
 }) => {
   const navigate = useNavigate();
-  // const role = localStorage.getItem("role");
-
   const { currentUser } = useUserContext();
-const role = currentUser?.role;
+  const role = currentUser?.role;
 
+  // ✅ Get correct base route
+  const baseRoute = getBaseRoute(role);
 
-// console.log("ROLE:", role);
-// console.log("STATUS:", status);
   // ✅ Build role-based buttons
   const renderButtons = () => {
     const buttons: JSX.Element[] = [];
 
-  if (role === "admin" || role === "superadmin") {
+    // ✅ ADMIN & SUPERADMIN
+    if (role === "admin" || role === "superadmin") {
       if (status === "Pending") {
         buttons.push(
           <Button
             key="details"
-            onClick={() => navigate(`/dashboard/details/${id}`)}
+            onClick={() => navigate(`${baseRoute}/details/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             Details
           </Button>,
           <Button
             key="assign"
-            onClick={() => navigate(`assign/${id}`)}
+            onClick={() => navigate(`${baseRoute}/assign/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             Assign
@@ -76,33 +93,34 @@ const role = currentUser?.role;
         buttons.push(
           <Button
             key="history"
-            onClick={() => navigate(`history/${id}`)}
+            onClick={() => navigate(`${baseRoute}/history/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             History
           </Button>
         );
-         if (status === "Unresolved") {
-                  buttons.push(
-                    <Button
-                      key="reassign"
-                    onClick={() => navigate(`assign/${id}`)}
-                    className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
 
-                    >
-                      Reassign
-                    </Button>
-                  );
-                }
+        if (status === "Unresolved") {
+          buttons.push(
+            <Button
+              key="reassign"
+              onClick={() => navigate(`${baseRoute}/assign/${id}`)}
+              className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+            >
+              Reassign
+            </Button>
+          );
+        }
       }
     }
 
+    // ✅ SUPERVISOR
     if (role === "supervisor") {
       if (status === "Pending") {
         buttons.push(
           <Button
             key="details"
-            onClick={() => navigate(`details/${id}`)}
+            onClick={() => navigate(`${baseRoute}/details/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             Details
@@ -112,7 +130,7 @@ const role = currentUser?.role;
         buttons.push(
           <Button
             key="solve"
-            onClick={() => navigate(`solve/${id}`)}
+            onClick={() => navigate(`${baseRoute}/solve/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             Solve
@@ -122,33 +140,33 @@ const role = currentUser?.role;
         buttons.push(
           <Button
             key="history"
-            onClick={() => navigate(`history/${id}`)}
+            onClick={() => navigate(`${baseRoute}/history/${id}`)}
             className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
           >
             History
           </Button>
         );
-         // ✅ Add Resolve button only when Unresolved
-                if (status === "Unresolved") {
-                  buttons.push(
-                    <Button
-                      key="solve"
-                      onClick={() => navigate(`solve/${id}`)}
-                     className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
 
-                    >
-                      Resolve
-                    </Button>
-                  );
-                }
+        if (status === "Unresolved") {
+          buttons.push(
+            <Button
+              key="resolve"
+              onClick={() => navigate(`${baseRoute}/solve/${id}`)}
+              className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+            >
+              Resolve
+            </Button>
+          );
+        }
       }
     }
 
+    // ✅ USER (default)
     if (role === "user" || !role) {
       buttons.push(
         <Button
           key="details"
-          onClick={() => navigate(`details/${id}`)}
+          onClick={() => navigate(`${baseRoute}/details/${id}`)}
           className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
         >
           Details
@@ -160,8 +178,11 @@ const role = currentUser?.role;
   };
 
   const buttons = renderButtons();
+
   const buttonContainerClass =
-    buttons.length === 1 ? "flex justify-center mt-2" : "flex justify-between mt-2";
+    buttons.length === 1
+      ? "flex justify-center mt-2"
+      : "flex justify-between mt-2";
 
   return (
     <div className="w-[230px] bg-primary-900 rounded-xl shadow-md p-3 space-y-3 text-sm">
@@ -178,9 +199,13 @@ const role = currentUser?.role;
         <Field label="Plant" value={plant} />
         <Field label="User" value={userName} />
 
-        {problemCategory && <Field label="Problem Category" value={problemCategory} />}
+        {problemCategory && (
+          <Field label="Problem Category" value={problemCategory} />
+        )}
         {issues && <Field label="Issue" value={issues} />}
-        {supervisorName && <Field label="Supervisor" value={supervisorName} />}
+        {supervisorName && (
+          <Field label="Supervisor" value={supervisorName} />
+        )}
 
         <Field label="Problem" value={problem || "—"} />
       </div>
@@ -191,9 +216,14 @@ const role = currentUser?.role;
 };
 
 // ✅ Small reusable field component
-const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const Field: React.FC<{ label: string; value: string }> = ({
+  label,
+  value,
+}) => (
   <div className="flex items-center">
-    <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">{label}:</Label.Root>
+    <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
+      {label}:
+    </Label.Root>
     <input
       type="text"
       value={value}
