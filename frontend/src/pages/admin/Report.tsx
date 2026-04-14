@@ -1,179 +1,230 @@
 // src/pages/Report.tsx
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+
 import { useUserContext } from "../../context/UserContext";
-import { ServiceRequest } from "../User/askforhelp";
+import { useServiceRequests } from "../../context/ServiceRequestContext";
 
 type ReportRow = {
-  supervisor: string;
+  name: string;
+  role: string;
   plant: string;
-  tasksCompleted: number;
+  totalTasks: number;
+  completed: number;
   pending: number;
-  totalAssigned: number;
+  unresolved: number;
 };
 
 const Report: React.FC = () => {
   const { users } = useUserContext();
-  const [reportData, setReportData] = useState<ReportRow[]>([]);
+  const { requests, loading } = useServiceRequests();
+
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const stored = localStorage.getItem("serviceRequests");
-    if (!stored) return;
-
-    const requests: ServiceRequest[] = JSON.parse(stored);
+  /* =========================
+     ✅ BUILD REPORT DATA
+  ========================== */
+  const reportData: ReportRow[] = useMemo(() => {
     const grouped: Record<string, ReportRow> = {};
 
     requests.forEach((req) => {
-      if (!req.assignedTo) return;
+      if (!req.assignedToName) return;
 
-      const supervisor = users.find((u) => u.userId === req.assignedTo) || null;
+      // 🔥 detect role
+      const role = req.assignedDate ? "supervisor" : "admin";
 
-      const supervisorName = supervisor
-        ? `${supervisor.firstName} ${supervisor.lastName}`
-        : req.assignedToName || "Unknown Supervisor";
+      const key = req.assignedToName;
 
-      const plant = supervisor?.area || "Unknown Plant";
+      const user = users.find(
+        (u) =>
+          `${u.firstName} ${u.lastName}` === req.assignedToName
+      );
 
-      if (!grouped[req.assignedTo]) {
-        grouped[req.assignedTo] = {
-          supervisor: supervisorName,
+      const plant =
+        typeof user?.department?.plant === "string"
+          ? user?.department?.plant
+          : user?.department?.plant?.name || req.plant || "—";
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          name: req.assignedToName,
+          role,
           plant,
-          tasksCompleted: 0,
+          totalTasks: 0,
+          completed: 0,
           pending: 0,
-          totalAssigned: 0,
+          unresolved: 0,
         };
       }
 
-      if (req.status === "Resolved") {
-        grouped[req.assignedTo].tasksCompleted += 1;
-      } else {
-        grouped[req.assignedTo].pending += 1;
-      }
+      grouped[key].totalTasks += 1;
 
-      grouped[req.assignedTo].totalAssigned += 1;
+      if (req.status === "Resolved") {
+        grouped[key].completed += 1;
+      } else if (req.status === "Unresolved") {
+        grouped[key].unresolved += 1;
+      } else {
+        grouped[key].pending += 1;
+      }
     });
 
-    setReportData(Object.values(grouped));
-  }, [users]);
+    return Object.values(grouped);
+  }, [requests, users]);
 
-  // 🔎 Filter by search
+  /* =========================
+     🔍 FILTER
+  ========================== */
   const filteredData = reportData.filter(
     (row) =>
-      row.supervisor.toLowerCase().includes(search.toLowerCase()) ||
+      row.name.toLowerCase().includes(search.toLowerCase()) ||
       row.plant.toLowerCase().includes(search.toLowerCase())
   );
 
-  // 🔹 Export as PDF
+  /* =========================
+     📄 EXPORT PDF
+  ========================== */
   const exportPDF = () => {
     const doc = new jsPDF();
+
     doc.setFontSize(16);
-    doc.text("Supervisor Report", 20, 20);
+    doc.text("Service Report", 20, 20);
 
     let y = 40;
-    filteredData.forEach((row, index) => {
+
+    filteredData.forEach((row, i) => {
       doc.text(
-        `${index + 1}. ${row.supervisor} (${row.plant}) - Completed: ${
-          row.tasksCompleted
-        }, Pending: ${row.pending}, Total: ${row.totalAssigned}`,
+        `${i + 1}. ${row.name} (${row.role}) - Plant: ${
+          row.plant
+        } | Total: ${row.totalTasks}, Completed: ${
+          row.completed
+        }, Pending: ${row.pending}, Unresolved: ${
+          row.unresolved
+        }`,
         20,
         y
       );
       y += 10;
     });
 
-    doc.save("supervisor-report.pdf");
+    doc.save("service-report.pdf");
   };
 
-  // 🔹 Export as Excel
+  /* =========================
+     📊 EXPORT EXCEL
+  ========================== */
   const exportExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-    const excelBuffer = XLSX.write(workbook, {
+
+    const buffer = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
     });
-    saveAs(new Blob([excelBuffer]), "supervisor-report.xlsx");
+
+    saveAs(new Blob([buffer]), "service-report.xlsx");
   };
+
+  /* =========================
+     UI
+  ========================== */
+  if (loading) {
+    return <div className="p-6 text-center">Loading report...</div>;
+  }
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header with dropdown + search */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Reports</h1>
-          <p className="text-lg text-black font-light">
-            Analyze performance metrics and supervisor workloads across
-            different plants.
+          <p className="text-gray-500 text-sm">
+            Admin & Supervisor performance overview
           </p>
         </div>
 
         <input
           type="text"
-          placeholder="Search by supervisor or plant..."
+          placeholder="Search by name or plant..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md text-sm w-full md:w-[300px]"
+          className="px-4 py-2 border rounded-md text-sm w-full md:w-[300px]"
         />
 
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
-            <button className="bg-primary-600 text-white px-4 py-2 rounded-lg shadow hover:bg-primary-700">
+            <button className="bg-primary-600 text-white px-4 py-2 rounded-lg">
               Export ▼
             </button>
           </DropdownMenu.Trigger>
 
-          <DropdownMenu.Content
-            sideOffset={8}
-            className="bg-white border rounded-lg shadow-md p-2 min-w-[160px]"
-          >
+          <DropdownMenu.Content className="bg-white border rounded shadow p-2">
             <DropdownMenu.Item
               onClick={exportPDF}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer rounded"
+              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
             >
-              📄 Export as PDF
+              📄 PDF
             </DropdownMenu.Item>
+
             <DropdownMenu.Item
               onClick={exportExcel}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer rounded"
+              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
             >
-              📊 Export as Excel
+              📊 Excel
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </div>
 
-      {/* Report Preview (Table) */}
-      <div className="overflow-x-auto bg-white shadow rounded-lg p-4">
-        <table className="w-full border-collapse border text-sm">
+      {/* TABLE */}
+      <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
+        <table className="w-full text-sm border">
           <thead>
-            <tr className="bg-gray-200 text-left">
-              <th className="border px-4 py-2">Supervisor</th>
+            <tr className="bg-gray-200">
+              <th className="border px-4 py-2">Name</th>
+              <th className="border px-4 py-2">Role</th>
               <th className="border px-4 py-2">Plant</th>
-              <th className="border px-4 py-2">Total Assigned</th>
-              <th className="border px-4 py-2">Tasks Completed</th>
+              <th className="border px-4 py-2">Assigned</th>
+              <th className="border px-4 py-2">Completed</th>
               <th className="border px-4 py-2">Pending</th>
+              <th className="border px-4 py-2">Unresolved</th>
             </tr>
           </thead>
+
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center text-gray-500 py-4">
-                  No matching results
+                <td colSpan={7} className="text-center py-4 text-gray-500">
+                  No data found
                 </td>
               </tr>
             ) : (
-              filteredData.map((row, idx) => (
-                <tr key={idx} className="hover:bg-gray-100">
-                  <td className="border px-4 py-2">{row.supervisor}</td>
+              filteredData.map((row, i) => (
+                <tr key={i} className="hover:bg-gray-100">
+                  <td className="border px-4 py-2">
+                    {row.name}
+                  </td>
+
+                  <td className="border px-4 py-2">
+                    <span className="text-[11px] px-2 py-1 bg-gray-200 rounded">
+                      {row.role}
+                    </span>
+                  </td>
+
                   <td className="border px-4 py-2">{row.plant}</td>
-                  <td className="border px-4 py-2">{row.totalAssigned}</td>
-                  <td className="border px-4 py-2">{row.tasksCompleted}</td>
-                  <td className="border px-4 py-2">{row.pending}</td>
+                  <td className="border px-4 py-2">{row.totalTasks}</td>
+                  <td className="border px-4 py-2 text-green-600">
+                    {row.completed}
+                  </td>
+                  <td className="border px-4 py-2 text-yellow-600">
+                    {row.pending}
+                  </td>
+                  <td className="border px-4 py-2 text-red-600">
+                    {row.unresolved}
+                  </td>
                 </tr>
               ))
             )}

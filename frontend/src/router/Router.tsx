@@ -28,6 +28,7 @@ import { SupervisorDashboardLayout } from '../pages/layout/SupervisorDashboardLa
 import { AdminDashboardLayout } from '../pages/layout/AdminDasboardLayout';
 import Users from '../pages/dashboard/users';
 import Department from '../pages/dashboard/Department';
+import SolutionByAdminPage from '../pages/request/SolutionByAdminPage';
 
 export const router = createBrowserRouter([
   {
@@ -93,7 +94,7 @@ export const router = createBrowserRouter([
     {path: "", element: <Dashboard />},
     {path: "assign/:requestId",element: <AssignFormPage />},
     {path: "details/:requestId",element: <RequestDetailsPage/>},
-    {path: "solve/:requestId",element: <SolutionPage/>},
+    {path: "solve/:requestId",element: <SolutionByAdminPage/>},
     {path: "history/:requestId",element: <RequestHistoryPage/>},
     {path: "unresolved/:requestId", element: <UnresolvedPage/>},
     {path: "users", element: <UserManagement />},

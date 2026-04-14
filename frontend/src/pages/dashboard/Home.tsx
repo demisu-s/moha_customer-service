@@ -164,6 +164,7 @@ const Home: React.FC = () => {
               issues={request.issues}
               problem={request.description}
               status={request.status}
+              assignedDate={request.assignedDate}
               
               supervisorName={
                 request.assignedToName ||

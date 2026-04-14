@@ -14,7 +14,6 @@ const HistoryDetailsComponent: React.FC = () => {
   const { users } = useUserContext();
   const { devices } = useDeviceContext();
 
-  // ✅ GET request directly from context (backend)
   const request = getRequestById(requestId || "");
 
   /* =========================
@@ -35,14 +34,11 @@ const HistoryDetailsComponent: React.FC = () => {
      LOOKUPS
   ========================== */
 
-  const requester = users.find(
-    (u) =>
-      `${u.firstName} ${u.lastName}` === request.requestedBy
-  );
-
   const supervisor = users.find((u) => u._id === request.assignedTo);
-
   const device = devices.find((d) => d._id === request.deviceId);
+
+  // ✅ KEY LOGIC → supervisor flow only if assignedDate exists
+  const isSupervisorFlow = !!request.assignedDate;
 
   /* =========================
      UI
@@ -157,12 +153,13 @@ const HistoryDetailsComponent: React.FC = () => {
             {request.issues || "—"}
           </p>
 
-          <p>
-            <strong className="text-gray-500 pr-2">Assigned Date:</strong>
-            {request.assignedDate
-              ? new Date(request.assignedDate).toLocaleString()
-              : "—"}
-          </p>
+          {/* ✅ Show ONLY if supervisor flow */}
+          {isSupervisorFlow && (
+            <p>
+              <strong className="text-gray-500 pr-2">Assigned Date:</strong>
+              {new Date(request.assignedDate).toLocaleString()}
+            </p>
+          )}
 
           <p>
             <strong className="text-gray-500 pr-2">Resolved Date:</strong>
@@ -181,12 +178,16 @@ const HistoryDetailsComponent: React.FC = () => {
       {/* Notes + Solution */}
       <div className="border rounded-lg p-4 bg-white space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="font-bold mb-2 text-lg">Admin Notes</h4>
-            <div className="border rounded px-3 py-3 bg-gray-50 min-h-[80px]">
-              {request.notes || "No notes provided."}
+          
+          {/* ✅ Show ONLY if supervisor flow */}
+          {isSupervisorFlow && (
+            <div>
+              <h4 className="font-bold mb-2 text-lg">Admin Notes</h4>
+              <div className="border rounded px-3 py-3 bg-gray-50 min-h-[80px]">
+                {request.notes || "No notes provided."}
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <h4 className="font-bold mb-2 text-lg">Solution</h4>
@@ -194,6 +195,7 @@ const HistoryDetailsComponent: React.FC = () => {
               {request.solution || "No solution provided yet."}
             </div>
           </div>
+
         </div>
       </div>
 

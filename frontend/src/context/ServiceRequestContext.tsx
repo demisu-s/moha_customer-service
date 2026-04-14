@@ -35,6 +35,7 @@ export const PROBLEM_CATEGORY: ProblemCategory[] = [
 ];
 
 export interface ServiceRequest {
+  _id: string;
   id: string;
   deviceId: string;
   serialNumber: string;

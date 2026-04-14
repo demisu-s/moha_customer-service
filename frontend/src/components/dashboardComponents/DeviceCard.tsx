@@ -10,10 +10,11 @@ import {
   Issues,
 } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
-import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
-
-
-
+import {
+  ADMIN_DASHBOARD_ROUTE,
+  DASHBOARD_ROUTE,
+  SUPERVISOR_DASHBOARD_ROUTE,
+} from "../../router/routeConstants";
 
 // ✅ Helper to get base route by role
 const getBaseRoute = (role?: string) => {
@@ -39,10 +40,10 @@ type DeviceCardProps = {
   problem?: string;
   status: RequestStatus;
   supervisorName?: string;
+assignedDate?: string;
   problemCategory?: ProblemCategory;
   issues?: Issues;
   deviceImage?: string;
-  description?: string;
 };
 
 const DeviceCard: React.FC<DeviceCardProps> = ({
@@ -55,6 +56,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   problem,
   status,
   supervisorName,
+assignedDate,
   deviceImage,
   problemCategory,
   issues,
@@ -63,16 +65,41 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   const { currentUser } = useUserContext();
   const role = currentUser?.role;
 
-  // ✅ Get correct base route
   const baseRoute = getBaseRoute(role);
 
-  // ✅ Build role-based buttons
   const renderButtons = () => {
     const buttons: JSX.Element[] = [];
 
-    // ✅ ADMIN & SUPERADMIN
-    if (role === "admin" || role === "superadmin") {
-      if (status === "Pending") {
+    /* =========================
+       ✅ PENDING (ROLE BASED)
+    ========================== */
+    if (status === "Pending") {
+      // ADMIN → Details + Assign + Solve
+      if (role === "admin") {
+        buttons.push(
+          <Button
+            key="details"
+            onClick={() => navigate(`${baseRoute}/details/${id}`)}
+          className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md">
+            Details
+          </Button>,
+          <Button
+            key="assign"
+            onClick={() => navigate(`${baseRoute}/assign/${id}`)}
+            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md" >
+            Assign
+          </Button>,
+          <Button
+            key="solve"
+            onClick={() => navigate(`${baseRoute}/solve/${id}`)}
+         className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md">
+            Solve
+          </Button>
+        );
+      }
+
+      // SUPERADMIN → Details + Assign
+      else if (role === "superadmin") {
         buttons.push(
           <Button
             key="details"
@@ -89,7 +116,27 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
             Assign
           </Button>
         );
-      } else if (status === "Resolved" || status === "Unresolved") {
+      }
+
+      // SUPERVISOR → Details only
+      else if (role === "supervisor") {
+        buttons.push(
+          <Button
+            key="details"
+            onClick={() => navigate(`${baseRoute}/details/${id}`)}
+            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+          >
+            Details
+          </Button>
+        );
+      }
+    }
+
+    /* =========================
+       ✅ ADMIN & SUPERADMIN (OTHER STATES)
+    ========================== */
+    if (role === "admin" || role === "superadmin") {
+      if (status === "Resolved" || status === "Unresolved") {
         buttons.push(
           <Button
             key="history"
@@ -114,19 +161,11 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
       }
     }
 
-    // ✅ SUPERVISOR
+    /* =========================
+       ✅ SUPERVISOR (OTHER STATES)
+    ========================== */
     if (role === "supervisor") {
-      if (status === "Pending") {
-        buttons.push(
-          <Button
-            key="details"
-            onClick={() => navigate(`${baseRoute}/details/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
-          >
-            Details
-          </Button>
-        );
-      } else if (status === "Assigned") {
+      if (status === "Assigned") {
         buttons.push(
           <Button
             key="solve"
@@ -161,7 +200,9 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
       }
     }
 
-    // ✅ USER (default)
+    /* =========================
+       ✅ USER (DEFAULT)
+    ========================== */
     if (role === "user" || !role) {
       buttons.push(
         <Button
@@ -203,9 +244,22 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
           <Field label="Problem Category" value={problemCategory} />
         )}
         {issues && <Field label="Issue" value={issues} />}
-        {supervisorName && (
-          <Field label="Supervisor" value={supervisorName} />
-        )}
+        
+
+{supervisorName && (
+  <div className="flex items-center">
+    <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
+      {status === "Assigned" ? "Assigned To:" : "Solved By:"}
+    </Label.Root>
+
+    <div className="w-[55%] text-xs px-2 py-[3px] border border-gray-300 rounded bg-white text-gray-800">
+      {supervisorName}{" "}
+      <span className="text-[9px] text-gray-500">
+        ({assignedDate ? "supervisor" : "admin"})
+      </span>
+    </div>
+  </div>
+)}
 
         <Field label="Problem" value={problem || "—"} />
       </div>
@@ -215,7 +269,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   );
 };
 
-// ✅ Small reusable field component
+// ✅ Field Component
 const Field: React.FC<{ label: string; value: string }> = ({
   label,
   value,
