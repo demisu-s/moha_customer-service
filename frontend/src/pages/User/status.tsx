@@ -1,55 +1,61 @@
 import React, { useMemo, useState } from "react";
+import { useServiceRequests } from "../../context/ServiceRequestContext";
+import { useUserContext } from "../../context/UserContext";
 
-type RequestRow = {
-  deviceId: string;
-  deviceName: string;
-  problem: string;
-  date: string; // ISO or YYYY-MM-DD
-  status: "Pending" | "Solved";
-};
-
-const pendingRequestsConst: RequestRow[] = [
-  { deviceId: "CN-980", deviceName: "Dell laptop", problem: " Screen flicker Screen flicker Screen flicker Screen flicker", date: "2025-09-09", status: "Pending" },
-  { deviceId: "GH-9087", deviceName: "Printer", problem: "Paper jam Paper jam Paper jam Paper jam", date: "2025-09-09", status: "Pending" },
-  { deviceId: "NM-789", deviceName: "Desktop", problem: "Won't boot Won't boot Won't boot Won't boot", date: "2025-09-09", status: "Pending" },
-  { deviceId: "NM_5657", deviceName: "Printer", problem: "Ink low Ink low Ink low Ink low", date: "2025-09-09", status: "Pending" },
-];
-
-const solvedRequestsConst: RequestRow[] = [
-  { deviceId: "CN-980", deviceName: "Dell laptop", problem: "Problem Problem Problem Problem Problem", date: "2025-09-09", status: "Solved" },
-  { deviceId: "GH-9087", deviceName: "Printer", problem: "Problem Problem Problem Problem Problem", date: "2025-09-09", status: "Solved" },
-  { deviceId: "NM-789", deviceName: "Desktop", problem: "Problem Problem Problem Problem Problem", date: "2025-09-09", status: "Solved" },
-  { deviceId: "NM_5657", deviceName: "Printer", problem: "Problem Problem Problem Problem Problem", date: "2025-09-09", status: "Solved" },
-];
+type Tab = "pending" | "solved";
 
 const StatusPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"pending" | "solved">("pending");
+  const { requests } = useServiceRequests();
+  const { currentUser } = useUserContext();
 
-  // Using const data for now, you can replace with API/localStorage later
-  const rows = useMemo<RequestRow[]>(() => {
-    return activeTab === "pending" ? pendingRequestsConst : solvedRequestsConst;
-  }, [activeTab]);
+  const [activeTab, setActiveTab] = useState<Tab>("pending");
+
+  /* =========================
+     👤 FILTER ONLY CURRENT USER
+  ========================== */
+  const userRequests = useMemo(() => {
+    if (!currentUser) return [];
+
+    return requests.filter(
+      (r) =>
+        r.requestedBy ===
+        `${currentUser.firstName} ${currentUser.lastName}`
+    );
+  }, [requests, currentUser]);
+
+  /* =========================
+     📊 FILTER BY TAB
+  ========================== */
+  const rows = useMemo(() => {
+    return userRequests.filter((r) =>
+      activeTab === "pending"
+        ? r.status === "Pending" || r.status === "Assigned"
+        : r.status === "Resolved"
+    );
+  }, [userRequests, activeTab]);
 
   return (
-    <div className="px-6">
+    <div className="px-6 w-full">
       <h1 className="text-3xl font-bold mb-4">Request History</h1>
 
-      <div className="flex gap-16 text-gray-600 mb-4 text-xl border-b border-gray-300 ">
+      {/* ========================= TABS ========================== */}
+      <div className="flex gap-10 text-gray-600 mb-4 text-lg border-b border-gray-300">
         <button
           className={
             activeTab === "pending"
-              ? "font-bold text-primary-500 border-b-2 border-primary-500 pb-1"
-              : "hover:text-gray-700 pb-1"
+              ? "font-bold text-primary-500 border-b-2 border-primary-500 pb-2"
+              : "hover:text-gray-700 pb-2"
           }
           onClick={() => setActiveTab("pending")}
         >
           Pending Requests
         </button>
+
         <button
           className={
             activeTab === "solved"
-              ? "font-bold text-primary-500 border-b-2 border-primary-500 pb-1"
-              : "hover:text-gray-700 pb-1"
+              ? "font-bold text-primary-500 border-b-2 border-primary-500 pb-2"
+              : "hover:text-gray-700 pb-2"
           }
           onClick={() => setActiveTab("solved")}
         >
@@ -57,44 +63,101 @@ const StatusPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white border border-gray-300 rounded-xl overflow-hidden mt-6">
-        <div className="grid grid-cols-12 px-5 py-3 text-xl font-semibold text-black border-b border-gray-300">
-          <div className="col-span-2">Device ID</div>
-          <div className="col-span-2">Device Name</div>
-          <div className="col-span-5 ">Problem</div>
-          <div className="col-span-2">Date</div>
-          <div className="col-span-1">Status</div>
+      {/* ========================= TABLE ========================== */}
+      <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto">
+        
+        {/* HEADER */}
+        <div
+          className={`grid ${
+            activeTab === "pending"
+              ? "grid-cols-5"
+              : "grid-cols-6"
+          } px-5 py-3 text-sm font-semibold text-gray-700 border-b bg-gray-50`}
+        >
+          {activeTab === "pending" ? (
+            <>
+              <div>Serial Number</div>
+              <div>Device Name</div>
+              <div>Problem Category</div>
+              <div>Requested Date</div>
+              <div>Status</div>
+            </>
+          ) : (
+            <>
+              <div>Serial Number</div>
+              <div>Device Name</div>
+              <div>Problem Category</div>
+              <div>Requested Date</div>
+              <div>Resolved Date</div>
+              <div>Status</div>
+            </>
+          )}
         </div>
 
-        {rows.map((r, idx) => (
-          <div
-            key={`${r.deviceId}-${idx}`}
-            className={`grid grid-cols-12 px-5 py-3 border text-lg text-gray-700 font-light items-center ${
-              idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-            }`}
-          >
-            <div className="col-span-2">{r.deviceId}</div>
-            <div className="col-span-2">{r.deviceName}</div>
-            <div className="col-span-5">{r.problem}</div>
-            <div className="col-span-2">{r.date}</div>
-            <div className="col-span-1">
-              {r.status === "Solved" ? (
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                  Solved
-                </span>
+        {/* ROWS */}
+        {rows.length === 0 ? (
+          <p className="p-5 text-gray-500 text-sm">No requests found</p>
+        ) : (
+          rows.map((r, idx) => (
+            <div
+              key={r.id}
+              className={`grid ${
+                activeTab === "pending"
+                  ? "grid-cols-5"
+                  : "grid-cols-6"
+              } px-5 py-3 text-sm items-center border-b ${
+                idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+              }`}
+            >
+              {/* COMMON */}
+              <div className="truncate">{r.serialNumber || "-"}</div>
+              <div className="truncate">{r.deviceName || "-"}</div>
+              <div className="truncate">{r.problemCategory}</div>
+
+              {/* PENDING */}
+              {activeTab === "pending" ? (
+                <>
+                  <div>
+                    {r.createdAt
+                      ? new Date(r.createdAt).toLocaleDateString()
+                      : "-"}
+                  </div>
+                  <div>
+                    <span className="px-3 py-1 text-xs bg-amber-100 text-amber-700 rounded-full">
+                      Pending
+                    </span>
+                  </div>
+                </>
               ) : (
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                  Pending
-                </span>
+                <>
+                  {/* REQUESTED DATE */}
+                  <div>
+                    {r.createdAt
+                      ? new Date(r.createdAt).toLocaleDateString()
+                      : "-"}
+                  </div>
+
+                  {/* RESOLVED DATE */}
+                  <div>
+                    {r.resolvedDate
+                      ? new Date(r.resolvedDate).toLocaleDateString()
+                      : "-"}
+                  </div>
+
+                  {/* STATUS */}
+                  <div>
+                    <span className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                      Solved
+                    </span>
+                  </div>
+                </>
               )}
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 };
 
 export default StatusPage;
-
-
