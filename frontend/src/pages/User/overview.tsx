@@ -56,17 +56,22 @@ const ClientOverview: React.FC = () => {
      📊 STATS
   ========================== */
   const stats = useMemo(() => {
-    return {
-      total: filteredRequests.length,
-      pending: filteredRequests.filter(
-        (r) => r.status === "Pending" || r.status === "Assigned"
-      ).length,
-      solved: filteredRequests.filter(
-        (r) => r.status === "Resolved"
-      ).length,
-      materials: filteredRequests.length,
-    };
-  }, [filteredRequests]);
+  return {
+    total: filteredRequests.length,
+
+    pending: filteredRequests.filter(
+      (r) => r.status === "Pending" || r.status === "Assigned"
+    ).length,
+
+    solved: filteredRequests.filter(
+      (r) => r.status === "Resolved"
+    ).length,
+
+    unresolved: filteredRequests.filter(
+      (r) => r.status === "Unresolved"
+    ).length,
+  };
+}, [filteredRequests]);
 
   /* =========================
      📅 UPCOMING SCHEDULE
@@ -115,7 +120,7 @@ const ClientOverview: React.FC = () => {
         <StatCard title="Total Requests" value={stats.total} />
         <StatCard title="Pending Requests" value={stats.pending} />
         <StatCard title="Solved Requests" value={stats.solved} />
-        <StatCard title="Materials in stock" value={stats.materials} />
+        <StatCard title="Unresolved Requests" value={stats.unresolved} />
       </div>
 
       {/* UPCOMING SCHEDULE */}

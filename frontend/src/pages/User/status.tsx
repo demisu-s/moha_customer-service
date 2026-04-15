@@ -65,31 +65,30 @@ const StatusPage: React.FC = () => {
 
       {/* ========================= TABLE ========================== */}
       <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto">
-        
+
         {/* HEADER */}
         <div
           className={`grid ${
             activeTab === "pending"
               ? "grid-cols-5"
-              : "grid-cols-6"
+              : "grid-cols-7"
           } px-5 py-3 text-sm font-semibold text-gray-700 border-b bg-gray-50`}
         >
+          <div className="truncate">Serial Number</div>
+          <div className="truncate">Device Name</div>
+          <div className="truncate">Problem Category</div>
+
           {activeTab === "pending" ? (
             <>
-              <div>Serial Number</div>
-              <div>Device Name</div>
-              <div>Problem Category</div>
-              <div>Requested Date</div>
-              <div>Status</div>
+              <div className="truncate">Requested Date</div>
+              <div className="truncate">Status</div>
             </>
           ) : (
             <>
-              <div>Serial Number</div>
-              <div>Device Name</div>
-              <div>Problem Category</div>
-              <div>Requested Date</div>
-              <div>Resolved Date</div>
-              <div>Status</div>
+              <div className="truncate">Requested Date</div>
+              <div className="truncate">Resolved Date</div>
+              <div className="truncate">Solved By</div>
+              <div className="truncate">Status</div>
             </>
           )}
         </div>
@@ -104,10 +103,10 @@ const StatusPage: React.FC = () => {
               className={`grid ${
                 activeTab === "pending"
                   ? "grid-cols-5"
-                  : "grid-cols-6"
+                  : "grid-cols-7"
               } px-5 py-3 text-sm items-center border-b ${
                 idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-              }`}
+              } hover:bg-gray-100 transition`}
             >
               {/* COMMON */}
               <div className="truncate">{r.serialNumber || "-"}</div>
@@ -117,11 +116,12 @@ const StatusPage: React.FC = () => {
               {/* PENDING */}
               {activeTab === "pending" ? (
                 <>
-                  <div>
+                  <div className="truncate">
                     {r.createdAt
                       ? new Date(r.createdAt).toLocaleDateString()
                       : "-"}
                   </div>
+
                   <div>
                     <span className="px-3 py-1 text-xs bg-amber-100 text-amber-700 rounded-full">
                       Pending
@@ -131,17 +131,22 @@ const StatusPage: React.FC = () => {
               ) : (
                 <>
                   {/* REQUESTED DATE */}
-                  <div>
+                  <div className="truncate">
                     {r.createdAt
                       ? new Date(r.createdAt).toLocaleDateString()
                       : "-"}
                   </div>
 
                   {/* RESOLVED DATE */}
-                  <div>
+                  <div className="truncate">
                     {r.resolvedDate
                       ? new Date(r.resolvedDate).toLocaleDateString()
                       : "-"}
+                  </div>
+
+                  {/* SOLVED BY */}
+                  <div className="truncate">
+                    {r.assignedToName || "-"}
                   </div>
 
                   {/* STATUS */}

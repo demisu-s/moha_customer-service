@@ -85,6 +85,7 @@ const problemCategory = PROBLEM_CATEGORY;
     const data = await getServiceRequests();
     const formatted = data.map((r: any) => ({
       id: r._id,
+      _id: r._id,
       deviceId: r.device?._id,
       serialNumber: r.device?.serialNumber,
       requestedBy: r.requestedBy?.firstName + " " + r.requestedBy?.lastName,
@@ -114,25 +115,61 @@ const problemCategory = PROBLEM_CATEGORY;
     refreshRequests();
   }, []);
 
-  /* ================= ADD REQUEST ================= */
+
+  /* ================= ADD REQUEST (FIXED) ================= */
   const addRequest = async (requestData: Partial<ServiceRequest>) => {
     if (!requestData.description) {
-    throw new Error("description are required");
-  }
+      throw new Error("Description is required");
+    }
 
-  if (!requestData.deviceId) {
-    throw new Error("Device is required");
-  }
+    if (!requestData.deviceId) {
+      throw new Error("Device is required");
+    }
 
-    await apiCreateRequest({
+    // ✅ API CALL
+    const res = await apiCreateRequest({
       description: requestData.description,
-       problemCategory: requestData.problemCategory|| "Hardware",
+      problemCategory: requestData.problemCategory || "Hardware",
       attachments: requestData.attachments || [],
-      deviceId: requestData.deviceId
-    
+      deviceId: requestData.deviceId,
     });
 
-    await refreshRequests();
+    const r = res.data; // ⚠️ important if using axios
+
+    // ✅ IMMEDIATE STATE UPDATE (FIX)
+    const newRequest: ServiceRequest = {
+      id: r._id,
+      _id: r._id,
+      deviceId: r.device?._id,
+      serialNumber: r.device?.serialNumber,
+      requestedBy:
+        r.requestedBy?.firstName + " " + r.requestedBy?.lastName,
+      description: r.description,
+      plant: r.device?.plant?.name,
+      department: r.device?.department?.name,
+      createdAt: r.createdAt,
+      assignedDate: r.assignedDate,
+      deviceImage: r.device?.image,
+      deviceName: r.device?.deviceName,
+      deviceType: r.device?.deviceType,
+      status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
+      assignedTo: r.assignedTo?._id,
+      assignedToName: r.assignedTo
+        ? r.assignedTo.firstName + " " + r.assignedTo.lastName
+        : undefined,
+      solution: r.solution,
+      urgency: r.urgency,
+      issues: r.issues,
+      resolvedDate: r.resolvedDate,
+      notes: r.notes,
+      problemCategory: r.problemCategory,
+    };
+
+    // 🔥 THIS IS THE KEY FIX
+    setRequests((prev) => [newRequest, ...prev]);
+
+    // Optional background sync
+    refreshRequests();
   };
 
   /* ================= UPDATE REQUEST ================= */
