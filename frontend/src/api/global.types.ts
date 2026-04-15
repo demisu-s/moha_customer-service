@@ -92,3 +92,25 @@ export interface CreateServiceRequestPayload {
   issues?: string;
   requestedDate?: string;
 }
+
+/* ================= SCHEDULE ================= */
+
+export type Recurrence = "none" | "daily" | "weekly" | "monthly";
+
+export interface ScheduleEvent {
+  _id: string;
+  title: string;
+  start: string; // ISO from backend
+  end: string;
+  recurrence?: Recurrence;
+  cycles?: number;
+}
+
+export interface CreateSchedulePayload {
+  title: string;
+  start: Date;
+  end: Date;
+  plant: string;
+  recurrence?: Recurrence;
+  cycles?: number;
+}

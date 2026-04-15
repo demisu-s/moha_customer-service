@@ -163,6 +163,7 @@ const AddDevice = () => {
     }
 
     const newDevice = {
+      
       deviceName: formData.name,
       deviceType: formData.deviceType,
       deviceId: `DEV-${Date.now()}`,

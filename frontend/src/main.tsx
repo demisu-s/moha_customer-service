@@ -8,6 +8,7 @@ import { DeviceProvider } from './context/DeviceContext';
 import { ServiceRequestProvider } from './context/ServiceRequestContext';
 import { PlantProvider } from "./context/PlantContext";
 import { DepartmentProvider } from './context/DepartmentContext';
+import { ScheduleProvider } from './context/ScheduleContext';
 
 
 
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
    <ServiceRequestProvider>
     <PlantProvider>
        <DepartmentProvider>
+        <ScheduleProvider>
       <App />
+      </ScheduleProvider>
             </DepartmentProvider>
             </PlantProvider>
           </ServiceRequestProvider>

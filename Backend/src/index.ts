@@ -7,6 +7,7 @@ import { errorHandler } from "./middlewares/errorMiddleware"
 import depatmentRoutes from "./routes/departmentRoutes";
 import deviceRoutes from "./routes/deviceRoutes";
 import serviceRequesstRoutes from "./routes/serviceRequestRoutes";
+import scheduleRoutes from "./routes/scheduleRoutes";
 import cors from "cors";
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.use("/api/plant", plantRoutes);
 app.use("/api/department", depatmentRoutes);
 app.use("/api/device", deviceRoutes);
 app.use("/api/request",serviceRequesstRoutes);
+app.use("/api/schedule", scheduleRoutes);
 
 
 app.use(errorHandler);
