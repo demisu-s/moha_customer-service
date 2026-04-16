@@ -4,7 +4,7 @@ import { ApiResponse, CreateSchedulePayload } from "./global.types";
 /* ================= CREATE EVENT ================= */
 
 export const createScheduleEvent = async (data: CreateSchedulePayload) => {
-  const response = await api.post<ApiResponse<any>>("/schedule", {
+  const response = await api.post<ApiResponse<any>>("/schedule/createEvent", {
     title: data.title,
     start: data.start,
     end: data.end,
@@ -21,7 +21,7 @@ export const createScheduleEvent = async (data: CreateSchedulePayload) => {
 
 export const getScheduleEvents = async () => {
   const response = await api.get<ApiResponse<any[]>>(
-    "/schedule"
+    "/schedule/myEvents"
   );
 
   return response.data.data;
@@ -31,7 +31,7 @@ export const getScheduleEvents = async () => {
 
 export const deleteScheduleEvent = async (id: string) => {
   const response = await api.delete<ApiResponse<any>>(
-    `/schedule/${id}`
+    `/schedule/deleteEvent/${id}`
   );
 
   return response.data.data;
