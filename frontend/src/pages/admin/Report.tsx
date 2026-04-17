@@ -149,15 +149,52 @@ const Report: React.FC = () => {
   };
 
   const exportExcel = () => {
-    const data = reportType === "service" ? filteredService : filteredSchedule;
+  let data: any[];
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+  if (reportType === "service") {
+    data = filteredService;
+  } else {
+    data = filteredSchedule.map((row) => ({
+      Title: row.title,
+      Plant: row.plant,
+      CreatedBy: row.createdBy,
+      Date: row.date,
 
-    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    saveAs(new Blob([buffer]), "report.xlsx");
-  };
+      // ✅ FORCE TIME STRING (IMPORTANT)
+      Start: row.start.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+
+      End: row.end.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    }));
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+
+  // ✅ OPTIONAL: SET COLUMN WIDTH (prevents ######)
+  worksheet["!cols"] = [
+    { wch: 25 },
+    { wch: 20 },
+    { wch: 25 },
+    { wch: 15 },
+    { wch: 12 },
+    { wch: 12 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+  const buffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  saveAs(new Blob([buffer]), "report.xlsx");
+};
 
   if (loading) return <div className="p-6 text-center">Loading report...</div>;
 
