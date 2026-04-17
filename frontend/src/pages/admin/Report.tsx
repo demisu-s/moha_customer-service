@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 
 import { useUserContext } from "../../context/UserContext";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
+import { useSchedule } from "../../context/ScheduleContext";
 
 type ReportRow = {
   name: string;
@@ -18,29 +19,40 @@ type ReportRow = {
   unresolved: number;
 };
 
+type ScheduleRow = {
+  title: string;
+  plant: string;
+  createdBy: string;
+  date: string;
+  start: Date;
+  end: Date;
+};
+
 const Report: React.FC = () => {
   const { users } = useUserContext();
   const { requests, loading } = useServiceRequests();
+  const { events } = useSchedule();
 
   const [search, setSearch] = useState("");
+  const [reportType, setReportType] = useState<"service" | "schedule">("service");
 
-  /* =========================
-     ✅ BUILD REPORT DATA
-  ========================== */
+  // ✅ FILTER STATES
+  const [filterBy, setFilterBy] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  /* ================= SERVICE REPORT ================= */
   const reportData: ReportRow[] = useMemo(() => {
     const grouped: Record<string, ReportRow> = {};
 
     requests.forEach((req) => {
       if (!req.assignedToName) return;
 
-      // 🔥 detect role
       const role = req.assignedDate ? "supervisor" : "admin";
-
       const key = req.assignedToName;
 
       const user = users.find(
-        (u) =>
-          `${u.firstName} ${u.lastName}` === req.assignedToName
+        (u) => `${u.firstName} ${u.lastName}` === req.assignedToName
       );
 
       const plant =
@@ -62,78 +74,92 @@ const Report: React.FC = () => {
 
       grouped[key].totalTasks += 1;
 
-      if (req.status === "Resolved") {
-        grouped[key].completed += 1;
-      } else if (req.status === "Unresolved") {
-        grouped[key].unresolved += 1;
-      } else {
-        grouped[key].pending += 1;
-      }
+      if (req.status === "Resolved") grouped[key].completed += 1;
+      else if (req.status === "Unresolved") grouped[key].unresolved += 1;
+      else grouped[key].pending += 1;
     });
 
     return Object.values(grouped);
   }, [requests, users]);
 
-  /* =========================
-     🔍 FILTER
-  ========================== */
-  const filteredData = reportData.filter(
+  /* ================= SCHEDULE REPORT ================= */
+  const scheduleData: ScheduleRow[] = useMemo(() => {
+    return events.map((event: any) => {
+      const plant =
+        typeof event.plant === "object"
+          ? event.plant?.name
+          : event.plant || "—";
+
+      const createdBy =
+        typeof event.user === "object"
+          ? `${event.user?.firstName || ""} ${event.user?.lastName || ""}`
+          : event.user;
+
+      const start = new Date(event.start);
+      const end = new Date(event.end);
+
+      return {
+        title: event.title,
+        plant,
+        createdBy,
+        date: start.toLocaleDateString(),
+        start,
+        end,
+      };
+    });
+  }, [events]);
+
+  /* ================= FILTER ================= */
+  const filteredService = reportData.filter(
     (row) =>
       row.name.toLowerCase().includes(search.toLowerCase()) ||
       row.plant.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* =========================
-     📄 EXPORT PDF
-  ========================== */
+  const filteredSchedule = scheduleData.filter((row) => {
+    const now = new Date();
+
+    if (filterBy === "ended" && row.end > now) return false;
+    if (filterBy === "upcoming" && row.start < now) return false;
+
+    if (startDate && row.start < new Date(startDate)) return false;
+    if (endDate && row.end > new Date(endDate)) return false;
+
+    return (
+      row.title.toLowerCase().includes(search.toLowerCase()) ||
+      row.plant.toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
+  /* ================= EXPORT ================= */
   const exportPDF = () => {
     const doc = new jsPDF();
-
     doc.setFontSize(16);
-    doc.text("Service Report", 20, 20);
+    doc.text(reportType === "service" ? "Service Report" : "Schedule Report", 20, 20);
 
     let y = 40;
+    const data = reportType === "service" ? filteredService : filteredSchedule;
 
-    filteredData.forEach((row, i) => {
-      doc.text(
-        `${i + 1}. ${row.name} (${row.role}) - Plant: ${
-          row.plant
-        } | Total: ${row.totalTasks}, Completed: ${
-          row.completed
-        }, Pending: ${row.pending}, Unresolved: ${
-          row.unresolved
-        }`,
-        20,
-        y
-      );
+    data.forEach((row: any, i) => {
+      doc.text(JSON.stringify(row), 20, y);
       y += 10;
     });
 
-    doc.save("service-report.pdf");
+    doc.save("report.pdf");
   };
 
-  /* =========================
-     📊 EXPORT EXCEL
-  ========================== */
   const exportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    const data = reportType === "service" ? filteredService : filteredSchedule;
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
 
-    const buffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    saveAs(new Blob([buffer]), "service-report.xlsx");
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([buffer]), "report.xlsx");
   };
 
-  /* =========================
-     UI
-  ========================== */
-  if (loading) {
-    return <div className="p-6 text-center">Loading report...</div>;
-  }
+  if (loading) return <div className="p-6 text-center">Loading report...</div>;
 
   return (
     <div className="space-y-6 p-6">
@@ -146,12 +172,37 @@ const Report: React.FC = () => {
           </p>
         </div>
 
+        {/* SWITCH */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setReportType("service")}
+            className={`px-3 py-2 rounded ${
+              reportType === "service"
+                ? "bg-primary-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Service
+          </button>
+
+          <button
+            onClick={() => setReportType("schedule")}
+            className={`px-3 py-2 rounded ${
+              reportType === "schedule"
+                ? "bg-primary-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Schedule
+          </button>
+        </div>
+
         <input
           type="text"
-          placeholder="Search by name or plant..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border rounded-md text-sm w-full md:w-[300px]"
+          className="px-4 py-2 border rounded-md text-sm w-full md:w-[250px]"
         />
 
         <DropdownMenu.Root>
@@ -162,72 +213,116 @@ const Report: React.FC = () => {
           </DropdownMenu.Trigger>
 
           <DropdownMenu.Content className="bg-white border rounded shadow p-2">
-            <DropdownMenu.Item
-              onClick={exportPDF}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-            >
+            <DropdownMenu.Item onClick={exportPDF} className="px-3 py-2 hover:bg-gray-100">
               📄 PDF
             </DropdownMenu.Item>
-
-            <DropdownMenu.Item
-              onClick={exportExcel}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-            >
+            <DropdownMenu.Item onClick={exportExcel} className="px-3 py-2 hover:bg-gray-100">
               📊 Excel
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </div>
 
+      {/* ✅ IMPROVED FILTER PANEL */}
+      {reportType === "schedule" && (
+        <div className="bg-white shadow rounded-lg p-4 grid md:grid-cols-4 gap-4">
+          <div>
+            <label className="text-xs text-gray-500">Status</label>
+            <select
+              value={filterBy}
+              onChange={(e) => setFilterBy(e.target.value)}
+              className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+            >
+              <option value="all">All Tasks</option>
+              <option value="ended">Ended Tasks</option>
+              <option value="upcoming">Upcoming Tasks</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+            />
+          </div>
+
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setFilterBy("all");
+                setStartDate("");
+                setEndDate("");
+              }}
+              className="w-full bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-md text-sm"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* TABLE */}
       <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
         <table className="w-full text-sm border">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="border px-4 py-2">Name</th>
-              <th className="border px-4 py-2">Role</th>
-              <th className="border px-4 py-2">Plant</th>
-              <th className="border px-4 py-2">Assigned</th>
-              <th className="border px-4 py-2">Completed</th>
-              <th className="border px-4 py-2">Pending</th>
-              <th className="border px-4 py-2">Unresolved</th>
-            </tr>
+            {reportType === "service" ? (
+              <tr className="bg-gray-200">
+                <th className="border px-4 py-2">Name</th>
+                <th className="border px-4 py-2">Role</th>
+                <th className="border px-4 py-2">Plant</th>
+                <th className="border px-4 py-2">Assigned</th>
+                <th className="border px-4 py-2">Completed</th>
+                <th className="border px-4 py-2">Pending</th>
+                <th className="border px-4 py-2">Unresolved</th>
+              </tr>
+            ) : (
+              <tr className="bg-gray-200">
+                <th className="border px-4 py-2">Title</th>
+                <th className="border px-4 py-2">Plant</th>
+                <th className="border px-4 py-2">Created By</th>
+                <th className="border px-4 py-2">Date</th>
+                <th className="border px-4 py-2">Start</th>
+                <th className="border px-4 py-2">End</th>
+              </tr>
+            )}
           </thead>
 
           <tbody>
-            {filteredData.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
-                  No data found
-                </td>
-              </tr>
-            ) : (
-              filteredData.map((row, i) => (
-                <tr key={i} className="hover:bg-gray-100">
-                  <td className="border px-4 py-2">
-                    {row.name}
-                  </td>
-
-                  <td className="border px-4 py-2">
-                    <span className="text-[11px] px-2 py-1 bg-gray-200 rounded">
-                      {row.role}
-                    </span>
-                  </td>
-
-                  <td className="border px-4 py-2">{row.plant}</td>
-                  <td className="border px-4 py-2">{row.totalTasks}</td>
-                  <td className="border px-4 py-2 text-green-600">
-                    {row.completed}
-                  </td>
-                  <td className="border px-4 py-2 text-yellow-600">
-                    {row.pending}
-                  </td>
-                  <td className="border px-4 py-2 text-red-600">
-                    {row.unresolved}
-                  </td>
-                </tr>
-              ))
-            )}
+            {reportType === "service"
+              ? filteredService.map((row, i) => (
+                  <tr key={i} className="hover:bg-gray-100">
+                    <td className="border px-4 py-2">{row.name}</td>
+                    <td className="border px-4 py-2">{row.role}</td>
+                    <td className="border px-4 py-2">{row.plant}</td>
+                    <td className="border px-4 py-2">{row.totalTasks}</td>
+                    <td className="border px-4 py-2 text-green-600">{row.completed}</td>
+                    <td className="border px-4 py-2 text-yellow-600">{row.pending}</td>
+                    <td className="border px-4 py-2 text-red-600">{row.unresolved}</td>
+                  </tr>
+                ))
+              : filteredSchedule.map((row, i) => (
+                  <tr key={i} className="hover:bg-gray-100">
+                    <td className="border px-4 py-2">{row.title}</td>
+                    <td className="border px-4 py-2">{row.plant}</td>
+                    <td className="border px-4 py-2">{row.createdBy}</td>
+                    <td className="border px-4 py-2">{row.date}</td>
+                    <td className="border px-4 py-2">{row.start.toLocaleTimeString()}</td>
+                    <td className="border px-4 py-2">{row.end.toLocaleTimeString()}</td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>

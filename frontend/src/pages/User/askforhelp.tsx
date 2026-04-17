@@ -19,7 +19,7 @@ const AskForHelp: React.FC = () => {
   const {
     addRequest,
     problemCategory: categories,
-    requests, // ✅ IMPORTANT (we need this)
+    requests,
   } = useServiceRequests();
 
   const [description, setDescription] = useState("");
@@ -43,19 +43,18 @@ const AskForHelp: React.FC = () => {
     : "User";
 
   /* =========================
-     🚫 BLOCK DUPLICATE REQUEST
+     🚫 BLOCK DUPLICATE REQUEST (FIXED)
   ========================== */
   const hasActiveRequest = useMemo(() => {
-    if (!device || !currentUser) return false;
+    if (!device) return false;
 
     return requests.some(
       (r) =>
-        r.deviceId === device._id && // same device
-        r.problemCategory === problemCategory && // same category
-        r.requestedBy === currentUserName && // same user
-        r.status !== "Resolved" // not solved yet
+        r.deviceId === device._id &&
+        r.problemCategory === problemCategory &&
+        r.status !== "Resolved"
     );
-  }, [requests, device, problemCategory, currentUserName, currentUser]);
+  }, [requests, device, problemCategory]);
 
   if (!device) {
     return (
@@ -81,7 +80,6 @@ const AskForHelp: React.FC = () => {
       return;
     }
 
-    /* 🚫 BLOCK SUBMIT */
     if (hasActiveRequest) {
       setError(
         "You already submitted this problem for this device. Please wait until it is resolved."
@@ -90,13 +88,15 @@ const AskForHelp: React.FC = () => {
     }
 
     try {
+      // ✅ ONLY THIS MATTERS
       await addRequest({
         deviceId: device._id,
         description: description.trim(),
-        problemCategory: problemCategory as any,
+        problemCategory: problemCategory,
         attachments: files,
       });
 
+      // ✅ SUCCESS
       setDescription("");
       setFiles([]);
       setProblemCategory("Hardware");
@@ -106,8 +106,10 @@ const AskForHelp: React.FC = () => {
       setTimeout(() => {
         setShowSuccessDialog(false);
         navigate("/client-dashboard");
-      }, 2500);
+      }, 2000);
+
     } catch (err) {
+      console.error(err); // 🔍 debug if needed
       setError("Failed to submit request. Please try again.");
     }
   };
@@ -132,10 +134,10 @@ const AskForHelp: React.FC = () => {
         Fill out the form below to request repair or maintenance.
       </p>
 
-      {/* ⚠️ WARNING MESSAGE */}
+      {/* WARNING */}
       {hasActiveRequest && (
         <div className="mb-4 p-3 bg-yellow-100 text-yellow-700 rounded-lg text-sm">
-          ⚠️ You already submitted this problem for this device. Please wait until it is resolved.if you think it has other problem please change the problem category and submit again.
+          ⚠️ You already submitted this problem for this device. Please wait until it is resolved. If it's a different issue, change the problem category.
         </div>
       )}
 
@@ -144,7 +146,6 @@ const AskForHelp: React.FC = () => {
         onSubmit={handleSubmit}
         className="bg-white border border-gray-300 rounded-xl p-6 space-y-5"
       >
-        {/* Problem Category + Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block font-semibold text-lg mb-1">
@@ -156,7 +157,7 @@ const AskForHelp: React.FC = () => {
               onChange={(e) =>
                 setProblemCategory(e.target.value as ProblemCategory)
               }
-              className="w-full border rounded px-3 py-2 text-base"
+              className="w-full border rounded px-3 py-2"
             >
               {categories.map((type) => (
                 <option key={type} value={type}>
@@ -174,56 +175,33 @@ const AskForHelp: React.FC = () => {
               type="text"
               disabled
               value={new Date().toLocaleString()}
-              className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-600"
+              className="w-full border rounded px-3 py-2 bg-gray-50"
             />
           </div>
         </div>
 
-        {/* DESCRIPTION */}
-        <div>
-          <label className="block font-semibold mb-2 text-lg">
-            Problem Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the problem..."
-            className="w-full min-h-[150px] border rounded-lg p-3"
-          />
-        </div>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe the problem..."
+          className="w-full min-h-[150px] border rounded-lg p-3"
+        />
 
-        {/* FILES */}
-        <div>
-          <label className="block font-semibold text-lg">
-            Attachments
-          </label>
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="block w-full text-sm"
-          />
-        </div>
+        <input type="file" multiple onChange={handleFileChange} />
 
-        {/* ERROR */}
         {error && <div className="text-red-600 text-sm">{error}</div>}
 
-        {/* SUBMIT */}
         <button
           type="submit"
           disabled={hasActiveRequest}
-          className="px-8 py-2 w-full rounded-lg bg-primary-600 hover:bg-primary-900 text-white font-bold disabled:opacity-50"
+          className="px-8 py-2 w-full rounded-lg bg-primary-600 text-white font-bold disabled:opacity-50"
         >
           Submit
         </button>
       </form>
 
-      {/* FOOTER */}
       <div className="mt-8 text-sm text-gray-500">
-        Submitting for:{" "}
-        <span className="font-semibold">{device.deviceType}</span> (
-        {device.serialNumber}) • Requested by{" "}
-        <span className="font-semibold">{currentUserName}</span>
+        Submitting for <b>{device.deviceType}</b> ({device.serialNumber}) • {currentUserName}
       </div>
 
       <SuccessDialog

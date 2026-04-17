@@ -118,59 +118,60 @@ const problemCategory = PROBLEM_CATEGORY;
 
   /* ================= ADD REQUEST (FIXED) ================= */
   const addRequest = async (requestData: Partial<ServiceRequest>) => {
-    if (!requestData.description) {
-      throw new Error("Description is required");
-    }
+  if (!requestData.description) {
+    throw new Error("Description is required");
+  }
 
-    if (!requestData.deviceId) {
-      throw new Error("Device is required");
-    }
+  if (!requestData.deviceId) {
+    throw new Error("Device is required");
+  }
 
-    // ✅ API CALL
-    const res = await apiCreateRequest({
-      description: requestData.description,
-      problemCategory: requestData.problemCategory || "Hardware",
-      attachments: requestData.attachments || [],
-      deviceId: requestData.deviceId,
-    });
+  // ✅ API CALL
+  const res = await apiCreateRequest({
+    description: requestData.description,
+    problemCategory: requestData.problemCategory || "Hardware",
+    attachments: requestData.attachments || [],
+    deviceId: requestData.deviceId,
+  });
 
-    const r = res.data; // ⚠️ important if using axios
+  // ✅ FIX IS HERE
+  const r = res;
 
-    // ✅ IMMEDIATE STATE UPDATE (FIX)
-    const newRequest: ServiceRequest = {
-      id: r._id,
-      _id: r._id,
-      deviceId: r.device?._id,
-      serialNumber: r.device?.serialNumber,
-      requestedBy:
-        r.requestedBy?.firstName + " " + r.requestedBy?.lastName,
-      description: r.description,
-      plant: r.device?.plant?.name,
-      department: r.device?.department?.name,
-      createdAt: r.createdAt,
-      assignedDate: r.assignedDate,
-      deviceImage: r.device?.image,
-      deviceName: r.device?.deviceName,
-      deviceType: r.device?.deviceType,
-      status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
-      assignedTo: r.assignedTo?._id,
-      assignedToName: r.assignedTo
-        ? r.assignedTo.firstName + " " + r.assignedTo.lastName
-        : undefined,
-      solution: r.solution,
-      urgency: r.urgency,
-      issues: r.issues,
-      resolvedDate: r.resolvedDate,
-      notes: r.notes,
-      problemCategory: r.problemCategory,
-    };
-
-    // 🔥 THIS IS THE KEY FIX
-    setRequests((prev) => [newRequest, ...prev]);
-
-    // Optional background sync
-    refreshRequests();
+  const newRequest: ServiceRequest = {
+    id: r._id,
+    _id: r._id,
+    deviceId: r.device?._id,
+    serialNumber: r.device?.serialNumber,
+    requestedBy:
+      r.requestedBy?.firstName + " " + r.requestedBy?.lastName,
+    description: r.description,
+    plant: r.device?.plant?.name,
+    department: r.device?.department?.name,
+    createdAt: r.createdAt,
+    assignedDate: r.assignedDate,
+    deviceImage: r.device?.image,
+    deviceName: r.device?.deviceName,
+    deviceType: r.device?.deviceType,
+    status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
+    assignedTo: r.assignedTo?._id,
+    assignedToName: r.assignedTo
+      ? r.assignedTo.firstName + " " + r.assignedTo.lastName
+      : undefined,
+    solution: r.solution,
+    urgency: r.urgency,
+    issues: r.issues,
+    resolvedDate: r.resolvedDate,
+    notes: r.notes,
+    problemCategory: r.problemCategory,
   };
+
+  setRequests((prev) => [newRequest, ...prev]);
+
+  // ✅ ALSO FIX THIS (prevent fake error)
+  refreshRequests().catch((err) => {
+    console.error("Refresh failed:", err);
+  });
+};
 
   /* ================= UPDATE REQUEST ================= */
   const updateRequest = async (id: string, data: Partial<ServiceRequest>) => {

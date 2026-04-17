@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
 import { useDeviceContext } from "../../context/DeviceContext";
 import { IoArrowBack } from "react-icons/io5";
+import { useServiceRequests } from "../../context/ServiceRequestContext";
 
 const DeviceDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { devices } = useDeviceContext();
+  const { requests } = useServiceRequests(); // ✅ GET REAL DATA
 
   const device = devices.find((dev) => dev._id === id);
 
@@ -27,24 +29,28 @@ const DeviceDetail: React.FC = () => {
     ? `${device.user.firstName} ${device.user.lastName}`
     : "Unassigned";
 
-  const repairHistory = [
-    {
-      date: "2025-05-12",
-      problem: "Laptop screen flickering issue",
-      repairedBy: "Technician A",
-    },
-    {
-      date: "2025-07-01",
-      problem: "Keyboard replacement",
-      repairedBy: "Technician B",
-    },
-  ];
+  /* =========================
+     ✅ REAL REPAIR HISTORY
+  ========================== */
+  const repairHistory = useMemo(() => {
+    return requests
+      .filter(
+        (r) =>
+          r.deviceId === device._id &&
+          r.status === "Resolved" // ✅ only solved ones
+      )
+      .map((r, index) => ({
+        sn: index + 1,
+        deviceName: device.deviceName,
+        solvedBy: r.assignedToName || "Technician", // ✅ FIXED HERE
+        solvedDate: r.resolvedDate || r.createdAt,
+      }));
+  }, [requests, device]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 p-6">
 
       {/* HEADER */}
-
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-gray-900">
           Device Details - {device.serialNumber}
@@ -64,12 +70,9 @@ const DeviceDetail: React.FC = () => {
       </p>
 
       {/* DEVICE INFO */}
-
       <div className="grid md:grid-cols-3 gap-6">
 
-        {/* IMAGE */}
-
-        <div className="col-span-1 bg-white rounded-xl shadow p-5 flex items-center justify-center hover:scale-105 transition">
+        <div className="col-span-1 bg-white rounded-xl shadow p-5 flex items-center justify-center">
           <img
             src={device.image || "/placeholder-device.png"}
             alt={device.deviceName}
@@ -77,79 +80,68 @@ const DeviceDetail: React.FC = () => {
           />
         </div>
 
-        {/* INFO */}
-
         <div className="col-span-2 bg-white border border-gray-200 rounded-xl p-6 space-y-6 shadow">
-
           <h3 className="text-2xl font-semibold border-b pb-2">
             Device Information
           </h3>
 
           <div className="grid grid-cols-2 gap-4 text-gray-700">
-
             <Info label="Device Name" value={device.deviceName} />
             <Info label="Device Type" value={device.deviceType} />
             <Info label="Serial Number" value={device.serialNumber} />
             <Info label="Plant" value={device.plant?.name || "N/A"} />
             <Info label="Department" value={device.department?.name || "N/A"} />
             <Info label="User" value={userName} />
-
           </div>
         </div>
-
       </div>
 
-      {/* REPAIR HISTORY */}
-
+      {/* =========================
+          ✅ REPAIR HISTORY TABLE
+      ========================== */}
       <div className="bg-blue-50 shadow rounded-xl p-6">
-
         <h3 className="text-2xl font-semibold border-b pb-2 mb-4">
           Repair History
         </h3>
 
         {repairHistory.length > 0 ? (
-
           <div className="overflow-x-auto">
 
+            {/* HEADER */}
             <div className="grid grid-cols-12 font-semibold text-black border-b pb-2 mb-2">
-
-              <div className="col-span-7 pl-2">Problem Description</div>
-              <div className="col-span-3 pl-4">Technician</div>
-              <div className="col-span-2">Date</div>
-
+              <div className="col-span-4">Device Name</div>
+              <div className="col-span-4">Solved By</div>
+              <div className="col-span-3">Solved Date</div>
             </div>
 
-            {repairHistory.map((history, idx) => (
-
+            {/* ROWS */}
+            {repairHistory.map((item) => (
               <div
-                key={idx}
-                className="grid grid-cols-12 items-center bg-white rounded-lg p-3 mb-2 shadow hover:bg-gray-50 transition"
+                key={item.sn}
+                className="grid grid-cols-12 items-center bg-white rounded-lg p-3 mb-2 shadow hover:bg-gray-50"
               >
 
-                <div className="col-span-7 text-gray-700">
-                  {history.problem}
+                <div className="col-span-4 text-gray-700">
+                  {item.deviceName}
                 </div>
 
-                <div className="col-span-3 text-gray-600 pl-4">
-                  {history.repairedBy}
+                <div className="col-span-4 text-gray-600">
+                  {item.solvedBy}
                 </div>
 
-                <div className="col-span-2 text-gray-500">
-                  {history.date}
+                <div className="col-span-3 text-gray-500">
+                  {new Date(item.solvedDate).toLocaleDateString()}
                 </div>
-
               </div>
-
             ))}
 
           </div>
-
         ) : (
-          <p className="text-gray-500">No repair history available.</p>
+          <p className="text-gray-500">
+            No repair history available for this device.
+          </p>
         )}
-
       </div>
-
     </div>
   );
 };
