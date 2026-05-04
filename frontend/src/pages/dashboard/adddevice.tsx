@@ -163,14 +163,13 @@ const AddDevice = () => {
     }
 
     const newDevice = {
-      
       deviceName: formData.name,
       deviceType: formData.deviceType,
       deviceId: `DEV-${Date.now()}`,
       serialNumber: formData.serial,
-      plant: formData.plant._id,
-      department: formData.department._id,
-      user: formData.user._id,
+      plant: formData.plant,
+      department: formData.department,
+      user: formData.user,
       area: formData.area,
       image: formData.image,
     };
