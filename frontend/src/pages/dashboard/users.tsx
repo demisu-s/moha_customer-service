@@ -1,6 +1,7 @@
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { JSX, useMemo, useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
 import {
@@ -12,14 +13,15 @@ import {
 
 export default function UserManagement(): JSX.Element {
   const {
-    users,
-    deleteUserHandler,
-    plants,
-    departments,
-    roles,
-    loadDepartments,
-    currentUser,
-  } = useUserContext();
+  users,
+  deleteUserHandler,
+  plants,
+  departments,
+  roles,
+  loadDepartments,
+  currentUser,
+  addUser,
+} = useUserContext();
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
@@ -33,6 +35,120 @@ export default function UserManagement(): JSX.Element {
   const navigate = useNavigate();
 
   const isSuperAdmin = currentUser?.role === "superadmin";
+
+
+  /* ================= IMPORT USERS FROM EXCEL ================= */
+
+  const handleImportUsers = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      try {
+        const data = event.target?.result;
+
+        const workbook = XLSX.read(data, { type: "binary" });
+
+        const sheetName = workbook.SheetNames[0];
+
+        const worksheet = workbook.Sheets[sheetName];
+
+        const excelData: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+        for (const row of excelData) {
+          const firstName = row["first name"]?.toString().trim() || "";
+          const lastName = row["last name"]?.toString().trim() || "";
+          const plantName = row["plant"]?.toString().trim() || "";
+          const departmentName =
+            row["department"]?.toString().trim() || "";
+          const gender =
+            row["gender"]?.toString().toLowerCase() === "female"
+              ? "female"
+              : "male";
+
+          if (!firstName || !departmentName) continue;
+
+          /* Find Plant */
+          const matchedPlant = plants.find(
+            (p) =>
+              p.name.toLowerCase() === plantName.toLowerCase()
+          );
+
+          if (!matchedPlant) continue;
+
+          /* Load Departments */
+         await loadDepartments(matchedPlant._id);
+
+/* Wait a little for state update */
+const latestDepartments = await new Promise<any[]>((resolve) => {
+  setTimeout(() => {
+    resolve([...departments]);
+  }, 200);
+});
+
+const matchedDepartment = latestDepartments.find(
+  (d) =>
+    d.name.toLowerCase() ===
+    departmentName.toLowerCase()
+);
+
+          if (!matchedDepartment) continue;
+
+          /* Create User */
+          await addUser({
+            firstName,
+            lastName,
+            department: matchedDepartment._id,
+            role: "user",
+            gender,
+            userId: firstName.toLowerCase(),
+            password: "123456",
+          });
+        }
+
+        alert("Users imported successfully");
+      } catch (error) {
+        console.error(error);
+        alert("Import failed");
+      }
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  /* ================= EXPORT USERS TO EXCEL ================= */
+
+  const handleExportUsers = () => {
+    const exportData = filteredUsers.map((user) => ({
+      "First Name": user.firstName || "",
+      "Last Name": user.lastName || "",
+      Plant:
+        typeof user.department?.plant === "object"
+          ? user.department?.plant?.name
+          : "",
+      Department: user.department?.name || "",
+      Gender: user.gender || "",
+    }));
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(exportData);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Users"
+    );
+
+    XLSX.writeFile(workbook, "users.xlsx");
+  };
+
 
   /* ================= AUTO LOAD DEPARTMENT FOR ADMIN/SUPERVISOR ================= */
   useEffect(() => {
@@ -223,21 +339,42 @@ export default function UserManagement(): JSX.Element {
           </DropdownMenu.Root>
         </div>
 
-        {/* Button untouched */}
-        <button
-          className="bg-black text-white px-4 py-2 rounded-md text-sm hover:shadow-md hover:scale-105 hover:bg-gray-400 transition duration-200"
-          onClick={() => {
-            if (currentUser?.role === "supervisor") {
-              navigate(SUPERVISOR_USERS_ROUTE + "/adduser");
-            } else if (currentUser?.role === "admin") {
-              navigate(ADMIN_DASHBOARD_ROUTE + "/users/adduser");
-            } else if (currentUser?.role === "superadmin") {
-              navigate(DASHBOARD_ROUTE + "/users/adduser");
-            }
-          }}
-        >
-          + Add user
-        </button>
+      <div className="flex items-center gap-2">
+  {/* IMPORT BUTTON */}
+  <label className="px-4 py-2 border rounded-md text-sm cursor-pointer hover:bg-gray-100">
+    Import
+    <input
+      type="file"
+      accept=".xlsx,.xls"
+      hidden
+      onChange={handleImportUsers}
+    />
+  </label>
+
+  {/* EXPORT BUTTON */}
+  <button
+    onClick={handleExportUsers}
+    className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
+  >
+    Export
+  </button>
+
+  {/* ADD USER BUTTON */}
+  <button
+    className="bg-black text-white px-4 py-2 rounded-md text-sm hover:shadow-md hover:scale-105 hover:bg-gray-400 transition duration-200"
+    onClick={() => {
+      if (currentUser?.role === "supervisor") {
+        navigate(SUPERVISOR_USERS_ROUTE + "/adduser");
+      } else if (currentUser?.role === "admin") {
+        navigate(ADMIN_DASHBOARD_ROUTE + "/users/adduser");
+      } else if (currentUser?.role === "superadmin") {
+        navigate(DASHBOARD_ROUTE + "/users/adduser");
+      }
+    }}
+  >
+    + Add user
+  </button>
+</div>
       </div>
 
       {/* Table */}
