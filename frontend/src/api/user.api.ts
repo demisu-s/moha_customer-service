@@ -16,10 +16,14 @@ export const createUser = async (payload: CreateUserPayload): Promise<any> => {
   const formData = new FormData();
 
   Object.entries(payload).forEach(([key, value]) => {
-    if (value !== null && value !== undefined) {
-      formData.append(key, value as any);
+  if (value !== null && value !== undefined) {
+    if (value instanceof File) {
+      formData.append(key, value);
+    } else {
+      formData.append(key, String(value));
     }
-  });
+  }
+});
 
   const res = await api.post<any>("/auth/register", formData, {
     headers: { "Content-Type": "multipart/form-data" },

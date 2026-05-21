@@ -174,7 +174,7 @@ export default function Devices() {
         {/* ADD DEVICE BUTTON */}
 
         <button
-          className="bg-black text-white px-4 py-2 rounded-md text-sm hover:shadow-md hover:scale-105 hover:bg-gray-400 transition"
+          className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
           onClick={goToAddDevice}
         >
           + Add Device

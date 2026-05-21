@@ -184,9 +184,17 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   /* ========================= CREATE USER ========================= */
 
   const addUser = async (payload: CreateUserPayload) => {
+  try {
     await createUser(payload);
     await refreshUsers();
-  };
+  } catch (error: any) {
+    console.error(
+      "Create user failed:",
+      error?.response?.data || error
+    );
+    throw error;
+  }
+};
 
   /* ========================= DELETE USER ========================= */
 

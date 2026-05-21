@@ -2,8 +2,10 @@ import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { JSX, useMemo, useState, useEffect } from "react";
 import * as XLSX from "xlsx";
+import { CreateUserPayload } from "../../api/user.api";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
+import { getDepartmentsByPlant } from "../../api/department.api";
 import {
   SUPERVISOR_USERS_ROUTE,
   DASHBOARD_ROUTE,
@@ -13,31 +15,37 @@ import {
 
 export default function UserManagement(): JSX.Element {
   const {
-  users,
-  deleteUserHandler,
-  plants,
-  departments,
-  roles,
-  loadDepartments,
-  currentUser,
-  addUser,
-} = useUserContext();
+    users,
+    deleteUserHandler,
+    plants,
+    departments,
+    roles,
+    loadDepartments,
+    currentUser,
+    addUser,
+  } = useUserContext();
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [plantFilter, setPlantFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
   const usersPerPage = 10;
 
   const [showDialog, setShowDialog] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  const [userToDelete, setUserToDelete] =
+    useState<string | null>(null);
+
   const navigate = useNavigate();
 
-  const isSuperAdmin = currentUser?.role === "superadmin";
+  const isSuperAdmin =
+    currentUser?.role === "superadmin";
 
-
-  /* ================= IMPORT USERS FROM EXCEL ================= */
+  /* =======================================================
+     IMPORT USERS FROM EXCEL
+  ======================================================= */
 
   const handleImportUsers = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -46,99 +54,325 @@ export default function UserManagement(): JSX.Element {
 
     if (!file) return;
 
-    const reader = new FileReader();
+    try {
+      const data = await file.arrayBuffer();
 
-    reader.onload = async (event) => {
-      try {
-        const data = event.target?.result;
+      const workbook = XLSX.read(data);
 
-        const workbook = XLSX.read(data, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
 
-        const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
 
-        const worksheet = workbook.Sheets[sheetName];
+      const excelData: any[] =
+        XLSX.utils.sheet_to_json(worksheet);
 
-        const excelData: any[] = XLSX.utils.sheet_to_json(worksheet);
+      console.log("Excel Data:", excelData);
 
-        for (const row of excelData) {
-          const firstName = row["first name"]?.toString().trim() || "";
-          const lastName = row["last name"]?.toString().trim() || "";
-          const plantName = row["plant"]?.toString().trim() || "";
+      if (excelData.length === 0) {
+        alert("Excel file is empty");
+        return;
+      }
+
+      let successCount = 0;
+
+      const failedRows: string[] = [];
+
+      for (const row of excelData) {
+        try {
+          /* ================= GET VALUES ================= */
+
+          const firstName =
+            row["First Name"]?.toString().trim() || "";
+
+          const lastName =
+            row["Last Name"]?.toString().trim() || "";
+
+          const plantName =
+            row["Plant"]?.toString().trim() || "";
+
           const departmentName =
-            row["department"]?.toString().trim() || "";
-          const gender =
-            row["gender"]?.toString().toLowerCase() === "female"
+            row["Department"]?.toString().trim() || "";
+
+          const roleValue =
+            row["Role"]
+              ?.toString()
+              .trim()
+              .toLowerCase() || "";
+
+          const genderValue =
+            row["Gender"]
+              ?.toString()
+              .trim()
+              .toLowerCase() || "";
+
+          const password =
+            row["Password"]?.toString().trim() ||
+            "123456";
+
+          const userId =
+            row["UserId"]
+              ?.toString()
+              .trim()
+              .toLowerCase() ||
+            `${firstName.toLowerCase()}${Date.now()}`;
+
+          /* ================= ROLE ================= */
+
+          const role:
+            | "admin"
+            | "supervisor"
+            | "user"
+            | "superadmin" =
+            roleValue === "admin"
+              ? "admin"
+              : roleValue === "supervisor"
+              ? "supervisor"
+              : roleValue === "superadmin"
+              ? "superadmin"
+              : "user";
+
+          /* ================= GENDER ================= */
+
+          const gender: "male" | "female" =
+            genderValue === "female"
               ? "female"
               : "male";
 
-          if (!firstName || !departmentName) continue;
+          /* ================= VALIDATION ================= */
 
-          /* Find Plant */
+          if (
+            !firstName ||
+            !lastName ||
+            !plantName ||
+            !departmentName
+          ) {
+            failedRows.push(
+              `${firstName || "Unknown User"} -> Missing required fields`
+            );
+
+            continue;
+          }
+
+          /* ================= FIND PLANT ================= */
+
           const matchedPlant = plants.find(
             (p) =>
-              p.name.toLowerCase() === plantName.toLowerCase()
+              p.name.trim().toLowerCase() ===
+              plantName.trim().toLowerCase()
           );
 
-          if (!matchedPlant) continue;
+          if (!matchedPlant) {
+            failedRows.push(
+              `${firstName} ${lastName} -> Plant not found (${plantName})`
+            );
 
-          /* Load Departments */
-         await loadDepartments(matchedPlant._id);
+            continue;
+          }
 
-/* Wait a little for state update */
-const latestDepartments = await new Promise<any[]>((resolve) => {
-  setTimeout(() => {
-    resolve([...departments]);
-  }, 200);
-});
+          /* ================= ACCESS CONTROL ================= */
 
-const matchedDepartment = latestDepartments.find(
-  (d) =>
-    d.name.toLowerCase() ===
-    departmentName.toLowerCase()
-);
+          if (
+            currentUser?.role !== "superadmin" &&
+            typeof currentUser?.department?.plant ===
+              "object" &&
+            currentUser.department.plant._id !==
+              matchedPlant._id
+          ) {
+            failedRows.push(
+              `${firstName} ${lastName} -> You cannot import users to another plant`
+            );
 
-          if (!matchedDepartment) continue;
+            continue;
+          }
 
-          /* Create User */
-          await addUser({
+          /* ================= LOAD DEPARTMENTS ================= */
+
+          const plantDepartments =
+            await getDepartmentsByPlant(
+              matchedPlant._id
+            );
+
+          const matchedDepartment =
+            plantDepartments.find(
+              (d: any) =>
+                d.name
+                  .trim()
+                  .toLowerCase() ===
+                departmentName
+                  .trim()
+                  .toLowerCase()
+            );
+
+          if (!matchedDepartment) {
+            failedRows.push(
+              `${firstName} ${lastName} -> Department not found (${departmentName})`
+            );
+
+            continue;
+          }
+
+          /* ================= CREATE PAYLOAD ================= */
+
+          const payload: CreateUserPayload = {
             firstName,
             lastName,
             department: matchedDepartment._id,
-            role: "user",
+            role,
             gender,
-            userId: firstName.toLowerCase(),
-            password: "123456",
-          });
+            userId,
+            password,
+          };
+
+          console.log(
+            "Creating User:",
+            payload
+          );
+
+          await addUser(payload);
+
+          successCount++;
+        } catch (err: any) {
+          console.error(
+            "Failed row:",
+            row,
+            err
+          );
+
+          failedRows.push(
+            `${row["First Name"] || "Unknown"} ${
+              row["Last Name"] || ""
+            } -> ${
+              err?.response?.data?.message ||
+              err.message ||
+              "Failed to create user"
+            }`
+          );
         }
-
-        alert("Users imported successfully");
-      } catch (error) {
-        console.error(error);
-        alert("Import failed");
       }
-    };
 
-    reader.readAsBinaryString(file);
+      /* ================= FINAL ALERT ================= */
+
+      let message = `Import completed.\n\n`;
+
+      message += `Success: ${successCount}\n`;
+
+      message += `Failed: ${failedRows.length}\n`;
+
+      if (failedRows.length > 0) {
+        message += `\nFailure Reasons:\n`;
+
+        message += failedRows.join("\n");
+      }
+
+      alert(message);
+    } catch (err) {
+      console.error(
+        "Error reading Excel file:",
+        err
+      );
+
+      alert(
+        "Failed to read Excel file. Please ensure it's a valid .xlsx or .xls file."
+      );
+    } finally {
+      e.target.value = "";
+    }
   };
 
-  /* ================= EXPORT USERS TO EXCEL ================= */
+  /* =======================================================
+     EXPORT USERS TO EXCEL
+  ======================================================= */
+
+  const filteredUsers = useMemo(() => {
+    if (!Array.isArray(users)) return [];
+
+    return users
+      .filter(
+        (user) =>
+          user && typeof user === "object"
+      )
+      .filter((user) => {
+        const nameMatch = `${user?.firstName ?? ""} ${
+          user?.lastName ?? ""
+        }`
+          .toLowerCase()
+          .includes(search.toLowerCase());
+
+        const plantMatch = plantFilter
+          ? typeof user?.department?.plant ===
+              "object" &&
+            user.department.plant?._id ===
+              plantFilter
+          : true;
+
+        const departmentMatch =
+          departmentFilter
+            ? user?.department?._id ===
+              departmentFilter
+            : true;
+
+        const roleMatch = roleFilter
+          ? user?.role === roleFilter
+          : true;
+
+        const plantAccessMatch =
+          isSuperAdmin ||
+          (typeof user?.department?.plant ===
+            "object" &&
+            typeof currentUser?.department
+              ?.plant === "object" &&
+            user.department.plant?._id ===
+              currentUser.department.plant
+                ?._id);
+
+        return (
+          plantAccessMatch &&
+          nameMatch &&
+          plantMatch &&
+          departmentMatch &&
+          roleMatch
+        );
+      });
+  }, [
+    users,
+    search,
+    plantFilter,
+    departmentFilter,
+    roleFilter,
+    currentUser,
+    isSuperAdmin,
+  ]);
 
   const handleExportUsers = () => {
-    const exportData = filteredUsers.map((user) => ({
-      "First Name": user.firstName || "",
-      "Last Name": user.lastName || "",
-      Plant:
-        typeof user.department?.plant === "object"
-          ? user.department?.plant?.name
-          : "",
-      Department: user.department?.name || "",
-      Gender: user.gender || "",
-    }));
+    const exportData = filteredUsers.map(
+      (user) => ({
+        "First Name":
+          user.firstName || "",
+
+        "Last Name":
+          user.lastName || "",
+
+        Plant:
+          typeof user.department?.plant ===
+          "object"
+            ? user.department?.plant?.name
+            : "",
+
+        Department:
+          user.department?.name || "",
+
+        Gender:
+          user.gender || "",
+
+        Role: user.role || "",
+      })
+    );
 
     const worksheet =
       XLSX.utils.json_to_sheet(exportData);
 
-    const workbook = XLSX.utils.book_new();
+    const workbook =
+      XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(
       workbook,
@@ -149,105 +383,100 @@ const matchedDepartment = latestDepartments.find(
     XLSX.writeFile(workbook, "users.xlsx");
   };
 
+  /* =======================================================
+     LOAD DEPARTMENTS
+  ======================================================= */
 
-  /* ================= AUTO LOAD DEPARTMENT FOR ADMIN/SUPERVISOR ================= */
   useEffect(() => {
-    if (!isSuperAdmin && currentUser?.department?.plant) {
+    if (
+      !isSuperAdmin &&
+      currentUser?.department?.plant
+    ) {
       const plantId =
-        typeof currentUser.department.plant === "object"
+        typeof currentUser.department.plant ===
+        "object"
           ? currentUser.department.plant._id
           : currentUser.department.plant;
 
       if (plantId) {
         setPlantFilter(plantId);
+
         loadDepartments(plantId);
       }
     }
-  }, [currentUser, isSuperAdmin, loadDepartments]);
+  }, [
+    currentUser,
+    isSuperAdmin,
+    loadDepartments,
+  ]);
 
-  /* ================= LOAD DEPARTMENTS WHEN SUPERADMIN CHANGES PLANT ================= */
   useEffect(() => {
     if (isSuperAdmin && plantFilter) {
       loadDepartments(plantFilter);
+
       setDepartmentFilter("");
     }
-  }, [plantFilter, isSuperAdmin, loadDepartments]);
+  }, [
+    plantFilter,
+    isSuperAdmin,
+    loadDepartments,
+  ]);
 
-  /* ================= FILTERED DEPARTMENTS ================= */
+  /* =======================================================
+     FILTERED DEPARTMENTS
+  ======================================================= */
+
   const filteredDepartments = useMemo(() => {
     if (isSuperAdmin) {
       return plantFilter
         ? departments.filter((dept) =>
             typeof dept.plant === "object"
-              ? dept.plant._id === plantFilter
+              ? dept.plant._id ===
+                plantFilter
               : dept.plant === plantFilter
           )
         : departments;
     }
 
-    // admin / supervisor → already loaded by their plant
     return departments;
-  }, [departments, plantFilter, isSuperAdmin]);
+  }, [
+    departments,
+    plantFilter,
+    isSuperAdmin,
+  ]);
 
-  /* ================= FILTER USERS ================= */
-  const filteredUsers = useMemo(() => {
-  if (!Array.isArray(users)) return [];
+  /* =======================================================
+     PAGINATION
+  ======================================================= */
 
-  return users
-    .filter((user) => user && typeof user === "object") // ✅ protect against null
-    .filter((user) => {
-      const nameMatch = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-      const plantMatch = plantFilter
-        ? typeof user?.department?.plant === "object" &&
-          user.department.plant?._id === plantFilter
-        : true;
-
-      const departmentMatch = departmentFilter
-        ? user?.department?._id === departmentFilter
-        : true;
-
-      const roleMatch = roleFilter ? user?.role === roleFilter : true;
-
-      const plantAccessMatch =
-        isSuperAdmin ||
-        (typeof user?.department?.plant === "object" &&
-          typeof currentUser?.department?.plant === "object" &&
-          user.department.plant?._id ===
-            currentUser.department.plant?._id);
-
-      return (
-        plantAccessMatch &&
-        nameMatch &&
-        plantMatch &&
-        departmentMatch &&
-        roleMatch
-      );
-    });
-}, [
-  users,
-  search,
-  plantFilter,
-  departmentFilter,
-  roleFilter,
-  currentUser,
-  isSuperAdmin,
-]);
-
-
-  /* ================= PAGINATION ================= */
   const totalUsers = filteredUsers.length;
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const endIndex = Math.min(startIndex + usersPerPage, totalUsers);
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  const startIndex =
+    (currentPage - 1) * usersPerPage;
+
+  const endIndex = Math.min(
+    startIndex + usersPerPage,
+    totalUsers
+  );
+
+  const paginatedUsers =
+    filteredUsers.slice(
+      startIndex,
+      endIndex
+    );
 
   useEffect(() => {
-    if (startIndex >= filteredUsers.length && currentPage !== 1) {
+    if (
+      startIndex >= filteredUsers.length &&
+      currentPage !== 1
+    ) {
       setCurrentPage(1);
     }
-  }, [filteredUsers, currentPage, startIndex]);
+  }, [
+    filteredUsers,
+    currentPage,
+    startIndex,
+  ]);
 
   /* ================= UI ================= */
   return (
@@ -361,7 +590,7 @@ const matchedDepartment = latestDepartments.find(
 
   {/* ADD USER BUTTON */}
   <button
-    className="bg-black text-white px-4 py-2 rounded-md text-sm hover:shadow-md hover:scale-105 hover:bg-gray-400 transition duration-200"
+    className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
     onClick={() => {
       if (currentUser?.role === "supervisor") {
         navigate(SUPERVISOR_USERS_ROUTE + "/adduser");
