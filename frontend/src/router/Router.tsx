@@ -29,6 +29,7 @@ import { AdminDashboardLayout } from '../pages/layout/AdminDasboardLayout';
 import Users from '../pages/dashboard/users';
 import Department from '../pages/dashboard/Department';
 import SolutionByAdminPage from '../pages/request/SolutionByAdminPage';
+import AssignedDevices from '../pages/dashboard/AssignedDevices';
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +72,8 @@ export const router = createBrowserRouter([
     {path: "users/adduser",element: <AddUser />},
     {path: "users/editUser/:id",element: <EditUser />},
     {path: "devices",element: <Devices />},
+    {path: "devices",element: <Devices />},
+    {path: "assigned-devices",element: <AssignedDevices />},
     {path: "devices/adddevice", element: <AddDevice />},
     {path: "devices/editDevice/:id",element: <EditDevice/>},
     {path: "devices/detail/:id",element: <DeviceDetail/>},
@@ -101,6 +104,7 @@ export const router = createBrowserRouter([
     {path: "users/adduser",element: <AddUser />},
     {path: `users/editUser/:id`,element: <EditUser />},
     {path: "devices",element: <Devices />},
+    {path: "assigned-devices",element: <AssignedDevices />},
     {path: "devices/adddevice", element: <AddDevice />},
     {path: "devices/editDevice/:id",element: <EditDevice/>},
     {path: "devices/detail/:id",element: <DeviceDetail/>},
@@ -133,6 +137,7 @@ export const router = createBrowserRouter([
     {path: "users/adduser",element: <AddUser />},
     {path: `users/editUser/:id`,element: <EditUser />},
     {path: "devices",element: <Devices />},
+    {path: "assigned-devices",element: <AssignedDevices />},
     {path: "devices/adddevice", element: <AddDevice />},
     {path: "devices/editDevice/:id",element: <EditDevice/>},
     {path: "devices/detail/:id",element: <DeviceDetail/>},

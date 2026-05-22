@@ -17,6 +17,13 @@ export const getDepartmentsByPlant = async (
   return res.data.data;
 };
 
+// export const getDepartmentsByPlant = async (plantId: string) => {
+//   const response = await api.get(
+//     `/department/getDepartmentsByPlant/${plantId}`
+//   );
+
+//   return response.data.departments || [];
+// };
 
 
 export const createDepartment = (payload: CreateDepartmentPayload) =>

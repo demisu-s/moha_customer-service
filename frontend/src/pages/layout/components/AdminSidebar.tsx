@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaRegFileAlt,FaBuilding } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/nono.png'; 
-import {  SIGN_IN_ROUTE, ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE, ADMIN_DEVICES_ROUTE, ADMIN_SCHEDULES_ROUTE, ADMIN_REPORT_ROUTE, ADMIN_OVERVIEW_ROUTE, ADMIN_DEPARTMENT_ROUTE } from '../../../router/routeConstants';
+import {  SIGN_IN_ROUTE, ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE, ADMIN_DEVICES_ROUTE, ADMIN_SCHEDULES_ROUTE, ADMIN_REPORT_ROUTE, ADMIN_OVERVIEW_ROUTE, ADMIN_DEPARTMENT_ROUTE, ADMIN_ASSIGNED_DEVICES_ROUTE } from '../../../router/routeConstants';
 import { useUserContext } from '../../../context/UserContext';
 
 export function AdminSidebar() {
@@ -19,6 +19,7 @@ const handleLogout = () => {
     { to: ADMIN_USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
      { to: ADMIN_DEPARTMENT_ROUTE, icon: <FaBuilding />, label: 'department' },
     { to: ADMIN_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
+    { to: ADMIN_ASSIGNED_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Assigned Devices' },
     { to: ADMIN_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
     { to: ADMIN_REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },
     { to: ADMIN_OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },

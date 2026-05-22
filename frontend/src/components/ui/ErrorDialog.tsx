@@ -1,17 +1,16 @@
+// components/ui/ErrorDialog.tsx
 
 import * as Dialog from "@radix-ui/react-dialog";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title?: string;
   message: string;
 };
 
-export default function SuccessDialog({
+export default function ErrorDialog({
   open,
   onOpenChange,
-  title = "Success",
   message,
 }: Props) {
   return (
@@ -33,11 +32,11 @@ export default function SuccessDialog({
           "
         >
           <div className="text-5xl mb-3">
-            ✅
+            ❌
           </div>
 
-          <Dialog.Title className="text-xl font-bold text-green-700">
-            {title}
+          <Dialog.Title className="text-xl font-bold text-red-700">
+            Error
           </Dialog.Title>
 
           <Dialog.Description className="text-gray-600 mt-2 whitespace-pre-line">
@@ -48,11 +47,11 @@ export default function SuccessDialog({
             onClick={() => onOpenChange(false)}
             className="
               mt-5 px-4 py-2 rounded-md
-              bg-black text-white
-              hover:bg-gray-800
+              bg-red-600 text-white
+              hover:bg-red-700
             "
           >
-            OK
+            Close
           </button>
         </Dialog.Content>
       </Dialog.Portal>

@@ -1,204 +1,384 @@
 import { useEffect, useState } from "react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+  Factory,
+  Building2,
+} from "lucide-react";
 
 import CreatePlantModal from "../../components/CreatePlantModal";
 import CreateDepartmentModal from "../../components/CreateDepartmentModal";
 import EditPlantModal from "../../components/EditPlantModal";
 import EditDepartmentModal from "../../components/EditDepartmentModal";
 
-import { PlantPayload, DepartmentPayload } from "../../api/global.types";
+import LoadingDialog from "../../components/ui/LoadingDialog";
+import SuccessDialog from "../../components/ui/SuccessDialog";
+import ErrorDialog from "../../components/ui/ErrorDialog";
+
+import {
+  PlantPayload,
+  DepartmentPayload,
+} from "../../api/global.types";
+
 import { usePlantContext } from "../../context/PlantContext";
 import { useDepartmentContext } from "../../context/DepartmentContext";
 
 const Plants = () => {
-  /* 🔹 CONTEXTS */
-  const { plants, refreshPlants, deletePlantHandler } = usePlantContext();
-  const { departments, refreshDepartments, deleteDepartmentHandler } =
-    useDepartmentContext();
+  const {
+    plants,
+    refreshPlants,
+    deletePlantHandler,
+  } = usePlantContext();
 
-  const [selectedPlant, setSelectedPlant] = useState<PlantPayload | null>(null);
+  const {
+    departments,
+    refreshDepartments,
+    deleteDepartmentHandler,
+  } = useDepartmentContext();
 
-  const [editPlant, setEditPlant] = useState<PlantPayload | null>(null);
+  const [selectedPlant, setSelectedPlant] =
+    useState<PlantPayload | null>(null);
+
+  const [editPlant, setEditPlant] =
+    useState<PlantPayload | null>(null);
+
   const [editDepartment, setEditDepartment] =
     useState<DepartmentPayload | null>(null);
 
-  const [showPlantModal, setShowPlantModal] = useState(false);
-  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [showPlantModal, setShowPlantModal] =
+    useState(false);
 
-  /* 🔹 Load plants */
+  const [showDeptModal, setShowDeptModal] =
+    useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [successOpen, setSuccessOpen] =
+    useState(false);
+  const [errorOpen, setErrorOpen] =
+    useState(false);
+  const [message, setMessage] = useState("");
+
   useEffect(() => {
     refreshPlants();
-  }, []);
+  }, [refreshPlants]);
 
-  /* 🔹 Load departments */
   useEffect(() => {
     if (selectedPlant) {
       refreshDepartments(selectedPlant._id);
     }
-  }, [selectedPlant]);
+  }, [selectedPlant, refreshDepartments]);
+
+  const showSuccess = (msg: string) => {
+    setMessage(msg);
+    setSuccessOpen(true);
+  };
+
+  const showError = (msg: string) => {
+    setMessage(msg);
+    setErrorOpen(true);
+  };
+
+  const handleDeletePlant = async (
+    id: string
+  ) => {
+    try {
+      setLoading(true);
+
+      await deletePlantHandler(id);
+      await refreshPlants();
+
+      showSuccess(
+        "Plant deleted successfully"
+      );
+    } catch (err: any) {
+      showError(err?.message || "Delete failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteDepartment = async (
+    id: string
+  ) => {
+    if (!selectedPlant) return;
+
+    try {
+      setLoading(true);
+
+      await deleteDepartmentHandler(id);
+
+      await refreshDepartments(
+        selectedPlant._id
+      );
+
+      showSuccess(
+        "Department deleted successfully"
+      );
+    } catch (err: any) {
+      showError(err?.message || "Delete failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="p-6">
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          {selectedPlant ? `${selectedPlant.name} Departments` : "Plants"}
-        </h1>
+    <div className="min-h-screen bg-gray-100 p-6">
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            {selectedPlant
+              ? `${selectedPlant.name} Departments`
+              : "Plants Management"}
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Manage plants and departments
+          </p>
+        </div>
 
         {!selectedPlant ? (
           <button
-            className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
             onClick={() => setShowPlantModal(true)}
+            className="flex items-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
           >
-            + Create Plant
+            <Plus size={18} />
+            Create Plant
           </button>
         ) : (
           <button
-            className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
             onClick={() => setShowDeptModal(true)}
+            className="flex items-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
           >
-            + Create Department
+            <Plus size={18} />
+            Create Department
           </button>
         )}
       </div>
 
-      {/* PLANTS TABLE */}
-      {!selectedPlant && (
-        <div className="bg-white shadow-md rounded-xl overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-gray-100 text-gray-600 text-sm uppercase">
-              <tr>
-                <th className="px-6 py-3">No</th>
-                <th className="px-6 py-3">Name</th>
-                <th className="px-6 py-3">Area</th>
-                <th className="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody className="text-gray-700">
-              {plants.map((p, i) => (
-                <tr
-                  key={p._id}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-4">{i + 1}</td>
-
-                  <td
-                    className="px-6 py-4 text-blue-600 cursor-pointer hover:underline"
-                    onClick={() => setSelectedPlant(p)}
-                  >
-                    {p.name}
-                  </td>
-
-                  <td className="px-6 py-4">{p.area}</td>
-
-                  <td className="px-6 py-4 text-right space-x-3">
-                    <button
-                      className="text-blue-600 hover:underline"
-                      onClick={() => setEditPlant(p)}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className="text-red-600 hover:underline"
-                      onClick={async () => {
-                        await deletePlantHandler(p._id);
-                        refreshPlants();
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {plants.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="text-center py-6 text-gray-400"
-                  >
-                    No plants found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Back Button */}
+      {selectedPlant && (
+        <button
+          onClick={() => setSelectedPlant(null)}
+          className="mb-5 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+        >
+          <ArrowLeft size={16} />
+          Back to Plants
+        </button>
       )}
 
-      {/* DEPARTMENTS TABLE */}
-      {selectedPlant && (
-        <>
-          <button
-            onClick={() => setSelectedPlant(null)}
-            className="mb-4 text-blue-600 hover:underline"
-          >
-            ← Back to Plants
-          </button>
+      {/* Plants Table */}
+      {!selectedPlant && (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b p-5">
+            <div className="flex items-center gap-2">
+              <Factory className="text-gray-700" />
 
-          <div className="bg-white shadow-md rounded-xl overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-gray-100 text-gray-600 text-sm uppercase">
+              <h2 className="text-lg font-semibold">
+                Plants List
+              </h2>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b bg-gray-50/80 text-left">
                 <tr>
-                  <th className="px-6 py-3">No</th>
-                  <th className="px-6 py-3">Name</th>
-                  <th className="px-6 py-3">Floor</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    #
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Name
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    City
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Area
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
-              <tbody className="text-gray-700">
-                {departments.map((d, i) => (
+              <tbody>
+                {plants.map((plant, index) => (
                   <tr
-                    key={d._id}
-                    className="border-t hover:bg-gray-50 transition"
+                    key={plant._id}
+                    className="border-b border-gray-100 transition duration-200 hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4">{i + 1}</td>
-                    <td className="px-6 py-4">{d.name}</td>
-                    <td className="px-6 py-4">{d.floor}</td>
+                    <td className="px-6 py-4">
+                      {index + 1}
+                    </td>
 
-                    <td className="px-6 py-4 text-right space-x-3">
-                      <button
-                        className="text-blue-600 hover:underline"
-                        onClick={() => setEditDepartment(d)}
-                      >
-                        Edit
-                      </button>
+                    <td
+                      onClick={() =>
+                        setSelectedPlant(plant)
+                      }
+                      className="cursor-pointer px-6 py-4 font-medium text-blue-600 hover:underline"
+                    >
+                      {plant.name}
+                    </td>
 
-                      <button
-                        className="text-red-600 hover:underline"
-                        onClick={async () => {
-                          await deleteDepartmentHandler(d._id);
-                          refreshDepartments(selectedPlant._id);
-                        }}
-                      >
-                        Delete
-                      </button>
+                    <td className="px-6 py-4">
+                      {plant.city}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      {plant.area}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() =>
+                            setEditPlant(plant)
+                          }
+                          className="text-gray-500 transition duration-200 hover:text-blue-600"
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleDeletePlant(
+                              plant._id
+                            )
+                          }
+                          className="text-gray-500 transition duration-200 hover:text-red-600"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
 
-                {departments.length === 0 && (
+                {plants.length === 0 && (
                   <tr>
                     <td
-                      colSpan={4}
-                      className="text-center py-6 text-gray-400"
+                      colSpan={5}
+                      className="py-10 text-center text-gray-400"
                     >
-                      No departments found
+                      No plants found
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Departments Table */}
+      {selectedPlant && (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b p-5">
+            <div className="flex items-center gap-2">
+              <Building2 className="text-gray-700" />
+
+              <h2 className="text-lg font-semibold">
+                Departments List
+              </h2>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b bg-gray-50/80 text-left">
+                <tr>
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    #
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Name
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Block
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Floor
+                  </th>
+
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {departments.map(
+                  (department, index) => (
+                    <tr
+                      key={department._id}
+                      className="border-b border-gray-100 transition duration-200 hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4">
+                        {index + 1}
+                      </td>
+
+                      <td className="px-6 py-4 font-medium">
+                        {department.name}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {department.block}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {department.floor}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() =>
+                              setEditDepartment(
+                                department
+                              )
+                            }
+                            className="text-gray-500 transition duration-200 hover:text-blue-600"
+                          >
+                            <Pencil size={18} />
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              handleDeleteDepartment(
+                                department._id
+                              )
+                            }
+                            className="text-gray-500 transition duration-200 hover:text-red-600"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {/* MODALS */}
       {showPlantModal && (
         <CreatePlantModal
-          onClose={() => setShowPlantModal(false)}
+          onClose={() =>
+            setShowPlantModal(false)
+          }
           onCreated={refreshPlants}
         />
       )}
@@ -206,8 +386,14 @@ const Plants = () => {
       {showDeptModal && selectedPlant && (
         <CreateDepartmentModal
           plantId={selectedPlant._id}
-          onClose={() => setShowDeptModal(false)}
-          onCreated={() => refreshDepartments(selectedPlant._id)}
+          onClose={() =>
+            setShowDeptModal(false)
+          }
+          onCreated={() =>
+            refreshDepartments(
+              selectedPlant._id
+            )
+          }
         />
       )}
 
@@ -215,24 +401,40 @@ const Plants = () => {
         <EditPlantModal
           plant={editPlant}
           onClose={() => setEditPlant(null)}
-          onUpdated={async () => {
-            await refreshPlants();
-            setSelectedPlant(null);
-            setEditPlant(null);
-          }}
+          onUpdated={refreshPlants}
         />
       )}
 
       {editDepartment && selectedPlant && (
         <EditDepartmentModal
           department={editDepartment}
-          onClose={() => setEditDepartment(null)}
-          onUpdated={() => {
-            refreshDepartments(selectedPlant._id);
-            setEditDepartment(null);
-          }}
+          onClose={() =>
+            setEditDepartment(null)
+          }
+          onUpdated={() =>
+            refreshDepartments(
+              selectedPlant._id
+            )
+          }
         />
       )}
+
+      <LoadingDialog
+        open={loading}
+        message="Processing..."
+      />
+
+      <SuccessDialog
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        message={message}
+      />
+
+      <ErrorDialog
+        open={errorOpen}
+        onOpenChange={setErrorOpen}
+        message={message}
+      />
     </div>
   );
 };

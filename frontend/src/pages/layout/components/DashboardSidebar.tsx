@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaRegFileAlt } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/nono.png'; 
-import { DASHBOARD_ROUTE,REPORT_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE, OVERVIEW_ROUTE } from '../../../router/routeConstants';
+import { DASHBOARD_ROUTE,REPORT_ROUTE, USERS_ROUTE, DEVICES_ROUTE, PLANTS_ROUTE, SCHEDULES_ROUTE, SIGN_IN_ROUTE, OVERVIEW_ROUTE, ASSIGNED_DEVICES_ROUTE } from '../../../router/routeConstants';
 import { useUserContext } from '../../../context/UserContext';
 export function DashboardSidebar() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export function DashboardSidebar() {
     { to: DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
     { to: USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
     { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
+    { to: ASSIGNED_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Assigned Devices' },
     { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
     { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
     { to: REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },

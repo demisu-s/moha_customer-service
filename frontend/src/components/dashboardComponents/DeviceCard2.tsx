@@ -41,7 +41,7 @@ const DeviceCard2: React.FC<DeviceCard2Props> = ({
         <Field label="Serial No" value={serialNo} />
         <Field label="Department" value={department || "N/A"} />
         <Field label="Plant" value={plant || "N/A"} />
-        <Field label="User name" value={userName || "Unassigned"} />
+        <Field label="User" value={userName || "Unassigned"} />
       </div>
 
       <div className="flex justify-between items-center mt-2">

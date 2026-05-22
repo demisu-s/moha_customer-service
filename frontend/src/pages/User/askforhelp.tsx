@@ -4,7 +4,7 @@ import { Button } from "@radix-ui/themes";
 import { IoArrowBack } from "react-icons/io5";
 import { useDeviceContext } from "../../context/DeviceContext";
 import { useUserContext } from "../../context/UserContext";
-import { SuccessDialog } from "../../components/ui/SuccessDialog";
+import  SuccessDialog  from "../../components/ui/SuccessDialog";
 import {
   useServiceRequests,
   ProblemCategory,
@@ -207,6 +207,7 @@ const AskForHelp: React.FC = () => {
       <SuccessDialog
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}
+        message="Your service request was submitted successfully."
       />
     </div>
   );

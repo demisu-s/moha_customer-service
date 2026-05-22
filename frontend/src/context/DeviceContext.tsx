@@ -6,7 +6,7 @@ import {
   ReactNode,
 } from "react";
 import { getDevices, createDevice, deleteDevice,updateDevice } from "../api/device.api";
-import { Device } from "../api/global.types";
+import { CreateDevicePayload, Device } from "../api/global.types";
 import { useUserContext } from "./UserContext";
 
 interface DeviceContextType {
@@ -47,15 +47,15 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
 
 
   /* ================= ADD DEVICE ================= */
-
-  const addDevice = async (data: Omit<Device, "_id">) => {
-    try {
-      const saved = await createDevice(data);
-      setDevices((prev) => [...prev, saved]);
-    } catch (error) {
-      console.error("Failed to add device:", error);
-    }
-  };
+const addDevice = async (data: Omit<Device, "_id">) => {
+  try {
+    const saved = await createDevice(data);
+    setDevices((prev) => [...prev, saved]);
+  } catch (error) {
+    console.error("Failed to add device:", error);
+    throw error;
+  }
+};
 
   /* ================= UPDATE DEVICE ================= */
   

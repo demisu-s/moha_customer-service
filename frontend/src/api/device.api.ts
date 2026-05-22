@@ -21,7 +21,7 @@ export const getDevices = async (): Promise<Device[]> => {
 /* ================= CREATE DEVICE ================= */
 
 export const createDevice = async (
-  deviceData: Omit<Device, "_id" | "user">
+  deviceData: Omit<Device, "_id">
 ): Promise<Device> => {
   try {
     const response = await api.post<{
@@ -42,7 +42,7 @@ export const createDevice = async (
 
 export const updateDevice = async (
   deviceId: string,
-  deviceData: Omit<Device, "_id" | "user">
+  deviceData: Omit<Device, "_id">
 ): Promise<Device> => {
   try {
     const response = await api.put<{
@@ -51,7 +51,9 @@ export const updateDevice = async (
     }>(`/device/updateDevice/${deviceId}`, {
       _id: deviceId,
       ...Object.fromEntries(
-        Object.entries(deviceData).filter(([key]) => key !== "_id")
+        Object.entries(deviceData).filter(
+          ([key]) => key !== "_id"
+        )
       ),
     });
 

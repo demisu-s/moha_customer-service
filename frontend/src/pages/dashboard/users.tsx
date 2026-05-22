@@ -6,6 +6,11 @@ import { CreateUserPayload } from "../../api/user.api";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
 import { getDepartmentsByPlant } from "../../api/department.api";
+
+import LoadingDialog from "../../components/ui/LoadingDialog";
+import SuccessDialog from "../../components/ui/SuccessDialog";
+import ErrorDialog from "../../components/ui/ErrorDialog";
+
 import {
   SUPERVISOR_USERS_ROUTE,
   DASHBOARD_ROUTE,
@@ -38,6 +43,19 @@ export default function UserManagement(): JSX.Element {
   const [userToDelete, setUserToDelete] =
     useState<string | null>(null);
 
+  /* ================= DIALOG STATES ================= */
+
+  const [loading, setLoading] = useState(false);
+
+  const [successOpen, setSuccessOpen] =
+    useState(false);
+
+  const [errorOpen, setErrorOpen] =
+    useState(false);
+
+  const [dialogMessage, setDialogMessage] =
+    useState("");
+
   const navigate = useNavigate();
 
   const isSuperAdmin =
@@ -54,6 +72,8 @@ export default function UserManagement(): JSX.Element {
 
     if (!file) return;
 
+    setLoading(true);
+
     try {
       const data = await file.arrayBuffer();
 
@@ -66,10 +86,13 @@ export default function UserManagement(): JSX.Element {
       const excelData: any[] =
         XLSX.utils.sheet_to_json(worksheet);
 
-      console.log("Excel Data:", excelData);
-
       if (excelData.length === 0) {
-        alert("Excel file is empty");
+        setLoading(false);
+
+        setDialogMessage("Excel file is empty.");
+
+        setErrorOpen(true);
+
         return;
       }
 
@@ -250,9 +273,11 @@ export default function UserManagement(): JSX.Element {
         }
       }
 
-      /* ================= FINAL ALERT ================= */
+      /* ================= FINAL RESULT ================= */
 
-      let message = `Import completed.\n\n`;
+      setLoading(false);
+
+      let message = `loading completed.\n\n`;
 
       message += `Success: ${successCount}\n`;
 
@@ -264,16 +289,26 @@ export default function UserManagement(): JSX.Element {
         message += failedRows.join("\n");
       }
 
-      alert(message);
+      setDialogMessage(message);
+
+      if (failedRows.length > 0) {
+        setErrorOpen(true);
+      } else {
+        setSuccessOpen(true);
+      }
     } catch (err) {
       console.error(
         "Error reading Excel file:",
         err
       );
 
-      alert(
+      setLoading(false);
+
+      setDialogMessage(
         "Failed to read Excel file. Please ensure it's a valid .xlsx or .xls file."
       );
+
+      setErrorOpen(true);
     } finally {
       e.target.value = "";
     }
@@ -479,28 +514,56 @@ export default function UserManagement(): JSX.Element {
   ]);
 
   /* ================= UI ================= */
+
   return (
     <div className="max-w-6xl mx-auto">
+
+      {/* LOADING DIALOG */}
+      <LoadingDialog
+        open={loading}
+        message="Importing users..."
+      />
+
+      {/* SUCCESS DIALOG */}
+      <SuccessDialog
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        message={dialogMessage}
+      />
+
+      {/* ERROR DIALOG */}
+      <ErrorDialog
+        open={errorOpen}
+        onOpenChange={setErrorOpen}
+        message={dialogMessage}
+      />
+
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 pb-1">
           User Management
         </h1>
+
         <p className="text-sm text-gray-400">
           Manage users, roles, and departments efficiently.
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4">
+
         <div className="flex items-center gap-2 w-full sm:max-w-md">
+
           <input
             type="text"
             placeholder="Search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
             className="w-full border rounded-md px-3 py-2 text-sm"
           />
 
           <DropdownMenu.Root>
+
             <DropdownMenu.Trigger asChild>
               <button className="px-3 py-2 border rounded-md text-sm hover:bg-gray-100">
                 Filter
@@ -508,20 +571,32 @@ export default function UserManagement(): JSX.Element {
             </DropdownMenu.Trigger>
 
             <DropdownMenu.Portal>
+
               <DropdownMenu.Content className="bg-white shadow-lg border rounded-md p-3 w-56 space-y-3">
 
-                {/* Plant ONLY for superadmin */}
+                {/* Plant */}
                 {isSuperAdmin && (
                   <div>
-                    <label className="text-xs text-gray-500">Plant</label>
+                    <label className="text-xs text-gray-500">
+                      Plant
+                    </label>
+
                     <select
                       className="w-full border mt-1 px-2 py-1 rounded text-sm"
                       value={plantFilter}
-                      onChange={(e) => setPlantFilter(e.target.value)}
+                      onChange={(e) =>
+                        setPlantFilter(
+                          e.target.value
+                        )
+                      }
                     >
                       <option value="">All</option>
+
                       {plants.map((plant) => (
-                        <option key={plant._id} value={plant._id}>
+                        <option
+                          key={plant._id}
+                          value={plant._id}
+                        >
                           {plant.name}
                         </option>
                       ))}
@@ -531,32 +606,56 @@ export default function UserManagement(): JSX.Element {
 
                 {/* Department */}
                 <div>
-                  <label className="text-xs text-gray-500">Department</label>
+                  <label className="text-xs text-gray-500">
+                    Department
+                  </label>
+
                   <select
                     className="w-full border mt-1 px-2 py-1 rounded text-sm"
                     value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    onChange={(e) =>
+                      setDepartmentFilter(
+                        e.target.value
+                      )
+                    }
                   >
                     <option value="">All</option>
-                    {filteredDepartments.map((dept) => (
-                      <option key={dept._id} value={dept._id}>
-                        {dept.name}
-                      </option>
-                    ))}
+
+                    {filteredDepartments.map(
+                      (dept) => (
+                        <option
+                          key={dept._id}
+                          value={dept._id}
+                        >
+                          {dept.name}
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
 
                 {/* Role */}
                 <div>
-                  <label className="text-xs text-gray-500">Role</label>
+                  <label className="text-xs text-gray-500">
+                    Role
+                  </label>
+
                   <select
                     className="w-full border mt-1 px-2 py-1 rounded text-sm"
                     value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
+                    onChange={(e) =>
+                      setRoleFilter(
+                        e.target.value
+                      )
+                    }
                   >
                     <option value="">All</option>
+
                     {roles.map((role) => (
-                      <option key={role} value={role}>
+                      <option
+                        key={role}
+                        value={role}
+                      >
                         {role}
                       </option>
                     ))}
@@ -564,110 +663,206 @@ export default function UserManagement(): JSX.Element {
                 </div>
 
               </DropdownMenu.Content>
+
             </DropdownMenu.Portal>
+
           </DropdownMenu.Root>
+
         </div>
 
-      <div className="flex items-center gap-2">
-  {/* IMPORT BUTTON */}
-  <label className="px-4 py-2 border rounded-md text-sm cursor-pointer hover:bg-gray-100">
-    Import
-    <input
-      type="file"
-      accept=".xlsx,.xls"
-      hidden
-      onChange={handleImportUsers}
-    />
-  </label>
+        <div className="flex items-center gap-2">
 
-  {/* EXPORT BUTTON */}
-  <button
-    onClick={handleExportUsers}
-    className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
-  >
-    Export
-  </button>
+          {/* IMPORT */}
+          <label className="px-4 py-2 border rounded-md text-sm cursor-pointer hover:bg-gray-100">
+            Import
 
-  {/* ADD USER BUTTON */}
-  <button
-    className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
-    onClick={() => {
-      if (currentUser?.role === "supervisor") {
-        navigate(SUPERVISOR_USERS_ROUTE + "/adduser");
-      } else if (currentUser?.role === "admin") {
-        navigate(ADMIN_DASHBOARD_ROUTE + "/users/adduser");
-      } else if (currentUser?.role === "superadmin") {
-        navigate(DASHBOARD_ROUTE + "/users/adduser");
-      }
-    }}
-  >
-    + Add user
-  </button>
-</div>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              hidden
+              onChange={handleImportUsers}
+            />
+          </label>
+
+          {/* EXPORT */}
+          <button
+            onClick={handleExportUsers}
+            className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
+          >
+            Export
+          </button>
+
+          {/* ADD USER */}
+          <button
+            className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100"
+            onClick={() => {
+              if (
+                currentUser?.role ===
+                "supervisor"
+              ) {
+                navigate(
+                  SUPERVISOR_USERS_ROUTE +
+                    "/adduser"
+                );
+              } else if (
+                currentUser?.role ===
+                "admin"
+              ) {
+                navigate(
+                  ADMIN_DASHBOARD_ROUTE +
+                    "/users/adduser"
+                );
+              } else if (
+                currentUser?.role ===
+                "superadmin"
+              ) {
+                navigate(
+                  DASHBOARD_ROUTE +
+                    "/users/adduser"
+                );
+              }
+            }}
+          >
+            + Add user
+          </button>
+
+        </div>
+
       </div>
 
-      {/* Table */}
+      {/* TABLE */}
       <div className="overflow-x-auto border rounded-md">
+
         <table className="min-w-full text-sm">
+
           <thead className="bg-gray-100 text-left font-bold text-lg">
+
             <tr>
               <th className="px-4 py-2">No</th>
-              <th className="px-4 py-2">First Name</th>
-              <th className="px-4 py-2">Last Name</th>
-              <th className="px-4 py-2">Plant</th>
-              <th className="px-4 py-2">Department</th>
-              <th className="px-4 py-2">Role</th>
-              <th className="px-4 py-2">Action</th>
+              <th className="px-4 py-2">
+                First Name
+              </th>
+              <th className="px-4 py-2">
+                Last Name
+              </th>
+              <th className="px-4 py-2">
+                Plant
+              </th>
+              <th className="px-4 py-2">
+                Department
+              </th>
+              <th className="px-4 py-2">
+                Role
+              </th>
+              <th className="px-4 py-2">
+                Action
+              </th>
             </tr>
+
           </thead>
 
           <tbody className="text-lg">
+
             {paginatedUsers.length > 0 ? (
-              paginatedUsers.map((user, idx) => (
-                <tr key={user._id} className="border-t">
-                  <td className="px-4 py-2">{startIndex + idx + 1}</td>
-                  <td className="px-4 py-2">{user.firstName ?? "-"}</td>
-                  <td className="px-4 py-2">{user.lastName ?? "-"}</td>
-                  <td className="px-4 py-2">
-                    {typeof user.department?.plant === "object" && user.department?.plant !== null && "name" in user.department.plant
-                      ? (user.department.plant as { name: string }).name
-                      : typeof user.department?.plant === "string"
+              paginatedUsers.map(
+                (user, idx) => (
+                  <tr
+                    key={user._id}
+                    className="border-t"
+                  >
+                    <td className="px-4 py-2">
+                      {startIndex + idx + 1}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {user.firstName ?? "-"}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {user.lastName ?? "-"}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {typeof user.department
+                        ?.plant === "object" &&
+                      user.department?.plant !==
+                        null &&
+                      "name" in
+                        user.department.plant
+                        ? (
+                            user.department
+                              .plant as {
+                              name: string;
+                            }
+                          ).name
+                        : typeof user.department
+                            ?.plant ===
+                          "string"
                         ? user.department.plant
                         : "-"}
-                  </td>
-                  <td className="px-4 py-2">
-                    {user.department?.name ?? "-"}
-                  </td>
-                  <td className="px-4 py-2">{user.role ?? "-"}</td>
-                  <td className="px-4 py-2 flex gap-2">
+                    </td>
 
-                    <button
-                      className="text-blue-600 hover:underline"
-                      onClick={() => {
-            if (currentUser?.role === "supervisor") {
-              navigate(SUPERVISOR_USERS_ROUTE + `/edituser/${user._id}`);
-            } else if (currentUser?.role === "admin") {
-              navigate(ADMIN_USERS_ROUTE + `/edituser/${user._id}`);
-            } else if (currentUser?.role === "superadmin") {
-              navigate(DASHBOARD_ROUTE + `/users/edituser/${user._id}`);
-            }
-          }}
-          
-                    >
-                      <Pencil1Icon className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-red-600 hover:underline"
-                      onClick={() => {
-                        setUserToDelete(user._id);
-                        setShowDialog(true);
-                      }}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    <td className="px-4 py-2">
+                      {user.department?.name ??
+                        "-"}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {user.role ?? "-"}
+                    </td>
+
+                    <td className="px-4 py-2 flex gap-2">
+
+                      <button
+                        className="text-blue-600 hover:underline"
+                        onClick={() => {
+                          if (
+                            currentUser?.role ===
+                            "supervisor"
+                          ) {
+                            navigate(
+                              SUPERVISOR_USERS_ROUTE +
+                                `/edituser/${user._id}`
+                            );
+                          } else if (
+                            currentUser?.role ===
+                            "admin"
+                          ) {
+                            navigate(
+                              ADMIN_USERS_ROUTE +
+                                `/edituser/${user._id}`
+                            );
+                          } else if (
+                            currentUser?.role ===
+                            "superadmin"
+                          ) {
+                            navigate(
+                              DASHBOARD_ROUTE +
+                                `/users/edituser/${user._id}`
+                            );
+                          }
+                        }}
+                      >
+                        <Pencil1Icon className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        className="text-red-600 hover:underline"
+                        onClick={() => {
+                          setUserToDelete(
+                            user._id
+                          );
+
+                          setShowDialog(true);
+                        }}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+
+                    </td>
+                  </tr>
+                )
+              )
             ) : (
               <tr>
                 <td
@@ -678,58 +873,89 @@ export default function UserManagement(): JSX.Element {
                 </td>
               </tr>
             )}
+
           </tbody>
+
         </table>
+
       </div>
 
-      {/* Delete Dialog */}
+      {/* DELETE DIALOG */}
       {showDialog && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+
             <h2 className="text-lg mb-4">
               Are you sure you want to delete this user?
             </h2>
+
             <div className="flex justify-end gap-2">
+
               <button
                 className="px-4 py-2 rounded-lg bg-gray-200"
-                onClick={() => setShowDialog(false)}
+                onClick={() =>
+                  setShowDialog(false)
+                }
               >
                 Cancel
               </button>
+
               <button
+              disabled
                 className="px-4 py-2 rounded-lg bg-black text-white"
                 onClick={() => {
-                  if (userToDelete) deleteUserHandler(userToDelete);
+                  if (userToDelete)
+                    deleteUserHandler(
+                      userToDelete
+                    );
+
                   setShowDialog(false);
+
                   setUserToDelete(null);
                 }}
               >
                 Delete
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
 
-      {/* Pagination */}
+      {/* PAGINATION */}
       <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-600">
+
         <span>
-          Showing {totalUsers === 0 ? 0 : startIndex + 1}–{endIndex} of{" "}
-          {totalUsers} users
+          Showing{" "}
+          {totalUsers === 0
+            ? 0
+            : startIndex + 1}
+          –{endIndex} of {totalUsers} users
         </span>
 
         <div className="space-x-2">
+
           <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.max(prev - 1, 1)
+              )
+            }
             disabled={currentPage === 1}
             className="px-3 py-1 border rounded-md"
           >
             Previous
           </button>
+
           <button
             onClick={() =>
               setCurrentPage((prev) =>
-                endIndex < totalUsers ? prev + 1 : prev
+                endIndex < totalUsers
+                  ? prev + 1
+                  : prev
               )
             }
             disabled={endIndex >= totalUsers}
@@ -737,8 +963,11 @@ export default function UserManagement(): JSX.Element {
           >
             Next
           </button>
+
         </div>
+
       </div>
+
     </div>
   );
 }

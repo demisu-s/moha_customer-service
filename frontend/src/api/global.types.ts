@@ -70,9 +70,22 @@ export interface Device {
   deviceType: "Printer" | "Laptop" | "Desktop" | "Scanner" |"Router" | "Switch"|"Other";
   deviceId: string;
   serialNumber: string;
-  user: User; // full object
+  user?: User | null;
   department: DepartmentPayload; // full object
   plant: PlantPayload; // full object
+  image?: string;
+}
+
+export interface CreateDevicePayload {
+  deviceName: string;
+  deviceType: "Printer" | "Laptop" | "Desktop" | "Scanner" | "Router" | "Switch" | "Other";
+  deviceId: string;
+  serialNumber: string;
+
+  user?: string | null;
+  department: string; // ObjectId
+  plant: string;      // ObjectId
+
   image?: string;
 }
 
