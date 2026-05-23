@@ -12,9 +12,6 @@ const ClientOverview: React.FC = () => {
 
   const [timeframe, setTimeframe] = useState<Timeframe>("Weekly");
 
-  /* =========================
-     👤 ONLY CURRENT USER REQUESTS
-  ========================== */
   const userRequests = useMemo(() => {
     if (!currentUser) return [];
 
@@ -25,9 +22,6 @@ const ClientOverview: React.FC = () => {
     );
   }, [requests, currentUser]);
 
-  /* =========================
-     ⏱ FILTER BY TIMEFRAME
-  ========================== */
   const filteredRequests = useMemo(() => {
     const now = new Date();
 
@@ -52,30 +46,24 @@ const ClientOverview: React.FC = () => {
     });
   }, [userRequests, timeframe]);
 
-  /* =========================
-     📊 STATS
-  ========================== */
   const stats = useMemo(() => {
-  return {
-    total: filteredRequests.length,
+    return {
+      total: filteredRequests.length,
 
-    pending: filteredRequests.filter(
-      (r) => r.status === "Pending" || r.status === "Assigned"
-    ).length,
+      pending: filteredRequests.filter(
+        (r) => r.status === "Pending" || r.status === "Assigned"
+      ).length,
 
-    solved: filteredRequests.filter(
-      (r) => r.status === "Resolved"
-    ).length,
+      solved: filteredRequests.filter(
+        (r) => r.status === "Resolved"
+      ).length,
 
-    unresolved: filteredRequests.filter(
-      (r) => r.status === "Unresolved"
-    ).length,
-  };
-}, [filteredRequests]);
+      unresolved: filteredRequests.filter(
+        (r) => r.status === "Unresolved"
+      ).length,
+    };
+  }, [filteredRequests]);
 
-  /* =========================
-     📅 UPCOMING SCHEDULE
-  ========================== */
   const upcomingSchedule = useMemo(() => {
     return userRequests
       .filter((r) => r.status === "Assigned")
@@ -93,17 +81,19 @@ const ClientOverview: React.FC = () => {
   }, [userRequests]);
 
   return (
-    <div className="px-6 space-y-6">
+    <div className="px-3 sm:px-4 md:px-6 space-y-6">
       {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Overview</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl md:text-3xl font-bold">
+          Overview
+        </h1>
 
         <select
           value={timeframe}
           onChange={(e) =>
             setTimeframe(e.target.value as Timeframe)
           }
-          className="border border-black rounded-md px-3 py-1 text-sm"
+          className="border border-black rounded-md px-3 py-2 text-sm w-full sm:w-auto"
         >
           {(["Daily", "Weekly", "Monthly", "Yearly"] as Timeframe[]).map(
             (tf) => (
@@ -125,10 +115,10 @@ const ClientOverview: React.FC = () => {
 
       {/* UPCOMING SCHEDULE */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-300 p-5">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-300 p-4 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <AiOutlineSchedule className="text-2xl" />
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-xl md:text-2xl font-bold">
               Upcoming Schedule
             </h2>
           </div>
@@ -170,10 +160,10 @@ const ClientOverview: React.FC = () => {
                 return (
                   <li
                     key={item._id || item.id}
-                    className="flex flex-col md:flex-row md:items-center md:justify-between p-4 rounded-xl border border-gray-200 bg-gray-50 hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:shadow-md hover:scale-[1.01] transition-all duration-200"
                   >
                     {/* LEFT */}
-                    <div className="space-y-1">
+                    <div className="space-y-1 break-words">
                       <div className="text-gray-900 font-semibold text-base">
                         {item.deviceType || item.deviceName || "Device"}
                       </div>
@@ -186,7 +176,7 @@ const ClientOverview: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 break-words">
                         {item.description}
                       </div>
 
@@ -197,7 +187,7 @@ const ClientOverview: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="text-xs text-blue-600 font-medium">
+                      <div className="text-xs text-blue-600 font-medium break-words">
                         Assigned Supervisor:{" "}
                         <span className="text-gray-700 font-semibold">
                           {item.assignedToName ||
@@ -207,9 +197,9 @@ const ClientOverview: React.FC = () => {
                     </div>
 
                     {/* RIGHT */}
-                    <div className="mt-3 md:mt-0 flex flex-col md:items-end gap-2">
+                    <div className="flex flex-col md:items-end gap-2">
                       <div
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                        className={`px-2 py-1 rounded-full text-xs font-semibold w-fit ${statusColor}`}
                       >
                         {statusLabel}
                       </div>
@@ -232,12 +222,12 @@ const ClientOverview: React.FC = () => {
         </div>
 
         {/* TIPS */}
-        <div className="bg-primary-900 rounded-xl border border-gray-300 p-5">
-          <h2 className="text-2xl font-bold mb-3 text-center">
+        <div className="bg-primary-900 rounded-xl border border-gray-300 p-4 md:p-5">
+          <h2 className="text-xl md:text-2xl font-bold mb-3 text-center">
             Tips & Suggestions
           </h2>
 
-          <div className="border border-gray-300 rounded-xl bg-white p-5 text-lg">
+          <div className="border border-gray-300 rounded-xl bg-white p-4 md:p-5 text-base md:text-lg">
             <ul className="list-disc list-inside text-gray-700 space-y-2">
               <li>
                 Attach photos when reporting to speed up diagnosis.
@@ -245,7 +235,7 @@ const ClientOverview: React.FC = () => {
               <li>
                 Tag impact level accurately for prioritization.
               </li>
-              <li>Write problem  clearly as much as you can.</li>
+              <li>Write problem clearly as much as you can.</li>
               <li>Include device name in every request.</li>
             </ul>
           </div>
