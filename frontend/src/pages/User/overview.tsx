@@ -1,17 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import StatCard from "../../components/dashboardComponents/StatCard";
 import { AiOutlineSchedule } from "react-icons/ai";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 
-type Timeframe = "Daily" | "Weekly" | "Monthly" | "Yearly";
-
 const ClientOverview: React.FC = () => {
   const { requests } = useServiceRequests();
   const { currentUser } = useUserContext();
 
-  const [timeframe, setTimeframe] = useState<Timeframe>("Weekly");
-
+  /* =========================
+     👤 ONLY CURRENT USER REQUESTS
+  ========================== */
   const userRequests = useMemo(() => {
     if (!currentUser) return [];
 
@@ -22,48 +21,30 @@ const ClientOverview: React.FC = () => {
     );
   }, [requests, currentUser]);
 
-  const filteredRequests = useMemo(() => {
-    const now = new Date();
-
-    return userRequests.filter((r) => {
-      const d = new Date(r.createdAt);
-
-      const diffTime = now.getTime() - d.getTime();
-      const diffDays = diffTime / (1000 * 60 * 60 * 24);
-
-      switch (timeframe) {
-        case "Daily":
-          return diffDays <= 1;
-        case "Weekly":
-          return diffDays <= 7;
-        case "Monthly":
-          return diffDays <= 30;
-        case "Yearly":
-          return diffDays <= 365;
-        default:
-          return true;
-      }
-    });
-  }, [userRequests, timeframe]);
-
+  /* =========================
+     📊 STATS (ALL REQUESTS)
+  ========================== */
   const stats = useMemo(() => {
     return {
-      total: filteredRequests.length,
+      total: userRequests.length,
 
-      pending: filteredRequests.filter(
+      pending: userRequests.filter(
         (r) => r.status === "Pending" || r.status === "Assigned"
       ).length,
 
-      solved: filteredRequests.filter(
+      solved: userRequests.filter(
         (r) => r.status === "Resolved"
       ).length,
 
-      unresolved: filteredRequests.filter(
+      unresolved: userRequests.filter(
         (r) => r.status === "Unresolved"
       ).length,
     };
-  }, [filteredRequests]);
+  }, [userRequests]);
 
+  /* =========================
+     📅 UPCOMING SCHEDULE
+  ========================== */
   const upcomingSchedule = useMemo(() => {
     return userRequests
       .filter((r) => r.status === "Assigned")
@@ -81,32 +62,16 @@ const ClientOverview: React.FC = () => {
   }, [userRequests]);
 
   return (
-    <div className="px-3 sm:px-4 md:px-6 space-y-6">
+    <div className="px-3 sm:px-4 md:px-6 space-y-5">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl md:text-3xl font-bold">
+      <div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
           Overview
         </h1>
-
-        <select
-          value={timeframe}
-          onChange={(e) =>
-            setTimeframe(e.target.value as Timeframe)
-          }
-          className="border border-black rounded-md px-3 py-2 text-sm w-full sm:w-auto"
-        >
-          {(["Daily", "Weekly", "Monthly", "Yearly"] as Timeframe[]).map(
-            (tf) => (
-              <option key={tf} value={tf}>
-                {tf}
-              </option>
-            )
-          )}
-        </select>
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard title="Total Requests" value={stats.total} />
         <StatCard title="Pending Requests" value={stats.pending} />
         <StatCard title="Solved Requests" value={stats.solved} />
@@ -114,18 +79,20 @@ const ClientOverview: React.FC = () => {
       </div>
 
       {/* UPCOMING SCHEDULE */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-300 p-4 md:p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* SCHEDULE */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-300 p-3 md:p-5">
           <div className="flex items-center gap-2 mb-3">
-            <AiOutlineSchedule className="text-2xl" />
-            <h2 className="text-xl md:text-2xl font-bold">
+            <AiOutlineSchedule className="text-xl md:text-2xl" />
+
+            <h2 className="text-lg md:text-2xl font-bold">
               Upcoming Schedule
             </h2>
           </div>
 
-          <ul className="space-y-3 text-sm text-gray-700">
+          <ul className="space-y-3 text-xs md:text-sm text-gray-700">
             {upcomingSchedule.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-xs md:text-sm text-gray-500">
                 No upcoming schedules
               </p>
             ) : (
@@ -160,15 +127,17 @@ const ClientOverview: React.FC = () => {
                 return (
                   <li
                     key={item._id || item.id}
-                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-3 md:p-4 rounded-xl border border-gray-200 bg-gray-50 hover:shadow-md hover:scale-[1.01] transition-all duration-200"
                   >
                     {/* LEFT */}
                     <div className="space-y-1 break-words">
-                      <div className="text-gray-900 font-semibold text-base">
-                        {item.deviceType || item.deviceName || "Device"}
+                      <div className="text-gray-900 font-semibold text-sm md:text-base">
+                        {item.deviceType ||
+                          item.deviceName ||
+                          "Device"}
                       </div>
 
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs md:text-sm text-gray-600">
                         {item.serialNumber && (
                           <span>
                             SN: {item.serialNumber}
@@ -176,18 +145,19 @@ const ClientOverview: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="text-xs text-gray-500 break-words">
+                      <div className="text-[11px] md:text-xs text-gray-500 break-words">
                         {item.description}
                       </div>
 
-                      <div className="text-xs text-purple-600 font-medium">
+                      <div className="text-[11px] md:text-xs text-purple-600 font-medium">
                         Problem Category:{" "}
                         <span className="text-gray-700 font-semibold">
-                          {item.problemCategory || "Not specified"}
+                          {item.problemCategory ||
+                            "Not specified"}
                         </span>
                       </div>
 
-                      <div className="text-xs text-blue-600 font-medium break-words">
+                      <div className="text-[11px] md:text-xs text-blue-600 font-medium break-words">
                         Assigned Supervisor:{" "}
                         <span className="text-gray-700 font-semibold">
                           {item.assignedToName ||
@@ -197,18 +167,18 @@ const ClientOverview: React.FC = () => {
                     </div>
 
                     {/* RIGHT */}
-                    <div className="flex flex-col md:items-end gap-2">
+                    <div className="flex flex-col md:items-end gap-1">
                       <div
-                        className={`px-2 py-1 rounded-full text-xs font-semibold w-fit ${statusColor}`}
+                        className={`px-2 py-[4px] rounded-full text-[10px] md:text-xs font-semibold w-fit ${statusColor}`}
                       >
                         {statusLabel}
                       </div>
 
-                      <div className="text-xs text-gray-500">
+                      <div className="text-[10px] md:text-xs text-gray-500">
                         Scheduled For
                       </div>
 
-                      <div className="text-sm font-semibold text-gray-800">
+                      <div className="text-xs md:text-sm font-semibold text-gray-800">
                         {scheduleDate
                           ? scheduleDate.toLocaleDateString()
                           : "-"}
@@ -222,21 +192,28 @@ const ClientOverview: React.FC = () => {
         </div>
 
         {/* TIPS */}
-        <div className="bg-primary-900 rounded-xl border border-gray-300 p-4 md:p-5">
-          <h2 className="text-xl md:text-2xl font-bold mb-3 text-center">
+        <div className="bg-primary-900 rounded-xl border border-gray-300 p-3 md:p-5">
+          <h2 className="text-lg md:text-2xl font-bold mb-3 text-center">
             Tips & Suggestions
           </h2>
 
-          <div className="border border-gray-300 rounded-xl bg-white p-4 md:p-5 text-base md:text-lg">
+          <div className="border border-gray-300 rounded-xl bg-white p-3 md:p-5 text-sm md:text-base">
             <ul className="list-disc list-inside text-gray-700 space-y-2">
               <li>
                 Attach photos when reporting to speed up diagnosis.
               </li>
+
               <li>
                 Tag impact level accurately for prioritization.
               </li>
-              <li>Write problem clearly as much as you can.</li>
-              <li>Include device name in every request.</li>
+
+              <li>
+                Write problem clearly as much as you can.
+              </li>
+
+              <li>
+                Include device name in every request.
+              </li>
             </ul>
           </div>
         </div>

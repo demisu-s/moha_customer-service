@@ -49,7 +49,7 @@ export function ClientHeader() {
           </div>
 
           {/* Title */}
-          <h1 className="text-lg ml-30 font-bold sm:text-xl">
+          <h1 className="text-sm ml-30 font-bold sm:text-xl">
           MOHA SOFT DRINKS INDUSTRY S.C
         </h1>
         </div>

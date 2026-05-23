@@ -247,6 +247,7 @@ const Plants = () => {
                         </button>
 
                         <button
+                        disabled
                           onClick={() =>
                             handleDeletePlant(
                               plant._id
@@ -353,6 +354,7 @@ const Plants = () => {
                           </button>
 
                           <button
+                          disabled
                             onClick={() =>
                               handleDeleteDepartment(
                                 department._id
