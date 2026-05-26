@@ -56,32 +56,112 @@ const Home: React.FC = () => {
      4️⃣ Filtering Logic
   ========================== */
 
-  const filteredRequests = requests.filter((request) => {
+const filteredRequests = requests.filter((request) => {
   const matchesTab = request.status === activeTab;
 
-  const matchesSearch =
-    request.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
-    request.description?.toLowerCase().includes(search.toLowerCase()) ||
-    request.requestedBy?.toLowerCase().includes(search.toLowerCase()) ||
-    request.urgency?.toLowerCase().includes(search.toLowerCase()) ||
-    request.plant?.toLowerCase().includes(search.toLowerCase()) ||
-    request.department?.toLowerCase().includes(search.toLowerCase()) ||
-    request.problemCategory?.toLowerCase().includes(search.toLowerCase()) ||
-    request.issues?.toLowerCase().includes(search.toLowerCase()) ||
-    request.assignedToName?.toLowerCase().includes(search.toLowerCase()) ||
-    request.assignedTo?.toLowerCase().includes(search.toLowerCase());
+  const searchText = search.toLowerCase();
 
-     // ✅ SUPERADMIN → see everything
+  /* =========================
+     ✅ FORMAT DATES FOR SEARCH
+  ========================== */
+
+  const formattedCreatedDate = request.createdAt
+    ? new Date(request.createdAt)
+        .toLocaleDateString("en-US")
+        .toLowerCase()
+    : "";
+
+  const formattedAssignedDate = request.assignedDate
+    ? new Date(request.assignedDate)
+        .toLocaleDateString("en-US")
+        .toLowerCase()
+    : "";
+
+  const formattedResolvedDate = request.resolvedDate
+    ? new Date(request.resolvedDate)
+        .toLocaleDateString("en-US")
+        .toLowerCase()
+    : "";
+
+  /* =========================
+     ✅ SEARCH MATCHING
+  ========================== */
+
+  const matchesSearch =
+    request.serialNumber
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.description
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.requestedBy
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.urgency
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.plant
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.department
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.problemCategory
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.issues
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.assignedToName
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+      request.deviceType
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    request.assignedTo
+      ?.toLowerCase()
+      .includes(searchText) ||
+
+    // ✅ DATE SEARCH
+    formattedCreatedDate.includes(searchText) ||
+
+    formattedAssignedDate.includes(searchText) ||
+
+    formattedResolvedDate.includes(searchText);
+
+  /* =========================
+     ✅ SUPERADMIN
+  ========================== */
+
   if (userRole === "superadmin") {
     return matchesTab && matchesSearch;
   }
 
-  // ✅ ADMIN & SUPERVISOR → only same plant
+  /* =========================
+     ✅ ADMIN & SUPERVISOR
+  ========================== */
+
   const samePlant = request.plant === userPlant;
 
-  if (userRole === "admin" || userRole === "supervisor") {
-    // Special case for supervisor Assigned tab
-    if (userRole === "supervisor" && activeTab === "Assigned") {
+  if (
+    userRole === "admin" ||
+    userRole === "supervisor"
+  ) {
+    // ✅ Supervisor Assigned Tab
+    if (
+      userRole === "supervisor" &&
+      activeTab === "Assigned"
+    ) {
       return (
         matchesTab &&
         matchesSearch &&
@@ -90,7 +170,11 @@ const Home: React.FC = () => {
       );
     }
 
-    return matchesTab && matchesSearch && samePlant;
+    return (
+      matchesTab &&
+      matchesSearch &&
+      samePlant
+    );
   }
 
   return false;
@@ -165,6 +249,8 @@ const Home: React.FC = () => {
               problem={request.description}
               status={request.status}
               assignedDate={request.assignedDate}
+              createdAt={request.createdAt}
+              resolvedDate={request.resolvedDate}
               
               supervisorName={
                 request.assignedToName ||

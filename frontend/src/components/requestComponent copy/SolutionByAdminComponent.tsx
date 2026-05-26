@@ -5,6 +5,7 @@ import {
   useServiceRequests,
   Issues,
   PROBLEM_TYPES,
+  Urgency,
 } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
@@ -15,6 +16,8 @@ const SolutionByAdminComponent: React.FC = () => {
   const { getRequestById, updateRequest } = useServiceRequests();
   const { users, currentUser } = useUserContext();
   const { devices } = useDeviceContext();
+   const [urgency, setUrgency] = useState<Urgency>("");
+    const urgencyOptions: Urgency[] = ["Low", "Medium", "High"];
 
   const [solution, setSolution] = useState("");
   const [issues, setIssues] = useState<Issues | "">("");
@@ -123,8 +126,8 @@ const SolutionByAdminComponent: React.FC = () => {
               Requested Date
             </span>
             <span className="block text-gray-900">
-              {request.createdAt}
-            </span>
+  {new Date(request.createdAt).toLocaleString()}
+</span>
           </div>
         </div>
 
@@ -146,6 +149,7 @@ const SolutionByAdminComponent: React.FC = () => {
           </p>
         </div>
 
+     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
         {/* Problem Type */}
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">
@@ -166,6 +170,27 @@ const SolutionByAdminComponent: React.FC = () => {
             ))}
           </select>
         </div>
+
+        {/* Urgency */}
+        <div className="mb-6">
+                  <label className="block text-gray-700 font-semibold mb-2">Urgency level</label>
+                  
+                 <select
+          value={urgency}
+          onChange={(e) => setUrgency(e.target.value as Urgency)}
+          className="w-60 border border-black rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-gray-300"
+        >
+          <option value="">Select urgency</option>
+        
+          {urgencyOptions.map((level) => (
+            <option key={level} value={level}>
+              {level}
+            </option>
+          ))}
+        </select>
+                </div>
+
+</div>        
 
         {/* Solution */}
         <h3 className="font-bold text-2xl mb-3 text-gray-800">

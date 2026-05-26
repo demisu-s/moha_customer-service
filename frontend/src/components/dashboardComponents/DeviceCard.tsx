@@ -4,12 +4,15 @@ import * as Label from "@radix-ui/react-label";
 import { Button } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
 import defaultDeviceImage from "../../assets/device 1.png";
+
 import {
   RequestStatus,
   ProblemCategory,
   Issues,
 } from "../../context/ServiceRequestContext";
+
 import { useUserContext } from "../../context/UserContext";
+
 import {
   ADMIN_DASHBOARD_ROUTE,
   DASHBOARD_ROUTE,
@@ -21,15 +24,24 @@ const getBaseRoute = (role?: string) => {
   switch (role) {
     case "superadmin":
       return DASHBOARD_ROUTE;
+
     case "admin":
       return ADMIN_DASHBOARD_ROUTE;
+
     case "supervisor":
       return SUPERVISOR_DASHBOARD_ROUTE;
+
     default:
       return "";
   }
 };
 
+// ✅ Global reusable date formatter
+const formatDate = (date?: string) => {
+  if (!date) return "—";
+
+  return new Date(date).toLocaleDateString("en-US");
+};
 type DeviceCardProps = {
   id: string;
   deviceType: string;
@@ -39,10 +51,16 @@ type DeviceCardProps = {
   userName: string;
   problem?: string;
   status: RequestStatus;
+
   supervisorName?: string;
-assignedDate?: string;
+
+  assignedDate?: string;
+  resolvedDate?: string;
+  createdAt?: string;
+
   problemCategory?: ProblemCategory;
   issues?: Issues;
+
   deviceImage?: string;
 };
 
@@ -56,13 +74,17 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   problem,
   status,
   supervisorName,
-assignedDate,
+  assignedDate,
   deviceImage,
   problemCategory,
+  createdAt,
+  resolvedDate,
   issues,
 }) => {
   const navigate = useNavigate();
+
   const { currentUser } = useUserContext();
+
   const role = currentUser?.role;
 
   const baseRoute = getBaseRoute(role);
@@ -80,19 +102,24 @@ assignedDate,
           <Button
             key="details"
             onClick={() => navigate(`${baseRoute}/details/${id}`)}
-          className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md">
+            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md"
+          >
             Details
           </Button>,
+
           <Button
             key="assign"
             onClick={() => navigate(`${baseRoute}/assign/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md" >
+            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md"
+          >
             Assign
           </Button>,
+
           <Button
             key="solve"
             onClick={() => navigate(`${baseRoute}/solve/${id}`)}
-         className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md">
+            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md"
+          >
             Solve
           </Button>
         );
@@ -108,6 +135,7 @@ assignedDate,
           >
             Details
           </Button>,
+
           <Button
             key="assign"
             onClick={() => navigate(`${baseRoute}/assign/${id}`)}
@@ -133,7 +161,7 @@ assignedDate,
     }
 
     /* =========================
-       ✅ ADMIN & SUPERADMIN (OTHER STATES)
+       ✅ ADMIN & SUPERADMIN
     ========================== */
     if (role === "admin" || role === "superadmin") {
       if (status === "Resolved" || status === "Unresolved") {
@@ -162,7 +190,7 @@ assignedDate,
     }
 
     /* =========================
-       ✅ SUPERVISOR (OTHER STATES)
+       ✅ SUPERVISOR
     ========================== */
     if (role === "supervisor") {
       if (status === "Assigned") {
@@ -175,7 +203,10 @@ assignedDate,
             Solve
           </Button>
         );
-      } else if (status === "Resolved" || status === "Unresolved") {
+      } else if (
+        status === "Resolved" ||
+        status === "Unresolved"
+      ) {
         buttons.push(
           <Button
             key="history"
@@ -201,7 +232,7 @@ assignedDate,
     }
 
     /* =========================
-       ✅ USER (DEFAULT)
+       ✅ USER DEFAULT
     ========================== */
     if (role === "user" || !role) {
       buttons.push(
@@ -235,49 +266,88 @@ assignedDate,
 
       <div className="space-y-2">
         <Field label="Device Type" value={deviceType} />
+
         <Field label="Serial No" value={serialNumber} />
+
         <Field label="Department" value={department} />
+
         <Field label="Plant" value={plant} />
+
         <Field label="User" value={userName} />
 
-        {problemCategory && (
-          <Field label="Problem Category" value={problemCategory} />
+        {/* ✅ ALWAYS SHOW */}
+        <Field
+          label="Requested On"
+          value={formatDate(createdAt)}
+        />
+
+        {/* ✅ ONLY AFTER ASSIGNMENT */}
+        {status !== "Pending" && assignedDate && (
+          <Field
+            label="Assigned On"
+            value={formatDate(assignedDate)}
+          />
         )}
-        {issues && <Field label="Issue" value={issues} />}
-        
 
-{supervisorName && (
-  <div className="flex items-center">
-    <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
-      {status === "Assigned" ? "Assigned To:" : "Solved By:"}
-    </Label.Root>
+        {/* ✅ ONLY RESOLVED / UNRESOLVED */}
+        {(status === "Resolved" ||
+          status === "Unresolved") &&
+          resolvedDate && (
+            <Field
+              label="Resolved On"
+              value={formatDate(resolvedDate)}
+            />
+          )}
 
-    <div className="w-[55%] text-xs px-2 py-[3px] border border-gray-300 rounded bg-white text-gray-800">
+        {problemCategory && (
+          <Field
+            label="Problem Category"
+            value={problemCategory}
+          />
+        )}
+
+        {issues && (
+          <Field label="Issue" value={issues} />
+        )}
+
+        {/* ✅ HIDE ON PENDING */}
+        {status !== "Pending" && supervisorName && (
+          <div className="flex items-center">
+            <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
+              {status === "Assigned"
+                ? "Assigned To:"
+                : "Solved By:"}
+            </Label.Root>
+
+            <div className="w-[55%] text-xs px-2 py-[3px] border border-gray-300 rounded bg-white text-gray-800">
       {supervisorName}{" "}
-      <span className="text-[9px] text-gray-500">
+              <span className="text-[9px] text-gray-500">
         ({assignedDate ? "supervisor" : "admin"})
       </span>
-    </div>
-  </div>
-)}
+            </div>
+          </div>
+        )}
 
         <Field label="Problem" value={problem || "—"} />
       </div>
 
-      <div className={buttonContainerClass}>{buttons}</div>
+      <div className={buttonContainerClass}>
+        {buttons}
+      </div>
     </div>
   );
 };
 
 // ✅ Field Component
-const Field: React.FC<{ label: string; value: string }> = ({
-  label,
-  value,
-}) => (
+const Field: React.FC<{
+  label: string;
+  value: string;
+}> = ({ label, value }) => (
   <div className="flex items-center">
     <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
       {label}:
     </Label.Root>
+
     <input
       type="text"
       value={value}

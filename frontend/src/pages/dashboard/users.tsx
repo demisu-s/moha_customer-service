@@ -761,7 +761,7 @@ export default function UserManagement(): JSX.Element {
 
           </thead>
 
-          <tbody className="text-lg">
+          <tbody className="text-sm">
 
             {paginatedUsers.length > 0 ? (
               paginatedUsers.map(

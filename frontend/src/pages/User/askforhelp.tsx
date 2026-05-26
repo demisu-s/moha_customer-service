@@ -87,46 +87,52 @@ const AskForHelp: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  e.preventDefault();
+  setError(null);
 
-    if (!description.trim()) {
-      setError("Please describe the problem.");
-      return;
-    }
+  if (!description.trim()) {
+    setError("Please describe the problem.");
+    return;
+  }
 
-    if (hasActiveRequest) {
-      setError(
-        "You already submitted this problem for this device. Please wait until it is resolved."
-      );
-      return;
-    }
+  if (hasActiveRequest) {
+    setError(
+      "You already submitted this problem for this device. Please wait until it is resolved."
+    );
+    return;
+  }
 
-    try {
-      await addRequest({
-        deviceId: device._id,
-        description: description.trim(),
-        problemCategory: problemCategory,
-        attachments: files,
-      });
+  try {
+    // ✅ REAL submit time
+    const requestTime = new Date().toISOString();
 
-      setDescription("");
-      setFiles([]);
-      setProblemCategory("Hardware");
+    await addRequest({
+      deviceId: device._id,
+      description: description.trim(),
+      problemCategory: problemCategory,
+      attachments: files,
 
-      setShowSuccessDialog(true);
+      // ✅ actual submit time
+      createdAt: requestTime,
+    });
 
-      setTimeout(() => {
-        setShowSuccessDialog(false);
-        navigate("/client-dashboard");
-      }, 2000);
-    } catch (err) {
-      console.error(err);
-      setError(
-        "Failed to submit request. Please try again."
-      );
-    }
-  };
+    setDescription("");
+    setFiles([]);
+    setProblemCategory("Hardware");
+
+    setShowSuccessDialog(true);
+
+    setTimeout(() => {
+      setShowSuccessDialog(false);
+      navigate("/client-dashboard");
+    }, 2000);
+  } catch (err) {
+    console.error(err);
+    setError(
+      "Failed to submit request. Please try again."
+    );
+  }
+};
 
   return (
     <div className="max-w-6xl mx-auto px-2 sm:px-4">
@@ -196,11 +202,11 @@ const AskForHelp: React.FC = () => {
             </label>
 
             <input
-              type="text"
-              disabled
-              value={new Date().toLocaleString()}
-              className="w-full border rounded px-3 py-2 bg-gray-50 text-xs sm:text-sm md:text-base"
-            />
+  type="text"
+  disabled
+  value={new Date().toLocaleString()}
+  className="w-full border rounded px-3 py-2 bg-gray-50 text-xs sm:text-sm md:text-base"
+/>
           </div>
         </div>
 

@@ -19,6 +19,9 @@ const RequestSolutionComponent: React.FC = () => {
   const [solution, setSolution] = useState("");
   // const [issues, setIssues] = useState<Issues>("HardDisk Failure");
  const [issues, setIssues] = useState<Issues | undefined>(undefined);
+ const [resolvedPreviewTime] = useState(
+  new Date().toLocaleString()
+);
 
   const request = getRequestById(requestId || "");
   // ✅ FIX: load existing issue
@@ -49,18 +52,21 @@ const supervisor = users.find((u) => u._id === request.assignedTo);
 const device = devices.find((d) => d._id === request.deviceId);
 
   // 🟢 Handle Resolved/Unresolved
-  const handleSolve = (status: "Resolved" | "Unresolved") => {
-    const now = new Date().toISOString();
+  const handleSolve = (
+  status: "Resolved" | "Unresolved"
+) => {
+  // ✅ REAL click time
+  const resolvedTime = new Date().toISOString();
 
-    updateRequest(request.id, {
-      status,
-      solution,
-      issues,
-      resolvedDate: now, // Always current date
-    });
+  updateRequest(request.id, {
+    status,
+    solution,
+    issues,
+    resolvedDate: resolvedTime,
+  });
 
-    navigate("/dashboard");
-  };
+  navigate("/dashboard");
+};
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -114,15 +120,15 @@ const device = devices.find((d) => d._id === request.deviceId);
           </div>
           <div>
             <span className="text-gray-500 font-medium">Requested Date</span>
-            <span className="block text-gray-900">
-              {request.createdAt}
-            </span>
+           <span className="block text-gray-900">
+  {new Date(request.createdAt).toLocaleString()}
+</span>
           </div>
           <div>
             <span className="text-gray-500 font-medium">Assigned Date</span>
-            <span className="block text-gray-900">
-              {request.assignedDate}
-            </span>
+           <span className="block text-gray-900">
+  {new Date(request.assignedDate).toLocaleString()}
+</span>
           </div>
           
         </div>
@@ -179,13 +185,13 @@ const device = devices.find((d) => d._id === request.deviceId);
           <label className="block text-gray-500 font-medium mb-2">
             Resolved Date
           </label>
-          <input
-            type="text"
-            readOnly
-            disabled
-            value={new Date().toLocaleString()}
-            className="border rounded-md px-3 py-1 bg-gray-100 text-gray-700 cursor-not-allowed"
-          />
+         <input
+  type="text"
+  readOnly
+  disabled
+  value={resolvedPreviewTime}
+  className="border rounded-md px-3 py-1 bg-gray-100 text-gray-700 cursor-not-allowed"
+/>
         </div>
 
         <div className="mt-6 flex gap-4 justify-end">
