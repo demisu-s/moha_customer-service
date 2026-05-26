@@ -6,16 +6,44 @@ import {
 
 /* ================= CREATE REQUEST ================= */
 
-export const createServiceRequest = async (requestData: CreateServiceRequestPayload) => {
-  const response = await api.post<ApiResponse<any>>(
+export const createServiceRequest = async (
+  requestData: CreateServiceRequestPayload
+) => {
+  const formData = new FormData();
+
+  formData.append(
+    "description",
+    requestData.description
+  );
+
+  formData.append(
+    "problemCategory",
+    requestData.problemCategory
+  );
+
+  formData.append(
+    "deviceId",
+    requestData.deviceId
+  );
+
+  if (requestData.requestedDate) {
+    formData.append(
+      "requestedDate",
+      requestData.requestedDate
+    );
+  }
+
+  requestData.attachments?.forEach((file) => {
+    formData.append("attachments", file);
+  });
+
+  const response = await api.post(
     "/request/createRequest",
+    formData,
     {
-      description: requestData.description,
-      problemCategory: requestData.problemCategory,
-      requestedDate: requestData.requestedDate,
-      attachments: requestData.attachments || [],
-      issues: requestData.issues,
-     deviceId: requestData.deviceId,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
 

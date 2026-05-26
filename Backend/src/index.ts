@@ -9,6 +9,7 @@ import deviceRoutes from "./routes/deviceRoutes";
 import serviceRequesstRoutes from "./routes/serviceRequestRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
 import cors from "cors";
+import path from "path/win32";
 
 dotenv.config();
 
@@ -29,6 +30,13 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
+
+app.use(
+  "/uploads",
+  express.static(
+    path.join(__dirname, "../uploads")
+  )
+);
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);

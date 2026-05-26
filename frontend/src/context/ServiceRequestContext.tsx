@@ -1,4 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   getServiceRequests,
   createServiceRequest as apiCreateRequest,
@@ -6,8 +11,18 @@ import {
 } from "../api/request.api";
 
 export type Urgency = "Low" | "Medium" | "High" | "";
-export type RequestStatus = "Pending" | "Assigned" | "Resolved" | "Unresolved";
-export type ProblemCategory = "Hardware" | "Software" | "Network" | "Other";
+export type RequestStatus =
+  | "Pending"
+  | "Assigned"
+  | "Resolved"
+  | "Unresolved";
+
+export type ProblemCategory =
+  | "Hardware"
+  | "Software"
+  | "Network"
+  | "Other";
+
 export type Issues =
   | "HardDisk Failure"
   | "Windows Corruption"
@@ -44,147 +59,240 @@ export interface ServiceRequest {
   plant: string;
   department: string;
   createdAt: string;
+
   deviceImage?: string;
   deviceName?: string;
   deviceType?: string;
+
   status: RequestStatus;
+
   assignedTo?: string;
   assignedToName?: string;
+
   solution?: string;
   issues?: Issues;
   urgency?: Urgency;
-  attachments?: File[];
-  notes?:string;
-  assignedDate:string;
-  resolvedDate:string;
-  problemCategory: ProblemCategory; // ✅ ADD THIS
 
+  // ✅ FIXED
+  attachments?: string[];
+
+  notes?: string;
+  assignedDate: string;
+  resolvedDate: string;
+
+  problemCategory: ProblemCategory;
 }
 
 type ServiceRequestContextType = {
   requests: ServiceRequest[];
   loading: boolean;
   refreshRequests: () => Promise<void>;
-  updateRequest: (id: string, data: Partial<ServiceRequest>) => Promise<void>;
-  addRequest: (requestData: Partial<ServiceRequest>) => Promise<void>;
-  getRequestById: (id: string) => ServiceRequest | undefined;
+  updateRequest: (
+    id: string,
+    data: Partial<ServiceRequest>
+  ) => Promise<void>;
+  addRequest: (
+    requestData: Partial<ServiceRequest>
+  ) => Promise<void>;
+  getRequestById: (
+    id: string
+  ) => ServiceRequest | undefined;
   problemTypes: Issues[];
-  problemCategory:ProblemCategory[];
+  problemCategory: ProblemCategory[];
 };
 
-const ServiceRequestContext = createContext<ServiceRequestContextType | null>(null);
+const ServiceRequestContext =
+  createContext<ServiceRequestContextType | null>(
+    null
+  );
 
-export const ServiceRequestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [requests, setRequests] = useState<ServiceRequest[]>([]);
-  const problemTypes = PROBLEM_TYPES;
-const problemCategory = PROBLEM_CATEGORY;
+export const ServiceRequestProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const [requests, setRequests] = useState<
+    ServiceRequest[]
+  >([]);
+
   const [loading, setLoading] = useState(true);
 
+  const problemTypes = PROBLEM_TYPES;
+  const problemCategory = PROBLEM_CATEGORY;
+
   /* ================= FETCH REQUESTS ================= */
+
   const refreshRequests = async () => {
-    const data = await getServiceRequests();
-    const formatted = data.map((r: any) => ({
-      id: r._id,
-      _id: r._id,
-      deviceId: r.device?._id,
-      serialNumber: r.device?.serialNumber,
-      requestedBy: r.requestedBy?.firstName + " " + r.requestedBy?.lastName,
-      description: r.description,
-      plant: r.device?.plant?.name,
-      department: r.device?.department?.name,
-      createdAt: r.createdAt,
-      assignedDate:r.assignedDate,
-      deviceImage: r.device?.image,
-      deviceName: r.device?.deviceName,
-      deviceType: r.device?.deviceType,
-     status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
-      assignedTo: r.assignedTo?._id,
-      assignedToName: r.assignedTo ? r.assignedTo?.firstName + " " + r.assignedTo?.lastName : undefined,
-      solution: r.solution,
-      urgency: r.urgency,
-      issues: r.issues,
-      resolvedDate:r.resolvedDate,
-      notes:r.notes,
-      problemCategory: r.problemCategory,
-    }));
-    setRequests(formatted);
-    setLoading(false); // ✅ IMPORTANT
+    try {
+      const data = await getServiceRequests();
+
+      console.log("REQUEST FROM API:", data);
+
+      const formatted = data.map((r: any) => ({
+        id: r._id,
+        _id: r._id,
+
+        deviceId: r.device?._id || "",
+        serialNumber: r.device?.serialNumber || "",
+
+        requestedBy: r.requestedBy
+          ? `${r.requestedBy.firstName} ${r.requestedBy.lastName}`
+          : "",
+
+        description: r.description || "",
+
+        plant: r.device?.plant?.name || "",
+        department: r.device?.department?.name || "",
+
+        createdAt: r.createdAt,
+
+        assignedDate: r.assignedDate || "",
+        resolvedDate: r.resolvedDate || "",
+
+        deviceImage: r.device?.image || "",
+        deviceName: r.device?.deviceName || "",
+        deviceType: r.device?.deviceType || "",
+
+        status:
+          r.status?.charAt(0).toUpperCase() +
+          r.status?.slice(1),
+
+        assignedTo: r.assignedTo?._id,
+
+        assignedToName: r.assignedTo
+          ? `${r.assignedTo.firstName} ${r.assignedTo.lastName}`
+          : undefined,
+
+        solution: r.solution,
+        urgency: r.urgency,
+        issues: r.issues,
+        notes: r.notes,
+
+        problemCategory:
+          r.problemCategory || "Hardware",
+
+        // ✅ IMPORTANT FIX
+        attachments: r.attachments || [],
+      }));
+
+      setRequests(formatted);
+    } catch (error) {
+      console.error(
+        "Failed to fetch requests:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     refreshRequests();
   }, []);
 
+  /* ================= ADD REQUEST ================= */
 
-  /* ================= ADD REQUEST (FIXED) ================= */
-  const addRequest = async (requestData: Partial<ServiceRequest>) => {
-  if (!requestData.description) {
-    throw new Error("Description is required");
-  }
+  const addRequest = async (
+    requestData: Partial<ServiceRequest>
+  ) => {
+    if (!requestData.description) {
+      throw new Error("Description is required");
+    }
 
-  if (!requestData.deviceId) {
-    throw new Error("Device is required");
-  }
+    if (!requestData.deviceId) {
+      throw new Error("Device is required");
+    }
 
-  // ✅ API CALL
-  const res = await apiCreateRequest({
-    description: requestData.description,
-    problemCategory: requestData.problemCategory || "Hardware",
-    attachments: requestData.attachments || [],
-    deviceId: requestData.deviceId,
-  });
+    const res = await apiCreateRequest({
+      description: requestData.description,
+      problemCategory:
+        requestData.problemCategory || "Hardware",
 
-  // ✅ FIX IS HERE
-  const r = res;
+      attachments:
+        (requestData.attachments as any) || [],
 
-  const newRequest: ServiceRequest = {
-    id: r._id,
-    _id: r._id,
-    deviceId: r.device?._id,
-    serialNumber: r.device?.serialNumber,
-    requestedBy:
-      r.requestedBy?.firstName + " " + r.requestedBy?.lastName,
-    description: r.description,
-    plant: r.device?.plant?.name,
-    department: r.device?.department?.name,
-    createdAt: r.createdAt,
-    assignedDate: r.assignedDate,
-    deviceImage: r.device?.image,
-    deviceName: r.device?.deviceName,
-    deviceType: r.device?.deviceType,
-    status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
-    assignedTo: r.assignedTo?._id,
-    assignedToName: r.assignedTo
-      ? r.assignedTo.firstName + " " + r.assignedTo.lastName
-      : undefined,
-    solution: r.solution,
-    urgency: r.urgency,
-    issues: r.issues,
-    resolvedDate: r.resolvedDate,
-    notes: r.notes,
-    problemCategory: r.problemCategory,
+      deviceId: requestData.deviceId,
+    });
+
+    const r = res;
+
+    const newRequest: ServiceRequest = {
+      id: r._id,
+      _id: r._id,
+
+      deviceId: r.device?._id || r.device || "",
+      serialNumber: r.device?.serialNumber || "",
+
+      requestedBy: r.requestedBy
+        ? `${r.requestedBy.firstName} ${r.requestedBy.lastName}`
+        : "",
+
+      description: r.description || "",
+
+      plant: r.device?.plant?.name || "",
+      department: r.device?.department?.name || "",
+
+      createdAt: r.createdAt,
+
+      assignedDate: r.assignedDate || "",
+      resolvedDate: r.resolvedDate || "",
+
+      deviceImage: r.device?.image || "",
+      deviceName: r.device?.deviceName || "",
+      deviceType: r.device?.deviceType || "",
+
+      status:
+        r.status.charAt(0).toUpperCase() +
+        r.status.slice(1),
+
+      assignedTo: r.assignedTo?._id,
+
+      assignedToName: r.assignedTo
+        ? `${r.assignedTo.firstName} ${r.assignedTo.lastName}`
+        : undefined,
+
+      solution: r.solution,
+      urgency: r.urgency,
+      issues: r.issues,
+      notes: r.notes,
+
+      problemCategory:
+        r.problemCategory || "Hardware",
+
+      // ✅ IMPORTANT FIX
+      attachments: r.attachments || [],
+    };
+
+    setRequests((prev) => [newRequest, ...prev]);
+
+    refreshRequests().catch((err) => {
+      console.error("Refresh failed:", err);
+    });
   };
 
-  setRequests((prev) => [newRequest, ...prev]);
-
-  // ✅ ALSO FIX THIS (prevent fake error)
-  refreshRequests().catch((err) => {
-    console.error("Refresh failed:", err);
-  });
-};
-
   /* ================= UPDATE REQUEST ================= */
-  const updateRequest = async (id: string, data: Partial<ServiceRequest>) => {
-  await updateServiceRequest(id, data);
 
-  // 🔥 ALWAYS REFRESH FROM BACKEND
-  await refreshRequests();
-};
-  const getRequestById = (id: string) => requests.find((r) => r.id === id);
+  const updateRequest = async (
+    id: string,
+    data: Partial<ServiceRequest>
+  ) => {
+    await updateServiceRequest(id, data);
+    await refreshRequests();
+  };
+
+  const getRequestById = (id: string) =>
+    requests.find((r) => r.id === id);
 
   return (
     <ServiceRequestContext.Provider
-      value={{ requests,loading, refreshRequests, updateRequest, addRequest, getRequestById, problemTypes,problemCategory}}
+      value={{
+        requests,
+        loading,
+        refreshRequests,
+        updateRequest,
+        addRequest,
+        getRequestById,
+        problemTypes,
+        problemCategory,
+      }}
     >
       {children}
     </ServiceRequestContext.Provider>
@@ -193,6 +301,12 @@ const problemCategory = PROBLEM_CATEGORY;
 
 export const useServiceRequests = () => {
   const ctx = useContext(ServiceRequestContext);
-  if (!ctx) throw new Error("useServiceRequests must be used inside ServiceRequestProvider");
+
+  if (!ctx) {
+    throw new Error(
+      "useServiceRequests must be used inside ServiceRequestProvider"
+    );
+  }
+
   return ctx;
 };

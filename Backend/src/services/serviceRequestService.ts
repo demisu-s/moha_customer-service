@@ -3,27 +3,28 @@ import Device from "../models/DeviceModel";
 import { RequestStatus } from "../constants/request-status";
 
 class ServiceRequestService {
-  async createRequest(data: any, userId: string) {
-    if (!data.deviceId) {
-      throw new Error("Device is required");
-    }
-
-    const device = await Device.findById(data.deviceId);
-
-    if (!device) {
-      throw new Error("Device not found");
-    }
-
-    const request = await ServiceRequest.create({
-      description: data.description,
-      problemCategory: data.problemCategory,
-      requestedBy: userId,
-      device: data.deviceId, // ✅ correct
-      requestedDate: new Date().toISOString(),
-    });
-
-    return request;
+async createRequest(data: any, userId: string) {
+  if (!data.deviceId) {
+    throw new Error("Device is required");
   }
+
+  const device = await Device.findById(data.deviceId);
+
+  if (!device) {
+    throw new Error("Device not found");
+  }
+
+  const request = await ServiceRequest.create({
+    description: data.description,
+    problemCategory: data.problemCategory,
+    requestedBy: userId,
+    device: data.deviceId,
+    requestedDate: new Date().toISOString(),
+    attachments: data.attachments || [],
+  });
+
+  return request;
+}
 
   async getAllRequests() {
     return ServiceRequest.find()

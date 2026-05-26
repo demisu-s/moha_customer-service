@@ -11,10 +11,11 @@ import {
 
 import { protect } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/authorize";
+import { upload } from "../../uploads/upload";
 
 const router = express.Router();
 
-router.post("/createRequest", protect, createRequest);
+router.post("/createRequest", protect,upload.array("attachments", 10), createRequest);
 
 router.get("/getRequests",getAllRequests);
 

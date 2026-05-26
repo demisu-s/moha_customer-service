@@ -8,20 +8,34 @@ interface AuthRequest extends Request {
   };
 }
 
-export const createRequest = async (req: AuthRequest, res: Response) => {
+export const createRequest = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const userId = req.user?.id;
 
-    const request = await ServiceRequestService.createRequest(
-      req.body,
-      userId!
+    const files =
+      (req.files as Express.Multer.File[]) || [];
+
+    const attachments = files.map(
+      (file) =>
+        `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
     );
+
+    const request =
+      await ServiceRequestService.createRequest(
+        {
+          ...req.body,
+          attachments,
+        },
+        userId!
+      );
 
     res.status(201).json({
       success: true,
       data: request,
     });
-
   } catch (error) {
     res.status(500).json({
       message: "Failed to create request",
