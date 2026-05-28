@@ -1,367 +1,760 @@
 // src/pages/Report.tsx
+
 import React, { useMemo, useState } from "react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import {
+  Search,
+  FileSpreadsheet,
+  FileText,
+} from "lucide-react";
 
-import { useUserContext } from "../../context/UserContext";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
 import { useSchedule } from "../../context/ScheduleContext";
+import { useUserContext } from "../../context/UserContext";
 
-type ReportRow = {
-  name: string;
-  role: string;
-  plant: string;
-  totalTasks: number;
-  completed: number;
-  pending: number;
-  unresolved: number;
-};
+import ServiceReportTable from "../../components/dashboardComponents/ServiceReportTable";
+import ScheduleReportTable from "../../components/dashboardComponents/ScheduleReportTable";
 
-type ScheduleRow = {
-  title: string;
-  plant: string;
-  createdBy: string;
-  date: string;
-  start: Date;
-  end: Date;
-};
-
-const Report: React.FC = () => {
-  const { users } = useUserContext();
+const Report = () => {
   const { requests, loading } = useServiceRequests();
+
   const { events } = useSchedule();
 
+  const { currentUser } = useUserContext();
+
   const [search, setSearch] = useState("");
-  const [reportType, setReportType] = useState<"service" | "schedule">("service");
 
-  // ✅ FILTER STATES
-  const [filterBy, setFilterBy] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [reportType, setReportType] =
+    useState<"service" | "schedule">("service");
 
-  /* ================= SERVICE REPORT ================= */
-  const reportData: ReportRow[] = useMemo(() => {
-    const grouped: Record<string, ReportRow> = {};
+  const [serviceStatus, setServiceStatus] =
+    useState("all");
 
-    requests.forEach((req) => {
-      if (!req.assignedToName) return;
+  const [plantFilter, setPlantFilter] =
+    useState("all");
 
-      const role = req.assignedDate ? "supervisor" : "admin";
-      const key = req.assignedToName;
+  const [dateType, setDateType] = useState<
+    "createdAt" | "assignedDate" | "resolvedDate"
+  >("createdAt");
 
-      const user = users.find(
-        (u) => `${u.firstName} ${u.lastName}` === req.assignedToName
-      );
+  const [startDate, setStartDate] =
+    useState("");
 
-      const plant =
-        typeof user?.department?.plant === "string"
-          ? user?.department?.plant
-          : user?.department?.plant?.name || req.plant || "—";
+  const [endDate, setEndDate] =
+    useState("");
 
-      if (!grouped[key]) {
-        grouped[key] = {
-          name: req.assignedToName,
-          role,
-          plant,
-          totalTasks: 0,
-          completed: 0,
-          pending: 0,
-          unresolved: 0,
-        };
+  /* =========================================================
+      USER ROLE + PLANT
+  ========================================================= */
+
+  const isSuperAdmin =
+    currentUser?.role === "superadmin";
+
+  const currentUserPlant =
+    currentUser?.department?.plant;
+
+  const currentPlantName =
+    typeof currentUserPlant === "object"
+      ? currentUserPlant?.name
+      : currentUserPlant || "";
+
+  /* =========================================================
+      SERVICE DATA
+  ========================================================= */
+
+  const serviceData = useMemo(() => {
+    return requests
+      .map((req: any) => ({
+        requestedBy:
+          req.requestedBy || "—",
+
+        requestedDate: req.createdAt
+          ? new Date(
+              req.createdAt
+            ).toLocaleDateString()
+          : "—",
+
+        createdAt: req.createdAt,
+
+        assignedDate:
+          req.assignedDate,
+
+        resolvedDate:
+          req.resolvedDate,
+
+        plant:
+          req.plant?.name ||
+          req.plant ||
+          "—",
+
+        problemCategory:
+          req.problemCategory || "—",
+
+        deviceType:
+          req.deviceType || "—",
+
+        problemType:
+          req.issues || "—",
+
+        priority:
+          req.urgency || "—",
+
+        solvedBy:
+          req.assignedToName || "—",
+
+        solution:
+          req.solution || "—",
+
+        status:
+          req.status || "Pending",
+      }))
+
+      /* ROLE-BASED FILTER */
+
+      .filter((item: any) => {
+        if (isSuperAdmin) {
+          return true;
+        }
+
+        return item.plant === currentPlantName;
+      });
+  }, [
+    requests,
+    isSuperAdmin,
+    currentPlantName,
+  ]);
+
+  /* =========================================================
+      UNIQUE PLANTS
+  ========================================================= */
+
+  const plants = useMemo(() => {
+    if (!isSuperAdmin) {
+      return [currentPlantName];
+    }
+
+    return [
+      "all",
+      ...Array.from(
+        new Set(
+          serviceData.map(
+            (item: any) => item.plant
+          )
+        )
+      ),
+    ];
+  }, [
+    serviceData,
+    isSuperAdmin,
+    currentPlantName,
+  ]);
+
+  /* =========================================================
+      FILTER SERVICE
+  ========================================================= */
+
+  const filteredService = useMemo(() => {
+    return serviceData.filter((row) => {
+
+      /* STATUS */
+
+      if (
+        serviceStatus !== "all" &&
+        row.status !== serviceStatus
+      ) {
+        return false;
       }
 
-      grouped[key].totalTasks += 1;
+      /* PLANT */
 
-      if (req.status === "Resolved") grouped[key].completed += 1;
-      else if (req.status === "Unresolved") grouped[key].unresolved += 1;
-      else grouped[key].pending += 1;
+      if (
+        isSuperAdmin &&
+        plantFilter !== "all" &&
+        row.plant !== plantFilter
+      ) {
+        return false;
+      }
+
+      /* DATE RANGE */
+
+      const selectedDate =
+        row[
+          dateType as keyof typeof row
+        ];
+
+      if (selectedDate) {
+
+        const rowDate = new Date(
+          selectedDate
+        );
+
+        rowDate.setHours(0, 0, 0, 0);
+
+        if (startDate) {
+
+          const start = new Date(
+            startDate
+          );
+
+          start.setHours(
+            0,
+            0,
+            0,
+            0
+          );
+
+          if (rowDate < start) {
+            return false;
+          }
+        }
+
+        if (endDate) {
+
+          const end = new Date(
+            endDate
+          );
+
+          end.setHours(
+            23,
+            59,
+            59,
+            999
+          );
+
+          if (rowDate > end) {
+            return false;
+          }
+        }
+      }
+
+      /* SEARCH */
+
+      const keyword =
+        search.toLowerCase();
+
+      return (
+        row.requestedBy
+          .toLowerCase()
+          .includes(keyword) ||
+
+        row.problemCategory
+          .toLowerCase()
+          .includes(keyword) ||
+
+        row.deviceType
+          .toLowerCase()
+          .includes(keyword) ||
+
+        row.problemType
+          .toLowerCase()
+          .includes(keyword) ||
+
+        row.plant
+          .toLowerCase()
+          .includes(keyword)
+      );
     });
+  }, [
+    serviceData,
+    search,
+    serviceStatus,
+    plantFilter,
+    dateType,
+    startDate,
+    endDate,
+    isSuperAdmin,
+  ]);
 
-    return Object.values(grouped);
-  }, [requests, users]);
+  /* =========================================================
+      SCHEDULE DATA
+  ========================================================= */
 
-  /* ================= SCHEDULE REPORT ================= */
-  const scheduleData: ScheduleRow[] = useMemo(() => {
-    return events.map((event: any) => {
-      const plant =
-        typeof event.plant === "object"
-          ? event.plant?.name
-          : event.plant || "—";
+  const scheduleData = useMemo(() => {
+    return events
+      .map((event: any) => ({
+        title:
+          event.title || "—",
 
-      const createdBy =
-        typeof event.user === "object"
-          ? `${event.user?.firstName || ""} ${event.user?.lastName || ""}`
-          : event.user;
+        plant:
+          event.plant?.name ||
+          event.plant ||
+          "—",
 
-      const start = new Date(event.start);
-      const end = new Date(event.end);
+        createdBy:
+          typeof event.user === "object"
+            ? `${event.user?.firstName || ""} ${
+                event.user?.lastName || ""
+              }`
+            : event.user || "—",
 
-      return {
-        title: event.title,
-        plant,
-        createdBy,
-        date: start.toLocaleDateString(),
-        start,
-        end,
-      };
-    });
-  }, [events]);
+        date: new Date(
+          event.start
+        ).toLocaleDateString(),
 
-  /* ================= FILTER ================= */
-  const filteredService = reportData.filter(
-    (row) =>
-      row.name.toLowerCase().includes(search.toLowerCase()) ||
-      row.plant.toLowerCase().includes(search.toLowerCase())
-  );
+        start: new Date(event.start),
 
-  const filteredSchedule = scheduleData.filter((row) => {
-    const now = new Date();
+        end: new Date(event.end),
+      }))
 
-    if (filterBy === "ended" && row.end > now) return false;
-    if (filterBy === "upcoming" && row.start < now) return false;
+      /* ROLE-BASED FILTER */
 
-    if (startDate && row.start < new Date(startDate)) return false;
-    if (endDate && row.end > new Date(endDate)) return false;
+      .filter((item: any) => {
+        if (isSuperAdmin) {
+          return true;
+        }
 
-    return (
-      row.title.toLowerCase().includes(search.toLowerCase()) ||
-      row.plant.toLowerCase().includes(search.toLowerCase())
+        return item.plant === currentPlantName;
+      });
+  }, [
+    events,
+    isSuperAdmin,
+    currentPlantName,
+  ]);
+
+  /* =========================================================
+      FILTER SCHEDULE
+  ========================================================= */
+
+  const filteredSchedule =
+    useMemo(() => {
+      return scheduleData.filter(
+        (row) => {
+
+          if (
+            isSuperAdmin &&
+            plantFilter !== "all" &&
+            row.plant !== plantFilter
+          ) {
+            return false;
+          }
+
+          const keyword =
+            search.toLowerCase();
+
+          return (
+            row.title
+              .toLowerCase()
+              .includes(keyword) ||
+
+            row.plant
+              .toLowerCase()
+              .includes(keyword)
+          );
+        }
+      );
+    }, [
+      scheduleData,
+      search,
+      plantFilter,
+      isSuperAdmin,
+    ]);
+
+  /* =========================================================
+      EXPORT EXCEL
+  ========================================================= */
+
+  const exportExcel = () => {
+
+    const rawData =
+      reportType === "service"
+        ? filteredService
+        : filteredSchedule;
+
+    const formattedData =
+      reportType === "service"
+
+        ? rawData.map((item: any) => ({
+            "Requested By":
+              item.requestedBy,
+
+            "Plant":
+              item.plant,
+
+            "Requested Date":
+              item.createdAt
+                ? new Date(
+                    item.createdAt
+                  ).toLocaleDateString()
+                : "",
+
+            "Assigned Date":
+              item.assignedDate
+                ? new Date(
+                    item.assignedDate
+                  ).toLocaleDateString()
+                : "",
+
+            "Resolved Date":
+              item.resolvedDate
+                ? new Date(
+                    item.resolvedDate
+                  ).toLocaleDateString()
+                : "",
+
+            "Problem Category":
+              item.problemCategory,
+
+            "Device Type":
+              item.deviceType,
+
+            "Problem Type":
+              item.problemType,
+
+            "Priority":
+              item.priority,
+
+            "Solved By":
+              item.solvedBy,
+
+            "Solution":
+              item.solution,
+
+            "Status":
+              item.status,
+          }))
+
+        : rawData.map((item: any) => ({
+            "Title":
+              item.title,
+
+            "Plant":
+              item.plant,
+
+            "Created By":
+              item.createdBy,
+
+            "Date":
+              item.date,
+
+            "Start":
+              item.start.toLocaleTimeString(
+                [],
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              ),
+
+            "End":
+              item.end.toLocaleTimeString(
+                [],
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              ),
+          }));
+
+    const ws =
+      XLSX.utils.json_to_sheet(
+        formattedData
+      );
+
+    const wb =
+      XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      "Report"
     );
-  });
 
-  /* ================= EXPORT ================= */
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    saveAs(
+      new Blob([buffer]),
+      `${reportType}-report.xlsx`
+    );
+  };
+
+  /* =========================================================
+      EXPORT PDF
+  ========================================================= */
+
   const exportPDF = () => {
+
     const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(reportType === "service" ? "Service Report" : "Schedule Report", 20, 20);
+
+    doc.text("REPORT", 20, 20);
 
     let y = 40;
-    const data = reportType === "service" ? filteredService : filteredSchedule;
 
-    data.forEach((row: any, i) => {
-      doc.text(JSON.stringify(row), 20, y);
-      y += 10;
+    const data =
+      reportType === "service"
+        ? filteredService
+        : filteredSchedule;
+
+    data.forEach((row: any) => {
+
+      doc.text(
+        JSON.stringify(row).slice(
+          0,
+          80
+        ),
+        20,
+        y
+      );
+
+      y += 8;
     });
 
     doc.save("report.pdf");
   };
 
-  const exportExcel = () => {
-  let data: any[];
-
-  if (reportType === "service") {
-    data = filteredService;
-  } else {
-    data = filteredSchedule.map((row) => ({
-      Title: row.title,
-      Plant: row.plant,
-      CreatedBy: row.createdBy,
-      Date: row.date,
-
-      // ✅ FORCE TIME STRING (IMPORTANT)
-      Start: row.start.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-
-      End: row.end.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    }));
+  if (loading) {
+    return (
+      <div className="p-4 text-sm">
+        Loading...
+      </div>
+    );
   }
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-
-  // ✅ OPTIONAL: SET COLUMN WIDTH (prevents ######)
-  worksheet["!cols"] = [
-    { wch: 25 },
-    { wch: 20 },
-    { wch: 25 },
-    { wch: 15 },
-    { wch: 12 },
-    { wch: 12 },
-  ];
-
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-
-  const buffer = XLSX.write(workbook, {
-    bookType: "xlsx",
-    type: "array",
-  });
-
-  saveAs(new Blob([buffer]), "report.xlsx");
-};
-
-  if (loading) return <div className="p-6 text-center">Loading report...</div>;
-
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-4 space-y-4 overflow-hidden min-w-0">
+
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Reports</h1>
-          <p className="text-gray-500 text-sm">
-            Admin & Supervisor performance overview
-          </p>
-        </div>
 
-        {/* SWITCH */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setReportType("service")}
-            className={`px-3 py-2 rounded ${
-              reportType === "service"
-                ? "bg-primary-600 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            Service
-          </button>
+      <div className="bg-white border rounded-lg p-3 shadow-sm">
 
-          <button
-            onClick={() => setReportType("schedule")}
-            className={`px-3 py-2 rounded ${
-              reportType === "schedule"
-                ? "bg-primary-600 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            Schedule
-          </button>
-        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
 
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border rounded-md text-sm w-full md:w-[250px]"
-        />
+          <div>
+            <h1 className="text-lg font-semibold">
+              Reports
+            </h1>
 
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button className="bg-primary-600 text-white px-4 py-2 rounded-lg">
-              Export ▼
+            <p className="text-xs text-gray-500">
+              Service and schedule reports
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+
+            {/* SWITCH */}
+
+            <div className="flex bg-gray-100 rounded-md p-1">
+
+              <button
+                onClick={() =>
+                  setReportType(
+                    "service"
+                  )
+                }
+                className={`px-3 py-1 text-xs rounded ${
+                  reportType ===
+                  "service"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600"
+                }`}
+              >
+                Service
+              </button>
+
+              <button
+                onClick={() =>
+                  setReportType(
+                    "schedule"
+                  )
+                }
+                className={`px-3 py-1 text-xs rounded ${
+                  reportType ===
+                  "schedule"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600"
+                }`}
+              >
+                Schedule
+              </button>
+            </div>
+
+            {/* SEARCH */}
+
+            <div className="relative">
+
+              <Search
+                size={14}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                value={search}
+                onChange={(e) =>
+                  setSearch(
+                    e.target.value
+                  )
+                }
+                placeholder="Search..."
+                className="h-8 pl-7 pr-2 text-xs border rounded-md outline-none w-[180px]"
+              />
+            </div>
+
+            {/* EXPORT */}
+
+            <button
+              onClick={exportExcel}
+              className="h-8 px-3 text-xs bg-green-700 text-white rounded-md flex items-center gap-1"
+            >
+              <FileSpreadsheet size={14} />
+              Excel
             </button>
-          </DropdownMenu.Trigger>
 
-          <DropdownMenu.Content className="bg-white border rounded shadow p-2">
-            <DropdownMenu.Item onClick={exportPDF} className="px-3 py-2 hover:bg-gray-100">
-              📄 PDF
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onClick={exportExcel} className="px-3 py-2 hover:bg-gray-100">
-              📊 Excel
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
+            <button
+              onClick={exportPDF}
+              className="h-8 px-3 text-xs bg-red-600 text-white rounded-md flex items-center gap-1"
+            >
+              <FileText size={14} />
+              PDF
+            </button>
+          </div>
+        </div>
+
+        {/* FILTERS */}
+
+        {reportType === "service" && (
+          <div className="flex flex-wrap gap-2 mt-3 items-center">
+
+            {/* STATUS */}
+
+            <select
+              value={serviceStatus}
+              onChange={(e) =>
+                setServiceStatus(
+                  e.target.value
+                )
+              }
+              className="h-8 text-xs border rounded-md px-2"
+            >
+              <option value="all">
+                All Status
+              </option>
+
+              <option value="Pending">
+                Pending
+              </option>
+
+              <option value="Assigned">
+                Assigned
+              </option>
+
+              <option value="Resolved">
+                Resolved
+              </option>
+
+              <option value="Unresolved">
+                Unresolved
+              </option>
+            </select>
+
+            {/* PLANT FILTER ONLY FOR SUPERADMIN */}
+
+            {isSuperAdmin && (
+              <select
+                value={plantFilter}
+                onChange={(e) =>
+                  setPlantFilter(
+                    e.target.value
+                  )
+                }
+                className="h-8 text-xs border rounded-md px-2"
+              >
+                {plants.map((plant) => (
+                  <option
+                    key={plant}
+                    value={plant}
+                  >
+                    {plant === "all"
+                      ? "All Plants"
+                      : plant}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* DATE TYPE */}
+
+            <select
+              value={dateType}
+              onChange={(e) =>
+                setDateType(
+                  e.target.value as any
+                )
+              }
+              className="h-8 text-xs border rounded-md px-2"
+            >
+              <option value="createdAt">
+                Requested Date
+              </option>
+
+              <option value="assignedDate">
+                Assigned Date
+              </option>
+
+              <option value="resolvedDate">
+                Resolved Date
+              </option>
+            </select>
+
+            {/* DATE RANGE */}
+
+            <div className="flex items-center gap-2">
+
+              <span className="text-xs text-gray-500">
+                From
+              </span>
+
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) =>
+                  setStartDate(
+                    e.target.value
+                  )
+                }
+                className="h-8 text-xs border rounded-md px-2"
+              />
+
+              <span className="text-xs text-gray-500">
+                To
+              </span>
+
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) =>
+                  setEndDate(
+                    e.target.value
+                  )
+                }
+                className="h-8 text-xs border rounded-md px-2"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ✅ IMPROVED FILTER PANEL */}
-      {reportType === "schedule" && (
-        <div className="bg-white shadow rounded-lg p-4 grid md:grid-cols-4 gap-4">
-          <div>
-            <label className="text-xs text-gray-500">Status</label>
-            <select
-              value={filterBy}
-              onChange={(e) => setFilterBy(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
-            >
-              <option value="all">All Tasks</option>
-              <option value="ended">Ended Tasks</option>
-              <option value="upcoming">Upcoming Tasks</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
-            />
-          </div>
-
-          <div className="flex items-end">
-            <button
-              onClick={() => {
-                setFilterBy("all");
-                setStartDate("");
-                setEndDate("");
-              }}
-              className="w-full bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-md text-sm"
-            >
-              Reset Filters
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* TABLE */}
-      <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
-        <table className="w-full text-sm border">
-          <thead>
-            {reportType === "service" ? (
-              <tr className="bg-gray-200">
-                <th className="border px-4 py-2">Name</th>
-                <th className="border px-4 py-2">Role</th>
-                <th className="border px-4 py-2">Plant</th>
-                <th className="border px-4 py-2">Assigned</th>
-                <th className="border px-4 py-2">Completed</th>
-                <th className="border px-4 py-2">Pending</th>
-                <th className="border px-4 py-2">Unresolved</th>
-              </tr>
-            ) : (
-              <tr className="bg-gray-200">
-                <th className="border px-4 py-2">Title</th>
-                <th className="border px-4 py-2">Plant</th>
-                <th className="border px-4 py-2">Created By</th>
-                <th className="border px-4 py-2">Date</th>
-                <th className="border px-4 py-2">Start</th>
-                <th className="border px-4 py-2">End</th>
-              </tr>
-            )}
-          </thead>
 
-          <tbody>
-            {reportType === "service"
-              ? filteredService.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-100">
-                    <td className="border px-4 py-2">{row.name}</td>
-                    <td className="border px-4 py-2">{row.role}</td>
-                    <td className="border px-4 py-2">{row.plant}</td>
-                    <td className="border px-4 py-2">{row.totalTasks}</td>
-                    <td className="border px-4 py-2 text-green-600">{row.completed}</td>
-                    <td className="border px-4 py-2 text-yellow-600">{row.pending}</td>
-                    <td className="border px-4 py-2 text-red-600">{row.unresolved}</td>
-                  </tr>
-                ))
-              : filteredSchedule.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-100">
-                    <td className="border px-4 py-2">{row.title}</td>
-                    <td className="border px-4 py-2">{row.plant}</td>
-                    <td className="border px-4 py-2">{row.createdBy}</td>
-                    <td className="border px-4 py-2">{row.date}</td>
-                    <td className="border px-4 py-2">{row.start.toLocaleTimeString()}</td>
-                    <td className="border px-4 py-2">{row.end.toLocaleTimeString()}</td>
-                  </tr>
-                ))}
-          </tbody>
-        </table>
+      <div className="min-w-0 overflow-hidden">
+
+        {reportType ===
+        "service" ? (
+          <ServiceReportTable
+            data={
+              filteredService
+            }
+          />
+        ) : (
+          <ScheduleReportTable
+            data={
+              filteredSchedule
+            }
+          />
+        )}
       </div>
     </div>
   );
