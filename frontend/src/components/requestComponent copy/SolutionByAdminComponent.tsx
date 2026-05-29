@@ -57,19 +57,34 @@ const SolutionByAdminComponent: React.FC = () => {
      ✅ HANDLE SOLVE
   ========================== */
 
-  const handleSolve = (status: "Resolved" | "Unresolved") => {
+  const handleSolve = (
+  status: "Resolved" | "Unresolved"
+) => {
+
   const now = new Date().toISOString();
 
-  updateRequest(request.id || request._id, {
-    status,
-    solution,
-    issues: issues || request.issues,
-    resolvedDate: now,
+  updateRequest(
+    request.id || request._id,
+    {
+      status,
 
-    // ✅ ADD THIS (IMPORTANT)
-    assignedTo: currentUser?._id,
-    assignedToName: `${currentUser?.firstName} ${currentUser?.lastName}`,
-  });
+      solution,
+
+      issues:
+        issues || request.issues,
+
+      resolvedDate: now,
+
+      // ✅ SAVE URGENCY
+      urgency,
+
+      // ✅ ASSIGNED USER
+      assignedTo:
+        currentUser?._id,
+
+      assignedToName: `${currentUser?.firstName} ${currentUser?.lastName}`,
+    }
+  );
 
   navigate("/dashboard");
 };
