@@ -5,6 +5,8 @@ import {
   useServiceRequests,
   Issues,
   PROBLEM_TYPES,
+  PROBLEM_CATEGORY,
+  ProblemCategory,
 } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
@@ -19,6 +21,7 @@ const RequestSolutionComponent: React.FC = () => {
   const [solution, setSolution] = useState("");
   // const [issues, setIssues] = useState<Issues>("HardDisk Failure");
  const [issues, setIssues] = useState<Issues | undefined>(undefined);
+ const [problemCategory, setProblemCategory] =useState<ProblemCategory>("Hardware");
  const [resolvedPreviewTime] = useState(
   new Date().toLocaleString()
 );
@@ -28,6 +31,10 @@ const RequestSolutionComponent: React.FC = () => {
 useEffect(() => {
   if (request?.issues) {
     setIssues(request.issues);
+  }
+
+  if (request?.problemCategory) {
+    setProblemCategory(request.problemCategory);
   }
 }, [request]);
 
@@ -59,12 +66,12 @@ const device = devices.find((d) => d._id === request.deviceId);
   const resolvedTime = new Date().toISOString();
 
   updateRequest(request.id, {
-    status,
-    solution,
-    issues,
-    resolvedDate: resolvedTime,
-  });
-
+  status,
+  solution,
+  issues,
+  problemCategory,
+  resolvedDate: resolvedTime,
+});
   navigate("/dashboard");
 };
 
@@ -139,10 +146,34 @@ const device = devices.find((d) => d._id === request.deviceId);
         </div>
 
         <div className="border-t my-6"></div>
-<div className="w-full border rounded-md p-3">
-           <p className="text-gray-700">Problem Category:<strong>{request.problemCategory}</strong></p>
-         
-        </div>
+<div className="w-full border rounded-md p-4">
+  <label className="block text-gray-700 font-semibold mb-2">
+    Problem Category
+  </label>
+
+  <select
+    value={problemCategory}
+    onChange={(e) =>
+      setProblemCategory(
+        e.target.value as ProblemCategory
+      )
+    }
+    className="w-full border rounded-md p-2 text-sm focus:ring-1 focus:ring-gray-400"
+  >
+    {PROBLEM_CATEGORY.map((category) => (
+      <option
+        key={category}
+        value={category}
+      >
+        {category}
+      </option>
+    ))}
+  </select>
+
+   <p className="text-xs text-yellow-600 mt-1">
+    Change this only if the user selected the wrong problem category.
+  </p>
+</div>
 
         <div className="w-full border rounded-md mt-4 p-3">
           <p className="text-black font-medium mb-2">Admin Notes</p>

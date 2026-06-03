@@ -16,7 +16,8 @@ import { useUserContext } from "../../context/UserContext";
 
 import ServiceReportTable from "../../components/dashboardComponents/ServiceReportTable";
 import ScheduleReportTable from "../../components/dashboardComponents/ScheduleReportTable";
-
+import { generateSummaryData } from "../../utils/generateSummary";
+import SummaryTable from "../../components/dashboardComponents/SummaryTable";
 const Report = () => {
   const { requests, loading } = useServiceRequests();
 
@@ -27,7 +28,11 @@ const Report = () => {
   const [search, setSearch] = useState("");
 
   const [reportType, setReportType] =
-    useState<"service" | "schedule">("service");
+  useState<
+    "service" |
+    "schedule" |
+    "summary"
+  >("service");
 
   const [serviceStatus, setServiceStatus] =
     useState("all");
@@ -355,122 +360,70 @@ const Report = () => {
       EXPORT EXCEL
   ========================================================= */
 
-  const exportExcel = () => {
+ const exportExcel = () => {
+  const wb = XLSX.utils.book_new();
 
-    const rawData =
-      reportType === "service"
-        ? filteredService
-        : filteredSchedule;
+  // =====================================
+  // SERVICE REPORT SHEET
+  // =====================================
 
-    const formattedData =
-      reportType === "service"
-
-        ? rawData.map((item: any) => ({
-            "Requested By":
-              item.requestedBy,
-
-            "Plant":
-              item.plant,
-
-            "Requested Date":
-              item.createdAt
-                ? new Date(
-                    item.createdAt
-                  ).toLocaleDateString()
-                : "",
-
-            "Assigned Date":
-              item.assignedDate
-                ? new Date(
-                    item.assignedDate
-                  ).toLocaleDateString()
-                : "",
-
-            "Resolved Date":
-              item.resolvedDate
-                ? new Date(
-                    item.resolvedDate
-                  ).toLocaleDateString()
-                : "",
-
-            "Problem Category":
-              item.problemCategory,
-
-            "Device Type":
-              item.deviceType,
-
-            "Problem Type":
-              item.problemType,
-
-            "Priority":
-              item.priority,
-
-            "Solved By":
-              item.solvedBy,
-
-            "Solution":
-              item.solution,
-
-            "Status":
-              item.status,
-          }))
-
-        : rawData.map((item: any) => ({
-            "Title":
-              item.title,
-
-            "Plant":
-              item.plant,
-
-            "Created By":
-              item.createdBy,
-
-            "Date":
-              item.date,
-
-            "Start":
-              item.start.toLocaleTimeString(
-                [],
-                {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }
-              ),
-
-            "End":
-              item.end.toLocaleTimeString(
-                [],
-                {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }
-              ),
-          }));
-
-    const ws =
-      XLSX.utils.json_to_sheet(
-        formattedData
-      );
-
-    const wb =
-      XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-      wb,
-      ws,
-      "Report"
+  const serviceSheet =
+    XLSX.utils.json_to_sheet(
+      filteredService
     );
 
-    const buffer = XLSX.write(wb, {
+  XLSX.utils.book_append_sheet(
+    wb,
+    serviceSheet,
+    "Service Report"
+  );
+
+  // =====================================
+  // SCHEDULE REPORT SHEET
+  // =====================================
+
+  const scheduleSheet =
+    XLSX.utils.json_to_sheet(
+      filteredSchedule
+    );
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    scheduleSheet,
+    "Schedule Report"
+  );
+
+  // =====================================
+  // SUMMARY SHEET
+  // =====================================
+
+  const summaryData =
+    generateSummaryData(
+      filteredService
+    );
+
+  const summarySheet =
+    XLSX.utils.json_to_sheet(
+      summaryData
+    );
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    summarySheet,
+    "Summary"
+  );
+
+  const excelBuffer =
+    XLSX.write(wb, {
       bookType: "xlsx",
       type: "array",
     });
 
-    saveAs(
-      new Blob([buffer]),
-      `${reportType}-report.xlsx`
-    );
-  };
+  saveAs(
+    new Blob([excelBuffer]),
+    `Monthly-Report.xlsx`
+  );
+};
 
   /* =========================================================
       EXPORT PDF
@@ -485,9 +438,11 @@ const Report = () => {
     let y = 40;
 
     const data =
-      reportType === "service"
-        ? filteredService
-        : filteredSchedule;
+  reportType === "service"
+    ? filteredService
+    : reportType === "summary"
+    ? generateSummaryData(filteredService)
+    : filteredSchedule;
 
     data.forEach((row: any) => {
 
@@ -529,7 +484,7 @@ const Report = () => {
             </h1>
 
             <p className="text-xs text-gray-500">
-              Service and schedule reports
+              Service, summary and schedule reports
             </p>
           </div>
 
@@ -553,6 +508,21 @@ const Report = () => {
                 }`}
               >
                 Service
+              </button>
+    <button
+                onClick={() =>
+                  setReportType(
+                    "summary"
+                  )
+                }
+                className={`px-3 py-1 text-xs rounded ${
+                  reportType ===
+                  "summary"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600"
+                }`}
+              >
+                Summary
               </button>
 
               <button
@@ -615,7 +585,8 @@ const Report = () => {
 
         {/* FILTERS */}
 
-        {reportType === "service" && (
+        {(reportType === "service" ||
+  reportType === "summary") && (
           <div className="flex flex-wrap gap-2 mt-3 items-center">
 
             {/* STATUS */}
@@ -741,20 +712,20 @@ const Report = () => {
 
       <div className="min-w-0 overflow-hidden">
 
-        {reportType ===
-        "service" ? (
-          <ServiceReportTable
-            data={
-              filteredService
-            }
-          />
-        ) : (
-          <ScheduleReportTable
-            data={
-              filteredSchedule
-            }
-          />
-        )}
+        {reportType === "service" ? (
+  <ServiceReportTable
+    data={filteredService}
+  />
+) : reportType ===
+  "schedule" ? (
+  <ScheduleReportTable
+    data={filteredSchedule}
+  />
+) : (
+  <SummaryTable
+    data={filteredService}
+  />
+)}
       </div>
     </div>
   );

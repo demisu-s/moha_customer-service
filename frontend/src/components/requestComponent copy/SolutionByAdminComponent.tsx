@@ -5,7 +5,9 @@ import {
   useServiceRequests,
   Issues,
   PROBLEM_TYPES,
+  PROBLEM_CATEGORY,
   Urgency,
+  ProblemCategory,
 } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
@@ -23,13 +25,19 @@ const SolutionByAdminComponent: React.FC = () => {
   const [issues, setIssues] = useState<Issues | "">("");
 
   const request = getRequestById(requestId || "");
+  const [problemCategory, setProblemCategory] =useState<ProblemCategory>("Hardware");
+  const categories = PROBLEM_CATEGORY;
 
-  // ✅ Load existing issue
   useEffect(() => {
-    if (request?.issues) {
-      setIssues(request.issues);
-    }
-  }, [request]);
+  if (request) {
+    setProblemCategory(request.problemCategory);
+  }
+
+  if (request?.issues) {
+    setIssues(request.issues);
+  }
+}, [request]);
+
 
   if (!request) {
     return (
@@ -64,27 +72,21 @@ const SolutionByAdminComponent: React.FC = () => {
   const now = new Date().toISOString();
 
   updateRequest(
-    request.id || request._id,
-    {
-      status,
+  request.id || request._id,
+  {
+    status,
+    solution,
+    issues: issues || request.issues,
 
-      solution,
+    problemCategory,
 
-      issues:
-        issues || request.issues,
+    resolvedDate: now,
+    urgency,
 
-      resolvedDate: now,
-
-      // ✅ SAVE URGENCY
-      urgency,
-
-      // ✅ ASSIGNED USER
-      assignedTo:
-        currentUser?._id,
-
-      assignedToName: `${currentUser?.firstName} ${currentUser?.lastName}`,
-    }
-  );
+    assignedTo: currentUser?._id,
+    assignedToName: `${currentUser?.firstName} ${currentUser?.lastName}`,
+  }
+);
 
   navigate("/dashboard");
 };
@@ -156,13 +158,34 @@ const SolutionByAdminComponent: React.FC = () => {
 
         <div className="border-t my-6"></div>
 
-        {/* Problem Category */}
-        <div className="w-full border rounded-md p-3 mb-4">
-          <p className="text-gray-700">
-            Problem Category:{" "}
-            <strong>{request.problemCategory}</strong>
-          </p>
-        </div>
+      <div className="mb-6">
+  <label className="block text-gray-700 font-semibold mb-2">
+    Problem Category
+  </label>
+
+  <select
+    value={problemCategory}
+    onChange={(e) =>
+      setProblemCategory(
+        e.target.value as ProblemCategory
+      )
+    }
+    className="w-full border rounded-md p-2"
+  >
+    {categories.map((category) => (
+      <option
+        key={category}
+        value={category}
+      >
+        {category}
+      </option>
+    ))}
+  </select>
+
+  <p className="text-xs text-yellow-600 mt-1">
+    Change this only if the user selected the wrong problemcategory.
+  </p>
+</div>
 
      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
         {/* Problem Type */}
