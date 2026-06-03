@@ -42,14 +42,25 @@ class AuthService {
   async deleteUser(id: string) {
     await User.findByIdAndDelete(id);
   }
-  async updateUser(id: string, data: Partial<IUser>) {
-    const updatedUser = await User.findByIdAndUpdate(id, data, { new: true }).populate({  
-      path: "department",
-      populate: { path: "plant" },
-    });
-    return updatedUser;
+async updateUser(id: string, data: Partial<IUser>) {
+  // Hash password if provided
+  if (data.password && data.password.trim() !== "") {
+    data.password = await bcrypt.hash(data.password, 10);
+  } else {
+    delete data.password;
   }
 
+  const updatedUser = await User.findByIdAndUpdate(
+    id,
+    data,
+    { new: true }
+  ).populate({
+    path: "department",
+    populate: { path: "plant" },
+  });
+
+  return updatedUser;
+}
   async login(userId: string, password: string) {
     const user = await User.findOne({ userId }).populate({
       path: "department",

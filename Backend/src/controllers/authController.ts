@@ -39,11 +39,17 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
   } 
 };
 
-export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
+    console.log(req.body); // check password arrives
+
     const { id } = req.params;
-    const data = req.body;
-    const updatedUser = await authService.updateUser(id, data);
+    const updatedUser = await authService.updateUser(id, req.body);
+
     res.json(updatedUser);
   } catch (err) {
     next(err);
