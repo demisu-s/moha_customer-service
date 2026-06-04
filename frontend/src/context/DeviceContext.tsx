@@ -59,16 +59,41 @@ const addDevice = async (data: Omit<Device, "_id">) => {
 
   /* ================= UPDATE DEVICE ================= */
   
-  const updateDeviceHandler = async (id: string, data: Omit<Device, "_id">) => {
-    try {
-      const updated = await updateDevice(id, data);
-      setDevices((prev) =>
-        prev.map((d) => (d._id === id ? updated : d))
-      );
-    } catch (error) {
-      console.error("Failed to update device:", error);
-    }
-  };
+  // const updateDeviceHandler = async (id: string, data: Omit<Device, "_id">) => {
+  //   try {
+  //       const updated = await updateDevice(id, data);
+
+  //   setDevices((prev) =>
+  //     prev.map((d) => (d._id === id ? updated : d))
+  //   );
+  //   } catch (error) {
+  //   console.error("Failed to update device:", error);
+  //   throw error;
+  // }
+  // };
+
+
+ const updateDeviceHandler = async (
+  id: string,
+  data: Omit<Device, "_id">
+): Promise<void> => {
+  try {
+    const updated = await updateDevice(id, data);
+
+    setDevices((prev) =>
+      prev.map((device) =>
+        device._id === id ? updated : device
+      )
+    );
+  } catch (error: any) {
+    console.error(
+      "UPDATE DEVICE ERROR:",
+      error?.response?.data || error
+    );
+
+    throw error;
+  }
+};
 
   /* ================= DELETE DEVICE ================= */
 

@@ -360,71 +360,298 @@ const Report = () => {
       EXPORT EXCEL
   ========================================================= */
 
- const exportExcel = () => {
+const exportExcel = () => {
   const wb = XLSX.utils.book_new();
 
-  // =====================================
-  // SERVICE REPORT SHEET
-  // =====================================
+  if (reportType === "service") {
+    const serviceData = filteredService.map(
+      (item: any) => ({
+        "Requested By":
+          item.requestedBy,
 
-  const serviceSheet =
-    XLSX.utils.json_to_sheet(
-      filteredService
+        Plant: item.plant,
+
+        "Requested Date":
+          item.createdAt
+            ? new Date(
+                item.createdAt
+              ).toLocaleDateString()
+            : "",
+
+        "Assigned Date":
+          item.assignedDate
+            ? new Date(
+                item.assignedDate
+              ).toLocaleDateString()
+            : "",
+
+        "Resolved Date":
+          item.resolvedDate
+            ? new Date(
+                item.resolvedDate
+              ).toLocaleDateString()
+            : "",
+
+        "Problem Category":
+          item.problemCategory,
+
+        "Device Type":
+          item.deviceType,
+
+        "Problem Type":
+          item.problemType,
+
+        Priority:
+          item.priority,
+
+        "Solved By":
+          item.solvedBy,
+
+        Solution:
+          item.solution,
+
+        Status: item.status,
+      })
     );
 
-  XLSX.utils.book_append_sheet(
-    wb,
-    serviceSheet,
-    "Service Report"
-  );
+    const ws =
+      XLSX.utils.json_to_sheet(
+        serviceData
+      );
 
-  // =====================================
-  // SCHEDULE REPORT SHEET
-  // =====================================
+    ws["!autofilter"] = {
+      ref: ws["!ref"] as string,
+    };
 
-  const scheduleSheet =
-    XLSX.utils.json_to_sheet(
-      filteredSchedule
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      "Service Report"
     );
 
-  XLSX.utils.book_append_sheet(
-    wb,
-    scheduleSheet,
-    "Schedule Report"
-  );
-
-  // =====================================
-  // SUMMARY SHEET
-  // =====================================
-
-  const summaryData =
-    generateSummaryData(
-      filteredService
-    );
-
-  const summarySheet =
-    XLSX.utils.json_to_sheet(
-      summaryData
-    );
-
-  XLSX.utils.book_append_sheet(
-    wb,
-    summarySheet,
-    "Summary"
-  );
-
-  const excelBuffer =
-    XLSX.write(wb, {
+    const buffer = XLSX.write(wb, {
       bookType: "xlsx",
       type: "array",
     });
 
-  saveAs(
-    new Blob([excelBuffer]),
-    `Monthly-Report.xlsx`
-  );
-};
+    saveAs(
+      new Blob([buffer]),
+      `Service-Report.xlsx`
+    );
 
+    return;
+  }
+
+  if (reportType === "schedule") {
+    const scheduleData =
+      filteredSchedule.map(
+        (item: any) => ({
+          Title: item.title,
+
+          Plant: item.plant,
+
+          "Created By":
+            item.createdBy,
+
+          Date: item.date,
+
+          Start:
+            item.start.toLocaleTimeString(),
+
+          End:
+            item.end.toLocaleTimeString(),
+        })
+      );
+
+    const ws =
+      XLSX.utils.json_to_sheet(
+        scheduleData
+      );
+
+    ws["!autofilter"] = {
+      ref: (ws["!ref"] || "") as string,
+    };
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      "Schedule Report"
+    );
+
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    saveAs(
+      new Blob([buffer]),
+      `Schedule-Report.xlsx`
+    );
+
+    return;
+  }
+
+  if (reportType === "summary") {
+    const summaryData =
+  generateSummaryData(
+    filteredService
+  );
+
+const grandTotal =
+  summaryData.reduce(
+    (acc: any, row: any) => ({
+      Plant: "Grand Total",
+
+      Desktops:
+        acc.Desktops +
+        row.Desktops,
+
+      Laptops:
+        acc.Laptops +
+        row.Laptops,
+
+      Servers:
+        acc.Servers +
+        row.Servers,
+
+      Cameras:
+        acc.Cameras +
+        row.Cameras,
+
+      CameraRelated:
+        acc.CameraRelated +
+        row.CameraRelated,
+
+      ERP:
+        acc.ERP + row.ERP,
+
+      Peachtree:
+        acc.Peachtree +
+        row.Peachtree,
+
+      Canteen:
+        acc.Canteen +
+        row.Canteen,
+
+      Overtime:
+        acc.Overtime +
+        row.Overtime,
+
+      OtherSoftware:
+        acc.OtherSoftware +
+        row.OtherSoftware,
+
+      HWTotal:
+        acc.HWTotal +
+        row.HWTotal,
+
+      SWTotal:
+        acc.SWTotal +
+        row.SWTotal,
+
+      NetworkRelated:
+        acc.NetworkRelated +
+        row.NetworkRelated,
+
+      InternetRelated:
+        acc.InternetRelated +
+        row.InternetRelated,
+
+      ProjectRelated:
+        acc.ProjectRelated +
+        row.ProjectRelated,
+
+      OtherServices:
+        acc.OtherServices +
+        row.OtherServices,
+
+      Total:
+        acc.Total + row.Total,
+    }),
+    {
+      Plant: "Grand Total",
+
+      Desktops: 0,
+      Laptops: 0,
+      Servers: 0,
+      Cameras: 0,
+      CameraRelated: 0,
+
+      ERP: 0,
+      Peachtree: 0,
+      Canteen: 0,
+      Overtime: 0,
+      OtherSoftware: 0,
+
+      HWTotal: 0,
+      SWTotal: 0,
+
+      NetworkRelated: 0,
+      InternetRelated: 0,
+      ProjectRelated: 0,
+      OtherServices: 0,
+
+      Total: 0,
+    }
+  );
+
+const exportData = [
+  ...summaryData,
+  {},
+  grandTotal,
+];
+
+const ws =
+  XLSX.utils.json_to_sheet(
+    exportData
+  );
+
+    ws["!cols"] = [
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 12 },
+    ];
+
+    ws["!autofilter"] = {
+      ref: ws["!ref"] || "",
+    };
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      "Summary"
+    );
+
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    saveAs(
+      new Blob([buffer]),
+      `Summary-Report.xlsx`
+    );
+
+    return;
+  }
+};
   /* =========================================================
       EXPORT PDF
   ========================================================= */
@@ -458,7 +685,13 @@ const Report = () => {
       y += 8;
     });
 
-    doc.save("report.pdf");
+    doc.save(
+  reportType === "service"
+    ? "Service-Report.pdf"
+    : reportType === "summary"
+    ? "Summary-Report.pdf"
+    : "Schedule-Report.pdf"
+);
   };
 
   if (loading) {
@@ -503,7 +736,7 @@ const Report = () => {
                 className={`px-3 py-1 text-xs rounded ${
                   reportType ===
                   "service"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-[#1891C3] text-white"
                     : "text-gray-600"
                 }`}
               >
@@ -518,7 +751,7 @@ const Report = () => {
                 className={`px-3 py-1 text-xs rounded ${
                   reportType ===
                   "summary"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-[#1891C3] text-white"
                     : "text-gray-600"
                 }`}
               >
@@ -534,7 +767,7 @@ const Report = () => {
                 className={`px-3 py-1 text-xs rounded ${
                   reportType ===
                   "schedule"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-[#1891C3] text-white"
                     : "text-gray-600"
                 }`}
               >

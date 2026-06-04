@@ -171,47 +171,63 @@ const EditDevice: React.FC = () => {
   /* -------------------- Submit -------------------- */
 
   const handleSubmit = async () => {
-    if (!deviceToEdit) return;
+  if (!deviceToEdit) return;
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const selectedPlant = plants.find((p) => p._id === formData.plantId);
+  try {
+    const selectedPlant = plants.find(
+      (p) => p._id === formData.plantId
+    );
 
-      const selectedDepartment = departments.find(
-        (d) => d._id === formData.departmentId
-      );
+    const selectedDepartment = departments.find(
+      (d) => d._id === formData.departmentId
+    );
 
-      const selectedUser = users.find((u) => u._id === formData.userId);
+    const selectedUser = users.find(
+      (u) => u._id === formData.userId
+    );
 
-      if (!selectedPlant || !selectedDepartment || !selectedUser) {
-        console.error("Missing plant, department, or user");
-        return;
-      }
-
-      await updateDevice(deviceToEdit._id, {
-        deviceName: formData.deviceName,
-        deviceType: formData.deviceType,
-        serialNumber: formData.serialNumber,
-        plant: selectedPlant,
-        department: selectedDepartment,
-        user: selectedUser,
-        image: formData.image,
-      });
-
-      if (currentUser?.role === "supervisor") {
-        navigate(SUPERVISOR_DEVICES_ROUTE);
-      } else if (currentUser?.role === "admin") {
-        navigate(ADMIN_DEVICES_ROUTE);
-      } else {
-        navigate(`${DASHBOARD_ROUTE}/devices`);
-      }
-    } catch (error) {
-      console.error("Update device failed:", error);
-    } finally {
-      setLoading(false);
+    if (!selectedPlant || !selectedDepartment) {
+      console.error("Plant or Department missing");
+      return;
     }
-  };
+
+    const payload = {
+      deviceName: formData.deviceName,
+      deviceType: formData.deviceType,
+      serialNumber: formData.serialNumber,
+
+      plant: selectedPlant,
+      department: selectedDepartment,
+
+      user: selectedUser || null,
+
+      image: formData.image,
+    };
+
+    console.log("UPDATE PAYLOAD:", payload);
+
+    await updateDevice(deviceToEdit._id, payload as any);
+
+    console.log("DEVICE UPDATED SUCCESSFULLY");
+
+    if (currentUser?.role === "supervisor") {
+      navigate(SUPERVISOR_DEVICES_ROUTE);
+    } else if (currentUser?.role === "admin") {
+      navigate(ADMIN_DEVICES_ROUTE);
+    } else {
+      navigate(`${DASHBOARD_ROUTE}/devices`);
+    }
+  } catch (error: any) {
+    console.error(
+      "UPDATE FAILED:",
+      error?.response?.data || error
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCancel = () => navigate("/dashboard/devices");
 

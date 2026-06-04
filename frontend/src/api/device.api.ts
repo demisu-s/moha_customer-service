@@ -58,10 +58,14 @@ export const updateDevice = async (
     });
 
     return response.data.device;
-  } catch (error) {
-    console.error("Error updating device:", error);
-    throw error;
-  }
+  } catch (error: any) {
+  console.error(
+    "API UPDATE ERROR:",
+    error?.response?.data || error
+  );
+
+  throw error;
+}
 };
 
 /* ================= DELETE DEVICE ================= */

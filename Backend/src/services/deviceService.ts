@@ -160,7 +160,6 @@ return await DeviceModel.findById(createdDevice._id)
 
     device.deviceName = deviceName;
     device.deviceType = deviceType;
-    device.deviceId = deviceId;
     device.serialNumber = serialNumber;
     device.user = user || null;
     device.department = finalDepartment;
