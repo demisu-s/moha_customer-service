@@ -2,6 +2,7 @@ import DeviceModel from "../models/DeviceModel";
 import User from "../models/User";
 import { Role } from "../constants/roles";
 
+
 class DeviceService {
   async createDevice(data: any, loggedInUser: any) {
     const {
@@ -97,7 +98,7 @@ class DeviceService {
   user: user || null,
   department: finalDepartment,
   plant: finalPlant,
-  image,
+  image: image || "/images/default-device.png",
 });
 
 return await DeviceModel.findById(createdDevice._id)
@@ -164,7 +165,7 @@ return await DeviceModel.findById(createdDevice._id)
     device.user = user || null;
     device.department = finalDepartment;
     device.plant = finalPlant;
-    device.image = image;
+    device.image = image || device.image;
 
     await device.save();
 

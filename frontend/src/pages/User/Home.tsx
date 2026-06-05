@@ -46,6 +46,7 @@ const Home: React.FC = () => {
               serialNo={device.serialNumber}
               department={device.department?.name || ""}
               plant={device.plant?.name || ""}
+              image={device.image}
             />
           ))}
         </div>

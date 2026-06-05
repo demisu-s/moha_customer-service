@@ -86,7 +86,7 @@ export interface CreateDevicePayload {
   department: string; // ObjectId
   plant: string;      // ObjectId
 
-  image?: string;
+   image?: File | null;
 }
 
 /* ================= CREATE REQUEST ================= */

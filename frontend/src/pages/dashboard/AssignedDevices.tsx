@@ -260,6 +260,7 @@ export default function AssignedDevices() {
           assignedDevices.map((device) => (
             <DeviceCard2
               key={device._id}
+               image={device.image}
               id={device._id}
               deviceType={device.deviceType}
               serialNo={device.serialNumber}

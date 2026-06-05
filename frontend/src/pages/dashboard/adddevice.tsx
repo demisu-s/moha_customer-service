@@ -8,7 +8,7 @@ import { useDeviceContext } from "../../context/DeviceContext";
 import { useUserContext } from "../../context/UserContext";
 import { usePlantContext } from "../../context/PlantContext";
 import { useDepartmentContext } from "../../context/DepartmentContext";
-import { PlantPayload, DepartmentPayload, User } from "../../api/global.types";
+import { PlantPayload, DepartmentPayload, User, CreateDevicePayload } from "../../api/global.types";
 import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
 
 interface DeviceFormData {
@@ -19,7 +19,7 @@ interface DeviceFormData {
   department: DepartmentPayload | null;
   user: User | null;
   area: string;
-  image: string;
+  image?: File | null;
   file?: File | null;
 }
 
@@ -68,7 +68,7 @@ const AddDevice = () => {
     department: null,
     user: null,
     area: "",
-    image: "",
+    image: null,
     file: null,
   });
 
@@ -162,20 +162,36 @@ const AddDevice = () => {
       return;
     }
 
-    const newDevice = {
-      deviceName: formData.name,
-      deviceType: formData.deviceType,
-      deviceId: `DEV-${Date.now()}`,
-      serialNumber: formData.serial,
-      plant: formData.plant,
-      department: formData.department,
-      user: formData.user,
-      area: formData.area,
-      image: formData.image,
-    };
+    // const newDevice = {
+    //   deviceName: formData.name,
+    //   deviceType: formData.deviceType,
+    //   deviceId: `DEV-${Date.now()}`,
+    //   serialNumber: formData.serial,
+    //   plant: formData.plant,
+    //   department: formData.department,
+    //   user: formData.user,
+    //   area: formData.area,
+    //   image: formData.image,
+    // };
 
-    // ✅ CREATE DEVICE
-    await addDevice(newDevice);
+    // // ✅ CREATE DEVICE
+    // await addDevice(newDevice);
+
+
+    const newDevice: CreateDevicePayload = {
+  deviceName: formData.name,
+  deviceType: formData.deviceType,
+  deviceId: `DEV-${Date.now()}`,
+  serialNumber: formData.serial,
+
+  plant: formData.plant._id,
+  department: formData.department._id,
+  user: formData.user?._id || null,
+
+  image: formData.file || null,
+};
+
+await addDevice(newDevice);
 
     // ✅ ROLE BASED REDIRECT
     if (currentUser?.role === "supervisor") {

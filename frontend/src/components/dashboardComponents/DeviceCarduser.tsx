@@ -5,6 +5,7 @@ import * as Label from "@radix-ui/react-label";
 import deviceImage from "../../assets/device 1.png";
 import { Button } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
+import { getImageUrl } from "../../utils/image";
 
 type DeviceCardProps = {
   id: string;
@@ -12,6 +13,7 @@ type DeviceCardProps = {
   serialNo: string;
   department: string;
   plant: string;
+  image?: string;
 };
 
 const DeviceCardUser: React.FC<DeviceCardProps> = ({
@@ -20,16 +22,21 @@ const DeviceCardUser: React.FC<DeviceCardProps> = ({
   serialNo,
   department,
   plant,
+  image,
 }) => {
   const navigate = useNavigate();
 
   return (
     <div className="w-[250px] bg-primary-900 rounded-xl shadow-md p-3 space-y-3 text-sm">
       <img
-        src={deviceImage}
-        alt="Device"
-        className="w-full h-28 object-contain rounded"
-      />
+  src={
+    image
+      ? getImageUrl(image)
+      : deviceImage
+  }
+  alt="Device"
+  className="w-full h-28 object-contain rounded"
+/>
 
       <div className="space-y-2">
         <Field label="Device type" value={deviceType} />

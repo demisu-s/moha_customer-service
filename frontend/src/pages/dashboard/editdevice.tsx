@@ -13,6 +13,7 @@ import {
   DASHBOARD_ROUTE,
 } from "../../router/routeConstants";
 import {Device} from "../../api/global.types";
+import { getImageUrl } from "../../utils/image";
 
 /* -------------------- Types -------------------- */
 
@@ -30,8 +31,10 @@ interface DeviceFormData {
   plantId: string;
   departmentId: string;
   userId: string;
-  image?: string;
-  file?: File | null;
+ 
+   image?: string; // preview/current image
+
+  file?: File | null; // uploaded file
 }
 
 /* -------------------- Select Item -------------------- */
@@ -176,41 +179,37 @@ const EditDevice: React.FC = () => {
   setLoading(true);
 
   try {
-    const selectedPlant = plants.find(
-      (p) => p._id === formData.plantId
-    );
-
-    const selectedDepartment = departments.find(
-      (d) => d._id === formData.departmentId
-    );
-
-    const selectedUser = users.find(
-      (u) => u._id === formData.userId
-    );
-
-    if (!selectedPlant || !selectedDepartment) {
-      console.error("Plant or Department missing");
-      return;
-    }
-
     const payload = {
       deviceName: formData.deviceName,
       deviceType: formData.deviceType,
+
+      // keep existing deviceId
+      deviceId: deviceToEdit.deviceId,
+
       serialNumber: formData.serialNumber,
 
-      plant: selectedPlant,
-      department: selectedDepartment,
+      // send IDs only
+      plant: formData.plantId,
+      department: formData.departmentId,
 
-      user: selectedUser || null,
+      user:
+        formData.userId && formData.userId.trim() !== ""
+          ? formData.userId
+          : null,
 
-      image: formData.image,
+      image: formData.file ?? formData.image,
     };
 
     console.log("UPDATE PAYLOAD:", payload);
 
-    await updateDevice(deviceToEdit._id, payload as any);
+    await updateDevice(
+      deviceToEdit._id,
+      payload as any
+    );
 
-    console.log("DEVICE UPDATED SUCCESSFULLY");
+    console.log(
+      "DEVICE UPDATED SUCCESSFULLY"
+    );
 
     if (currentUser?.role === "supervisor") {
       navigate(SUPERVISOR_DEVICES_ROUTE);
@@ -385,31 +384,51 @@ const EditDevice: React.FC = () => {
         {/* Upload */}
 
         <div className="col-span-2">
-          <Label.Root>Upload Image</Label.Root>
+  <Label.Root>Upload Image</Label.Root>
 
-          <label className="inline-flex items-center gap-2 border px-3 py-2 rounded cursor-pointer mt-1">
-            <UploadIcon /> Upload
+  <label className="inline-flex items-center gap-2 border px-3 py-2 rounded cursor-pointer mt-1">
+    <UploadIcon />
+    Upload
 
-            <input
-              hidden
-              type="file"
-              onChange={(e) => {
-                const file = e.target.files?.[0] ?? null;
+    <input
+      hidden
+      type="file"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files?.[0] ?? null;
 
-                handleChange("file", file);
+        handleChange("file", file);
 
-                if (file) {
-                  const reader = new FileReader();
+        if (file) {
+          const reader = new FileReader();
 
-                  reader.onload = (ev) =>
-                    handleChange("image", ev.target?.result as string);
+          reader.onload = (ev) => {
+            handleChange(
+              "image",
+              ev.target?.result as string
+            );
+          };
 
-                  reader.readAsDataURL(file);
-                }
-              }}
-            />
-          </label>
-        </div>
+          reader.readAsDataURL(file);
+        }
+      }}
+    />
+  </label>
+
+  {formData.image && (
+    <div className="mt-4">
+      <img
+        src={
+          formData.image.startsWith("data:")
+            ? formData.image
+            : getImageUrl(formData.image)
+        }
+        alt="Preview"
+        className="h-32 w-32 object-cover border rounded"
+      />
+    </div>
+  )}
+</div>
       </div>
 
       {/* Buttons */}

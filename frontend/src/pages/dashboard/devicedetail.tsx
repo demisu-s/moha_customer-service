@@ -18,6 +18,7 @@ import {
 
 import LoadingDialog from "../../components/ui/LoadingDialog";
 import ErrorDialog from "../../components/ui/ErrorDialog";
+import { getImageUrl } from "../../utils/image";
 
 const DeviceDetail: React.FC = () => {
   const { id } = useParams();
@@ -130,11 +131,15 @@ const DeviceDetail: React.FC = () => {
           </div>
 
           <div className="p-5 flex justify-center items-center">
-            <img
-              src={device.image || "/placeholder-device.png"}
-              alt={device.deviceName}
-              className="h-56 w-full object-contain transition duration-300 hover:scale-105"
-            />
+          <img
+  src={
+  device.image
+    ? getImageUrl(device.image)
+    : "/placeholder-device.png"
+}
+  alt={device.deviceName}
+  className="h-56 w-full object-contain transition duration-300 hover:scale-105"
+/>
           </div>
         </div>
 

@@ -3,9 +3,12 @@ import * as Label from "@radix-ui/react-label";
 import deviceImage from "../../assets/device 1.png";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Button } from "@radix-ui/themes";
+import { getImageUrl } from "../../utils/image";
+
 
 type DeviceCard2Props = {
   id: string;
+  image?: string;
   deviceType: string;
   serialNo: string;
   department?: string;
@@ -18,6 +21,7 @@ type DeviceCard2Props = {
 
 const DeviceCard2: React.FC<DeviceCard2Props> = ({
   id,
+  image,
   deviceType,
   serialNo,
   department,
@@ -31,7 +35,11 @@ const DeviceCard2: React.FC<DeviceCard2Props> = ({
     <div className="w-full bg-primary-900 rounded-xl shadow-md p-3 space-y-3 text-sm hover:shadow-lg hover:scale-[1.02] transition">
       
       <img
-        src={deviceImage}
+        src={
+          image
+            ? getImageUrl(image)
+            : deviceImage
+        }
         alt="Device"
         className="w-full h-28 object-contain rounded"
       />

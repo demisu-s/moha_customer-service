@@ -9,13 +9,31 @@ import { getDevices, createDevice, deleteDevice,updateDevice } from "../api/devi
 import { CreateDevicePayload, Device } from "../api/global.types";
 import { useUserContext } from "./UserContext";
 
+// interface DeviceContextType {
+//   devices: Device[];
+//   addDevice: (data: Omit<Device, "_id">) => Promise<void>;
+//   deleteDevice: (id: string) => Promise<void>;
+//   updateDevice: (id: string, data: Omit<Device, "_id">) => Promise<void>;
+  
+//   // ✅ ADD THIS
+//   getDevicesByUser: (userId: string) => Device[];
+// }
+
+
 interface DeviceContextType {
   devices: Device[];
-  addDevice: (data: Omit<Device, "_id">) => Promise<void>;
+
+  addDevice: (
+    data: CreateDevicePayload
+  ) => Promise<void>;
+
   deleteDevice: (id: string) => Promise<void>;
-  updateDevice: (id: string, data: Omit<Device, "_id">) => Promise<void>;
-  
-  // ✅ ADD THIS
+
+  updateDevice: (
+    id: string,
+    data: CreateDevicePayload
+  ) => Promise<void>;
+
   getDevicesByUser: (userId: string) => Device[];
 }
 
@@ -47,12 +65,22 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
 
 
   /* ================= ADD DEVICE ================= */
-const addDevice = async (data: Omit<Device, "_id">) => {
+const addDevice = async (
+  data: CreateDevicePayload
+): Promise<void> => {
   try {
     const saved = await createDevice(data);
-    setDevices((prev) => [...prev, saved]);
+
+    setDevices((prev) => [
+      ...prev,
+      saved,
+    ]);
   } catch (error) {
-    console.error("Failed to add device:", error);
+    console.error(
+      "Failed to add device:",
+      error
+    );
+
     throw error;
   }
 };
@@ -73,9 +101,9 @@ const addDevice = async (data: Omit<Device, "_id">) => {
   // };
 
 
- const updateDeviceHandler = async (
+const updateDeviceHandler = async (
   id: string,
-  data: Omit<Device, "_id">
+  data: CreateDevicePayload
 ): Promise<void> => {
   try {
     const updated = await updateDevice(id, data);
