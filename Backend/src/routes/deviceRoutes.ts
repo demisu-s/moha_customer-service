@@ -7,7 +7,7 @@ import {
 } from "../controllers/deviceController";
 import { protect } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/authorize";
-import { upload } from "../../uploads/upload";
+import { upload } from "../utils/upload";
 
 
 const router = express.Router();
