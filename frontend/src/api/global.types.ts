@@ -96,11 +96,10 @@ export interface CreateServiceRequestPayload {
   deviceId: string;
 
   attachments?: File[];
-  problemCategory:
-    | "Hardware"
-    | "Software"
-    | "Network"
-    | "Other";
+  problemCategory:"Desktop" | "Laptop" | "Server" | "Switch" |
+   "Access Point" | "Camera" | "Biometric" | "Camera Related" | "Software" | "ERP"
+    | "Peachtree" | "Canteen" | "Overtime" | "Other Software" | "Network" | "Network Related"
+     | "Internet Related" | "Project Related" | "Other Services";
 
   issues?: string;
   requestedDate?: string;

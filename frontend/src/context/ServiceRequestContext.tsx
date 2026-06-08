@@ -17,11 +17,10 @@ export type RequestStatus =
   | "Resolved"
   | "Unresolved";
 
-export type ProblemCategory =
-  | "Hardware"
-  | "Software"
-  | "Network"
-  | "Other";
+export type ProblemCategory = "Desktop" | "Laptop" | "Server" | "Switch" |
+   "Access Point" | "Camera" | "Biometric" | "Camera Related" | "Software" | "ERP"
+    | "Peachtree" | "Canteen" | "Overtime" | "Other Software" | "Network" | "Network Related"
+     | "Internet Related" | "Project Related" | "Other Services";
 
 export type Issues =
   | "HardDisk Failure"
@@ -43,10 +42,27 @@ export const PROBLEM_TYPES: Issues[] = [
 ];
 
 export const PROBLEM_CATEGORY: ProblemCategory[] = [
-  "Hardware",
+  "Desktop",
+  "Laptop",
+  "Server",
+  "Switch",
+  "Access Point",
+  "Camera",
+  "Biometric",
+  "Camera Related",
+
   "Software",
+  "ERP",
+  "Peachtree",
+  "Canteen",
+  "Overtime",
+  "Other Software",
+
   "Network",
-  "Other",
+  "Network Related",
+  "Internet Related",
+  "Project Related",
+  "Other Services"
 ];
 
 export interface ServiceRequest {
@@ -167,7 +183,7 @@ export const ServiceRequestProvider: React.FC<{
         notes: r.notes,
 
         problemCategory:
-          r.problemCategory || "Hardware",
+          r.problemCategory || "Other Services",
 
         // ✅ IMPORTANT FIX
         attachments: r.attachments || [],
@@ -203,8 +219,7 @@ export const ServiceRequestProvider: React.FC<{
 
     const res = await apiCreateRequest({
       description: requestData.description,
-      problemCategory:
-        requestData.problemCategory || "Hardware",
+      problemCategory:requestData.problemCategory || "Other Services",
 
       attachments:
         (requestData.attachments as any) || [],
@@ -255,7 +270,7 @@ export const ServiceRequestProvider: React.FC<{
       notes: r.notes,
 
       problemCategory:
-        r.problemCategory || "Hardware",
+        r.problemCategory || "Other Services",
 
       // ✅ IMPORTANT FIX
       attachments: r.attachments || [],

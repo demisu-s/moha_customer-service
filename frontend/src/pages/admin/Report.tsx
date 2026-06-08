@@ -502,60 +502,70 @@ const grandTotal =
     (acc: any, row: any) => ({
       Plant: "Grand Total",
 
+  //hardware related works
       Desktops:
         acc.Desktops +
         row.Desktops,
-
       Laptops:
         acc.Laptops +
         row.Laptops,
-
       Servers:
         acc.Servers +
         row.Servers,
-
+      Switchs:
+        acc.Switchs +
+        row.Switchs,
+      AccessPoints:
+        acc.AccessPoints +
+        row.AccessPoints,  
       Cameras:
         acc.Cameras +
         row.Cameras,
-
       CameraRelated:
         acc.CameraRelated +
         row.CameraRelated,
-
+      Biometric:
+        acc.Biometric +
+        row.Biometric,
+          
+//software related works
       ERP:
-        acc.ERP + row.ERP,
-
+        acc.ERP +
+        row.ERP,
       Peachtree:
         acc.Peachtree +
         row.Peachtree,
-
       Canteen:
         acc.Canteen +
         row.Canteen,
-
       Overtime:
         acc.Overtime +
         row.Overtime,
-
       OtherSoftware:
         acc.OtherSoftware +
         row.OtherSoftware,
 
+//total works
       HWTotal:
         acc.HWTotal +
         row.HWTotal,
-
       SWTotal:
         acc.SWTotal +
         row.SWTotal,
+      NTTotal:
+      acc.NTTotal +
+      row.NTTotal,  
 
+      Network:
+        acc.Network +
+        row.Network,
       NetworkRelated:
         acc.NetworkRelated +
         row.NetworkRelated,
-
       InternetRelated:
         acc.InternetRelated +
         row.InternetRelated,
+
 
       ProjectRelated:
         acc.ProjectRelated +
@@ -574,8 +584,11 @@ const grandTotal =
       Desktops: 0,
       Laptops: 0,
       Servers: 0,
+      AccessPoints:0,
+      Switchs:0,
       Cameras: 0,
       CameraRelated: 0,
+      Biometric:0,
 
       ERP: 0,
       Peachtree: 0,
@@ -583,11 +596,16 @@ const grandTotal =
       Overtime: 0,
       OtherSoftware: 0,
 
-      HWTotal: 0,
-      SWTotal: 0,
-
+      Network:0,
       NetworkRelated: 0,
       InternetRelated: 0,
+
+      HWTotal: 0,
+      SWTotal: 0,
+      NTTotal:0, 
+
+
+      
       ProjectRelated: 0,
       OtherServices: 0,
 
@@ -778,7 +796,6 @@ const ws =
             {/* SEARCH */}
 
             <div className="relative">
-
               <Search
                 size={14}
                 className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"

@@ -28,6 +28,8 @@ export const generateSummaryData = (
         desktops: 0,
         laptops: 0,
         servers: 0,
+        switches: 0,
+        accessPoints: 0,
         cameras: 0,
         cameraRelated: 0,
         network: 0,
@@ -60,6 +62,12 @@ export const generateSummaryData = (
 
     if (row.deviceType === "Server")
       p.servers++;
+
+    if (row.deviceType === "Switch")
+      p.switches++;
+
+    if (row.deviceType === "Access Point")
+      p.accessPoints++;
 
     if (row.deviceType === "Camera")
       p.cameras++;
@@ -142,9 +150,10 @@ export const generateSummaryData = (
         item.desktops +
         item.laptops +
         item.servers +
+        item.switches +
+        item.accessPoints +
         item.cameras +
         item.cameraRelated +
-        item.network +
         item.biometric;
 
       const swTotal =
@@ -153,12 +162,16 @@ export const generateSummaryData = (
         item.canteen +
         item.overtime +
         item.otherSoftware;
+       
+      const ntTotal =
+        item.network +
+        item.networkRelated +
+        item.internetRelated;
 
       const total =
         hwTotal +
         swTotal +
-        item.networkRelated +
-        item.internetRelated +
+        ntTotal +
         item.projectRelated +
         item.otherServices;
 
@@ -168,10 +181,10 @@ export const generateSummaryData = (
         Desktops: item.desktops,
         Laptops: item.laptops,
         Servers: item.servers,
+        Switches: item.switches,
+        AccessPoints: item.accessPoints,
         Cameras: item.cameras,
-        CameraRelated:
-          item.cameraRelated,
-        Network: item.network,
+        CameraRelated:item.cameraRelated,
         Biometric: item.biometric,
 
         HWTotal: hwTotal,
@@ -180,22 +193,20 @@ export const generateSummaryData = (
         Peachtree: item.peachtree,
         Canteen: item.canteen,
         Overtime: item.overtime,
-        OtherSoftware:
-          item.otherSoftware,
+        OtherSoftware: item.otherSoftware,
 
         SWTotal: swTotal,
 
-        NetworkRelated:
-          item.networkRelated,
+        Network: item.network,
+        NetworkRelated: item.networkRelated,
+        InternetRelated:item.internetRelated,
 
-        InternetRelated:
-          item.internetRelated,
+        NTTotal: ntTotal,
 
-        ProjectRelated:
-          item.projectRelated,
 
-        OtherServices:
-          item.otherServices,
+
+        ProjectRelated: item.projectRelated,
+        OtherServices:item.otherServices,
 
         Total: total,
       };

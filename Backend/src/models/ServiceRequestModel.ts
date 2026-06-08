@@ -74,10 +74,28 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
     problemCategory:{
       type:String,
       enum:[
-        "Hardware",
+        "Desktop",
+        "Laptop",
+        "Server",
+        "Switch",
+        "Access Point",
+        "Camera",
+        "Biometric",
+        "Camera Related",
+
+
         "Software",
+        "ERP",
+        "Peachtree",
+        "Canteen",
+        "Overtime",
+        "Other Software",
+
         "Network",
-        "Other",
+         "Network Related",
+         "Internet Related",
+        "Project Related",
+        "Other Services"
       ]
     },
 
