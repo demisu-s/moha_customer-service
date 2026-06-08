@@ -7,8 +7,8 @@ export const createDevice = async (
 ) => {
   try {
     const imagePath = req.file
-      ? `/uploads/${req.file.filename}`
-      : "";
+  ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+  : "";
 
     const device = await DeviceService.createDevice(
       {
@@ -35,8 +35,8 @@ export const updateDevice = async (
   res: Response
 ) => {
   try {
-    const imagePath = req.file
-      ? `/uploads/${req.file.filename}`
+   const imagePath = req.file
+      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
       : undefined;
 
     const device = await DeviceService.updateDevice(

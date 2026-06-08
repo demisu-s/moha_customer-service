@@ -9,17 +9,18 @@ import deviceRoutes from "./routes/deviceRoutes";
 import serviceRequesstRoutes from "./routes/serviceRequestRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
 import cors from "cors";
-import path from "path/win32";
+// import path from "path/win32";
+import path from "path";
 
 dotenv.config();
 
 const app = express();
 
+
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: true,
   credentials: true
 }));
-app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 
@@ -31,11 +32,17 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+
+
 app.use(
   "/uploads",
   express.static(
-    path.join(__dirname, "../uploads")
+    path.resolve(process.cwd(), "uploads")
   )
+);
+console.log(
+  "Uploads folder:",
+  path.resolve(process.cwd(), "uploads")
 );
 
 app.use(express.json());

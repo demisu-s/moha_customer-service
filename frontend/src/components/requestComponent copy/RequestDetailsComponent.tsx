@@ -46,7 +46,6 @@ const RequestDetailsComponent: React.FC = () => {
   }
 
   const allImages = [
-  ...(request.deviceImage ? [request.deviceImage] : []),
   ...(request.attachments || []),
 ].filter(
   (img): img is string =>
