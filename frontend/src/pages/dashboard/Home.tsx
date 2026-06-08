@@ -251,6 +251,7 @@ const filteredRequests = requests.filter((request) => {
               assignedDate={request.assignedDate}
               createdAt={request.createdAt}
               resolvedDate={request.resolvedDate}
+              deviceImage={request.deviceImage}
               
               supervisorName={
                 request.assignedToName ||
