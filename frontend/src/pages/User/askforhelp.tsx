@@ -27,7 +27,7 @@ const AskForHelp: React.FC = () => {
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [problemCategory, setProblemCategory] =
-    useState<ProblemCategory>("Hardware");
+    useState<ProblemCategory>("Desktop");
 
   const [error, setError] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -110,7 +110,7 @@ const AskForHelp: React.FC = () => {
       deviceId: device._id,
       description: description.trim(),
       problemCategory: problemCategory,
-      attachments: files,
+      attachments: files.map((file) => file.name),
 
       // ✅ actual submit time
       createdAt: requestTime,
@@ -118,7 +118,7 @@ const AskForHelp: React.FC = () => {
 
     setDescription("");
     setFiles([]);
-    setProblemCategory("Hardware");
+    setProblemCategory("Desktop");
 
     setShowSuccessDialog(true);
 

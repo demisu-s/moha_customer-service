@@ -30,6 +30,7 @@ import Users from '../pages/dashboard/users';
 import Department from '../pages/dashboard/Department';
 import SolutionByAdminPage from '../pages/request/SolutionByAdminPage';
 import AssignedDevices from '../pages/dashboard/AssignedDevices';
+import WorkOrders from '../pages/dashboard/WorkOrders';
 
 export const router = createBrowserRouter([
   {
@@ -81,6 +82,8 @@ export const router = createBrowserRouter([
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
     {path: "schedules",element: <Scheduler/>},
+    {path: "work-orders",element: <WorkOrders/>},
+
   
   ]
 },
@@ -111,6 +114,7 @@ export const router = createBrowserRouter([
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
     {path: "schedules",element: <Scheduler/>},
+    {path: "work-orders",element: <WorkOrders/>},
     { path: "departments",element: <Department/>},
   
   ]
@@ -144,6 +148,8 @@ export const router = createBrowserRouter([
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
     {path: "schedules",element: <Scheduler/>},
+    {path: "work-orders",element: <WorkOrders/>},
+
   
   ]
 

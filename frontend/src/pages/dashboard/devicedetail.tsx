@@ -111,9 +111,11 @@ const DeviceDetail: React.FC = () => {
 
         <Button
           onClick={() => navigate(-1)}
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm flex items-center"
+          className="inline-flex items-center bg-primary-600 text-white px-3 sm:px-4 py-1 text-xs sm:text-sm font-semibold rounded-lg whitespace-nowrap"
+          
         >
-          <IoArrowBack className="mr-1" />
+        <IoArrowBack className="mr-1 sm:mr-2 text-sm" />
+          
           Back
         </Button>
       </div>

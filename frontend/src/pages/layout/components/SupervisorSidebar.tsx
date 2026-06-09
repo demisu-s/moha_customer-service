@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie } from 'react-icons/fa';
+import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaClipboardList, FaLaptop } from 'react-icons/fa';
 
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/nono.png'; // Replace with your actual logo
-import { SUPERVISOR_OVERVIEW_ROUTE,SUPERVISOR_SCHEDULES_ROUTE, SUPERVISOR_DEVICES_ROUTE, SIGN_IN_ROUTE, SUPERVISOR_USERS_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE, SUPERVISOR_ASSIGNED_DEVICES_ROUTE } from '../../../router/routeConstants';
+import { SUPERVISOR_OVERVIEW_ROUTE,SUPERVISOR_SCHEDULES_ROUTE, SUPERVISOR_DEVICES_ROUTE, SIGN_IN_ROUTE, SUPERVISOR_USERS_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE, SUPERVISOR_ASSIGNED_DEVICES_ROUTE, SUPERVISOR_WORK_ORDERS_ROUTE } from '../../../router/routeConstants';
 import { useUserContext } from '../../../context/UserContext';
 
 export function SupervisorSidebar() {
@@ -18,8 +18,9 @@ export function SupervisorSidebar() {
     { to: SUPERVISOR_DASHBOARD_ROUTE, icon: <FaHome />, label: 'Home' },
     { to: SUPERVISOR_USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
     { to: SUPERVISOR_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
-    { to: SUPERVISOR_ASSIGNED_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Assigned Devices' },
+    { to: SUPERVISOR_ASSIGNED_DEVICES_ROUTE, icon: <FaLaptop />, label: 'Assigned Devices' },
     { to: SUPERVISOR_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    { to: SUPERVISOR_WORK_ORDERS_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     { to: SUPERVISOR_OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },
   ];
 

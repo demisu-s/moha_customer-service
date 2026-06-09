@@ -9,6 +9,7 @@ export const ASSIGNED_DEVICES_ROUTE = "/dashboard/assigned-devices";
 
 export const PLANTS_ROUTE = "/dashboard/plants";
 export const SCHEDULES_ROUTE = "/dashboard/schedules";
+export const WORK_ORDERS_ROUTE = "/dashboard/work-orders";
 export const REQUESTS_ROUTE = "/requests";
 export const REQUEST_DETAILS_ROUTE = "/requests/details/:requestId";
 export const REQUEST_HISTORY_ROUTE = "/requests/history/:requestId";
@@ -28,6 +29,8 @@ export const ADMIN_DEVICES_ROUTE = "/admin-dashboard/devices"
 
 export const ADMIN_ASSIGNED_DEVICES_ROUTE = "/admin-dashboard/assigned-devices"
 export const ADMIN_SCHEDULES_ROUTE = "/admin-dashboard/schedules"
+export const ADMIN_WORK_ORDERS_ROUTE = "/admin-dashboard/work-orders";
+
 export const ADMIN_OVERVIEW_ROUTE = "/admin-dashboard/overview"
 export const ADMIN_REPORT_ROUTE = "/admin-dashboard/report"
 export const ADMIN_DEPARTMENT_ROUTE = "/admin-dashboard/departments";
@@ -40,6 +43,7 @@ export const SUPERVISOR_USERS_ROUTE = "/supervisor-dashboard/users"
 export const SUPERVISOR_DEVICES_ROUTE = "/supervisor-dashboard/devices"
 export const SUPERVISOR_ASSIGNED_DEVICES_ROUTE = "/supervisor-dashboard/assigned-devices"
 export const SUPERVISOR_SCHEDULES_ROUTE = "/supervisor-dashboard/schedules"
+export const SUPERVISOR_WORK_ORDERS_ROUTE = "/supervisor-dashboard/work-orders"
 export const SUPERVISOR_OVERVIEW_ROUTE = "/supervisor-dashboard/overview"
 
 
