@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { generateUUID } from "../../utils/uuid";
 
 interface ProcedureStep {
   stepNumber: number;
@@ -27,7 +28,7 @@ interface CreateWorkOrderFormProps {
 }
 
 const emptyTask = (): TaskForm => ({
-  id: crypto.randomUUID(),
+  id: generateUUID(),
   taskName: "",
   description: "",
   estimatedDuration: "",
@@ -252,6 +253,8 @@ export const CreateWorkOrderForm: React.FC<CreateWorkOrderFormProps> = ({
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
                 </select>
               </div>
 

@@ -17,7 +17,7 @@ export function DashboardSidebar() {
     { to: DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
     { to: ASSIGNED_DEVICES_ROUTE, icon: <FaDesktop />, label: 'Assigned Devices' },
     { to: PLANTS_ROUTE, icon: <FaMapMarkerAlt />, label: 'Plants' },
-    { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    // { to: SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
     { to: PLAN_PM_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     // { to: WORK_ORDERS_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     { to: REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },

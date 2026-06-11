@@ -19,7 +19,7 @@ export function SupervisorSidebar() {
     { to: SUPERVISOR_USERS_ROUTE, icon: <FaUsers />, label: 'Users' },
     { to: SUPERVISOR_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
     { to: SUPERVISOR_ASSIGNED_DEVICES_ROUTE, icon: <FaLaptop />, label: 'Assigned Devices' },
-    { to: SUPERVISOR_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    // { to: SUPERVISOR_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
     { to: SUPERVISOR_WORK_ORDERS_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     { to: SUPERVISOR_OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },
   ];

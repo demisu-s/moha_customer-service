@@ -20,7 +20,7 @@ const handleLogout = () => {
      { to: ADMIN_DEPARTMENT_ROUTE, icon: <FaBuilding />, label: 'department' },
     { to: ADMIN_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
     { to: ADMIN_ASSIGNED_DEVICES_ROUTE, icon: <FaLaptop />, label: 'Assigned Devices' },
-    { to: ADMIN_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
+    // { to: ADMIN_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
     { to: ADMIN_PLAN_PM_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     // { to: ADMIN_WORK_ORDERS_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     { to: ADMIN_REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },

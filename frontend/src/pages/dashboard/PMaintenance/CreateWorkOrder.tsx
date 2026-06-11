@@ -7,6 +7,7 @@ import { WorkOrderStats } from "../../../components/PMaintenance/WorkOrderStats"
 import { WorkOrderFilters } from "../../../components/PMaintenance/WorkOrderFilters";
 import { WorkOrderTable } from "../../../components/PMaintenance/WorkOrderTable";
 import { CreateWorkOrderForm } from "../../../components/PMaintenance/CreateWorkOrderForm";
+import { generateUUID } from "../../../utils/uuid";
 
 const CreateWorkOrder: React.FC = () => {
   const { addWorkOrder, workOrders, removeWorkOrder, loading } = usePMWO();
