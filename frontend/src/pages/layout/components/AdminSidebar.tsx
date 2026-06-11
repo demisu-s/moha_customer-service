@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUsers, FaMicrochip, FaMapMarkerAlt, FaClock, FaSignOutAlt, FaChartPie, FaRegFileAlt,FaBuilding, FaClipboardList, FaLaptop } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../../../assets/nono.png'; 
-import {  SIGN_IN_ROUTE, ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE, ADMIN_DEVICES_ROUTE, ADMIN_SCHEDULES_ROUTE, ADMIN_REPORT_ROUTE, ADMIN_OVERVIEW_ROUTE, ADMIN_DEPARTMENT_ROUTE, ADMIN_ASSIGNED_DEVICES_ROUTE, WORK_ORDERS_ROUTE, ADMIN_WORK_ORDERS_ROUTE } from '../../../router/routeConstants';
+import {  SIGN_IN_ROUTE, ADMIN_DASHBOARD_ROUTE, ADMIN_USERS_ROUTE,ADMIN_PLAN_PM_ROUTE, ADMIN_DEVICES_ROUTE, ADMIN_SCHEDULES_ROUTE, ADMIN_REPORT_ROUTE, ADMIN_OVERVIEW_ROUTE, ADMIN_DEPARTMENT_ROUTE, ADMIN_ASSIGNED_DEVICES_ROUTE, ADMIN_WORK_ORDERS_ROUTE, PLAN_PM_ROUTE } from '../../../router/routeConstants';
 import { useUserContext } from '../../../context/UserContext';
 
 export function AdminSidebar() {
@@ -21,7 +21,8 @@ const handleLogout = () => {
     { to: ADMIN_DEVICES_ROUTE, icon: <FaMicrochip />, label: 'Devices' },
     { to: ADMIN_ASSIGNED_DEVICES_ROUTE, icon: <FaLaptop />, label: 'Assigned Devices' },
     { to: ADMIN_SCHEDULES_ROUTE, icon: <FaClock />, label: 'Schedule' },
-    { to: ADMIN_WORK_ORDERS_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
+    { to: ADMIN_PLAN_PM_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
+    // { to: ADMIN_WORK_ORDERS_ROUTE, icon: <FaClipboardList />, label: 'Work Orders' },
     { to: ADMIN_REPORT_ROUTE, icon: <FaRegFileAlt />, label: 'Report' },
     { to: ADMIN_OVERVIEW_ROUTE, icon: <FaChartPie />, label: 'Overview' },
    

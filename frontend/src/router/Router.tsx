@@ -30,7 +30,8 @@ import Users from '../pages/dashboard/users';
 import Department from '../pages/dashboard/Department';
 import SolutionByAdminPage from '../pages/request/SolutionByAdminPage';
 import AssignedDevices from '../pages/dashboard/AssignedDevices';
-import WorkOrders from '../pages/dashboard/WorkOrders';
+import CreateWorkOrder from '../pages/dashboard/PMaintenance/CreateWorkOrder';
+import ExecuteWorkOrder from '../pages/dashboard/PMaintenance/ExecuteWorkOrder';
 
 export const router = createBrowserRouter([
   {
@@ -82,7 +83,9 @@ export const router = createBrowserRouter([
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
     {path: "schedules",element: <Scheduler/>},
-    {path: "work-orders",element: <WorkOrders/>},
+    {path: "work-orders/execute/:id",element: <ExecuteWorkOrder/>},
+    {path: "work-orders",element: <CreateWorkOrder/>},
+
 
   
   ]
@@ -114,7 +117,8 @@ export const router = createBrowserRouter([
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
     {path: "schedules",element: <Scheduler/>},
-    {path: "work-orders",element: <WorkOrders/>},
+    {path: "work-orders/execute/:id",element: <ExecuteWorkOrder/>},
+    {path: "work-orders",element: <CreateWorkOrder/>},
     { path: "departments",element: <Department/>},
   
   ]
@@ -148,8 +152,8 @@ export const router = createBrowserRouter([
     {path: "overview",element: <Overview/>},
     {path: "report",element: <Report/> },
     {path: "schedules",element: <Scheduler/>},
-    {path: "work-orders",element: <WorkOrders/>},
-
+    {path: "work-orders/execute/:id",element: <ExecuteWorkOrder/>},
+    {path: "work-orders",element: <CreateWorkOrder/>},
   
   ]
 

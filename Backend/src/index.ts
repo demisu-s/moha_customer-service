@@ -8,6 +8,7 @@ import depatmentRoutes from "./routes/departmentRoutes";
 import deviceRoutes from "./routes/deviceRoutes";
 import serviceRequesstRoutes from "./routes/serviceRequestRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
+import preventiveMaintenanceRoutes from "./routes/Preventivemaintenanceroutes";
 import cors from "cors";
 // import path from "path/win32";
 import path from "path";
@@ -52,6 +53,8 @@ app.use("/api/department", depatmentRoutes);
 app.use("/api/device", deviceRoutes);
 app.use("/api/request",serviceRequesstRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/preventive-maintenance", preventiveMaintenanceRoutes);
+
 
 
 app.use(errorHandler);

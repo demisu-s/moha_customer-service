@@ -9,6 +9,7 @@ import { ServiceRequestProvider } from './context/ServiceRequestContext';
 import { PlantProvider } from "./context/PlantContext";
 import { DepartmentProvider } from './context/DepartmentContext';
 import { ScheduleProvider } from './context/ScheduleContext';
+import { PMWOProvider } from './context/PMWOContext';
 
 
 
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <PlantProvider>
        <DepartmentProvider>
         <ScheduleProvider>
+            <PMWOProvider>
       <App />
+      </PMWOProvider>
       </ScheduleProvider>
             </DepartmentProvider>
             </PlantProvider>
