@@ -1,20 +1,31 @@
 // src/components/dashboardComponents/HistoryDetailsComponent.tsx
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "../ui/carousel";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
+import { IoArrowBack } from "react-icons/io5";
 
 const HistoryDetailsComponent: React.FC = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
 
-  const { getRequestById } = useServiceRequests();
+  const { getRequestById, requests } = useServiceRequests();
   const { users } = useUserContext();
   const { devices } = useDeviceContext();
 
   const request = getRequestById(requestId || "");
+  
+  // Add state for image loading errors
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
   /* =========================
      NOT FOUND
@@ -40,6 +51,18 @@ const HistoryDetailsComponent: React.FC = () => {
   // ✅ KEY LOGIC → supervisor flow only if assignedDate exists
   const isSupervisorFlow = !!request.assignedDate;
 
+  // Get user uploaded screenshots/error images (attachments from backend)
+  const userImages = request.attachments || [];
+
+  // Debug logging
+  console.log("=== History Details Debug ===");
+  console.log("Request ID:", requestId);
+  console.log("Full request object:", request);
+  console.log("Attachments array:", request.attachments);
+  console.log("User images:", userImages);
+  console.log("Number of images:", userImages.length);
+  console.log("==============================");
+
   /* =========================
      UI
   ========================== */
@@ -52,7 +75,7 @@ const HistoryDetailsComponent: React.FC = () => {
           Request – {device ? device.deviceName : request.serialNumber}
         </h2>
         <p className="text-sm text-gray-400">
-          Detailed record of this service request.
+          Detailed record of this service request with error screenshots.
         </p>
       </div>
 
@@ -60,15 +83,51 @@ const HistoryDetailsComponent: React.FC = () => {
       <div className="grid md:grid-cols-3 gap-4">
         {/* Device + Summary */}
         <div className="col-span-2 flex">
-          {request.deviceImage && (
-            <div className="border rounded-l-lg p-4 bg-white flex items-center">
-              <img
-                src={request.deviceImage}
-                alt="Device"
-                className="w-72 h-48 object-contain"
-              />
-            </div>
-          )}
+          {/* User Uploaded Screenshots Carousel */}
+          <div className="border rounded-l-lg p-2 flex items-center justify-center bg-white relative min-w-[300px]">
+            {userImages.length > 0 ? (
+              <Carousel className="w-72 relative">
+                <CarouselContent>
+                  {userImages.map((img, idx) => (
+                    <CarouselItem key={idx}>
+                      <div className="flex items-center justify-center h-48">
+                        {!imageErrors[idx] ? (
+                          <img
+                            src={img}
+                            alt={`Error screenshot ${idx + 1}`}
+                            className="w-full h-48 object-contain rounded"
+                            onError={(e) => {
+                              console.error(`Failed to load image ${idx + 1}:`, img);
+                              setImageErrors(prev => ({ ...prev, [idx]: true }));
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            onLoad={() => console.log(`Image ${idx + 1} loaded successfully:`, img)}
+                          />
+                        ) : (
+                          <div className="text-center p-4">
+                            <p className="text-red-500 text-sm">Failed to load image</p>
+                            <p className="text-gray-400 text-xs mt-2 break-all">{img}</p>
+                          </div>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                {userImages.length > 1 && (
+                  <>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </>
+                )}
+              </Carousel>
+            ) : (
+              <div className="w-72 h-48 flex flex-col items-center justify-center bg-gray-50 rounded">
+                <p className="text-gray-400 text-sm">No screenshots uploaded</p>
+                <p className="text-gray-300 text-xs mt-1">Users can upload error screenshots when submitting requests</p>
+              </div>
+            )}
+          </div>
 
           <div className="border-t border-b border-r rounded-r-lg p-4 flex-1 bg-white">
             <h3 className="font-bold mb-3 text-xl">Request Summary</h3>
@@ -170,7 +229,7 @@ const HistoryDetailsComponent: React.FC = () => {
 
           <div className="mt-3">
             <p className="text-gray-500 font-medium">Description:</p>
-            <p className="text-gray-700">{request.description}</p>
+            <p className="text-gray-700 bg-gray-50 p-3 rounded mt-1">{request.description}</p>
           </div>
         </div>
       </div>
@@ -201,7 +260,12 @@ const HistoryDetailsComponent: React.FC = () => {
 
       {/* Back */}
       <div className="flex justify-end">
-        <Button onClick={() => navigate(-1)}>Back</Button>
+        <Button onClick={() => navigate(-1)}
+          className="inline-flex items-center bg-primary-600 text-white px-3 sm:px-4 py-1 text-xs sm:text-sm font-semibold rounded-lg whitespace-nowrap"
+        >
+          <IoArrowBack className="mr-1 sm:mr-2 text-sm" />
+          Back
+        </Button>
       </div>
     </div>
   );

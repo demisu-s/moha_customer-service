@@ -9,6 +9,7 @@ import {
   CarouselNext,
 } from "../ui/carousel";
 import { useServiceRequests } from "../../context/ServiceRequestContext";
+import { IoArrowBack } from "react-icons/io5";
 
 const RequestDetailsComponent: React.FC = () => {
   const { requestId } = useParams();
@@ -194,7 +195,10 @@ const RequestDetailsComponent: React.FC = () => {
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button onClick={() => navigate(-1)}>
+        <Button onClick={() => navigate(-1)}
+         className="inline-flex items-center bg-primary-600 text-white px-3 sm:px-4 py-1 text-xs sm:text-sm font-semibold rounded-lg whitespace-nowrap"
+                 >
+                   <IoArrowBack className="mr-1 sm:mr-2 text-sm" />
           Back
         </Button>
       </div>

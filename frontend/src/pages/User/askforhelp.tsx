@@ -110,7 +110,7 @@ const AskForHelp: React.FC = () => {
       deviceId: device._id,
       description: description.trim(),
       problemCategory: problemCategory,
-      attachments: files.map((file) => file.name),
+      attachments: files, 
 
       // ✅ actual submit time
       createdAt: requestTime,

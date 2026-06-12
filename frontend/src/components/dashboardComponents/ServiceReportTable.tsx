@@ -76,7 +76,7 @@ const ServiceReportTable: React.FC<Props> = ({ data = [] }) => {
                         onClick={() => setSelectedSolution(row.solution || "—")}
                         className="block w-full truncate text-left text-blue-600 hover:underline text-[10px]"
                       >
-                        {row.solution || "—"}
+                        {row.solution && row.solution !== "_" ? "View Solution" : "—"}
                       </button>
                     </td>
                     <td className="px-3 py-2">

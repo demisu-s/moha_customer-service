@@ -19,9 +19,9 @@ export const validator = (
     {
       field: "password",
       method: "length",
-      args: [6],
+      args: [3],
       validWhen: true,
-      message: "Password should have at least 6 characters",
+      message: "Password should have at least 3 characters",
     },
     {
       field: "firstName",
@@ -33,9 +33,9 @@ export const validator = (
     {
       field: "userId",
       method: "length",
-      args: [2],
+      args: [3],
       validWhen: true,
-      message: "userId should be a valid",
+      message: "userId should have at least 3 characters",
     },
     {
       field: "lastName",
