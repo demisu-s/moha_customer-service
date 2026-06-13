@@ -11,6 +11,23 @@ import {
 } from "../../context/ServiceRequestContext";
 import { useUserContext } from "../../context/UserContext";
 import { useDeviceContext } from "../../context/DeviceContext";
+import { 
+  IoArrowBack, 
+  IoPerson, 
+  IoDesktopOutline, 
+  IoCalendar, 
+  IoChatbubbleEllipses,
+  IoFlag,
+  IoWarning,
+  IoCheckmarkCircle,
+  IoCloseCircle,
+  IoDocumentTextOutline,
+  IoConstructOutline,
+  IoTimeOutline,
+  IoAlertCircleOutline,
+  IoCheckmarkDoneCircle,
+  IoClipboardOutline
+} from "react-icons/io5";
 
 const SolutionByAdminComponent: React.FC = () => {
   const { requestId } = useParams();
@@ -18,259 +35,387 @@ const SolutionByAdminComponent: React.FC = () => {
   const { getRequestById, updateRequest } = useServiceRequests();
   const { users, currentUser } = useUserContext();
   const { devices } = useDeviceContext();
-   const [urgency, setUrgency] = useState<Urgency>("");
-    const urgencyOptions: Urgency[] = ["Low", "Medium", "High"];
+  const [urgency, setUrgency] = useState<Urgency>("");
+  const urgencyOptions: Urgency[] = ["Low", "Medium", "High"];
 
   const [solution, setSolution] = useState("");
   const [issues, setIssues] = useState<Issues | "">("");
 
   const request = getRequestById(requestId || "");
-  const [problemCategory, setProblemCategory] =useState<ProblemCategory>("Hardware");
+  const [problemCategory, setProblemCategory] = useState<ProblemCategory>("Software");
   const categories = PROBLEM_CATEGORY;
 
   useEffect(() => {
-  if (request) {
-    setProblemCategory(request.problemCategory);
-  }
+    if (request) {
+      setProblemCategory(request.problemCategory);
+    }
+    if (request?.issues) {
+      setIssues(request.issues);
+    }
+    if (request?.urgency) {
+      setUrgency(request.urgency);
+    }
+  }, [request]);
 
-  if (request?.issues) {
-    setIssues(request.issues);
-  }
-}, [request]);
-
+  // Get urgency color and icon
+  const getUrgencyStyles = (level: Urgency) => {
+    switch(level) {
+      case "High":
+        return { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", icon: IoWarning, buttonBg: "bg-red-500 hover:bg-red-600" };
+      case "Medium":
+        return { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700", icon: IoAlertCircleOutline, buttonBg: "bg-orange-500 hover:bg-orange-600" };
+      case "Low":
+        return { bg: "bg-green-50", border: "border-green-200", text: "text-green-700", icon: IoCheckmarkCircle, buttonBg: "bg-green-500 hover:bg-green-600" };
+      default:
+        return { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-700", icon: IoFlag, buttonBg: "bg-gray-500 hover:bg-gray-600" };
+    }
+  };
 
   if (!request) {
     return (
-      <div className="max-w-3xl mx-auto p-6 text-center text-red-600">
-        <h2 className="text-xl font-semibold">Request not found</h2>
-        <Button onClick={() => navigate(-1)} className="mt-4">
-          Go Back
-        </Button>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-light-200 to-gray-100">
+        <div className="max-w-md mx-auto p-8 text-center bg-white rounded-2xl shadow-xl">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <IoWarning className="w-10 h-10 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-dark-400 mb-2">
+            Request Not Found
+          </h2>
+          <p className="text-dark-600 mb-6">
+            The service request you're trying to solve doesn't exist or has been removed.
+          </p>
+          <Button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-500 to-primary-700 text-white px-6 py-2.5 rounded-lg hover:shadow-lg transition-all"
+          >
+            <IoArrowBack className="w-4 h-4" />
+            Go Back
+          </Button>
+        </div>
       </div>
     );
   }
 
-  /* =========================
-     ✅ DATA LOOKUPS
-  ========================== */
-
   const requester = users.find((u) => u._id === request.requestedBy);
-
-  // ✅ Logged-in admin (who is solving)
   const solved = users.find((u) => u._id === currentUser?._id);
-
   const device = devices.find((d) => d._id === request.deviceId);
+  const urgencyStyle = getUrgencyStyles(urgency as Urgency);
+  const UrgencyIcon = urgencyStyle.icon;
 
-  /* =========================
-     ✅ HANDLE SOLVE
-  ========================== */
+  const handleSolve = (status: "Resolved" | "Unresolved") => {
+    const now = new Date().toISOString();
+    updateRequest(request.id || request._id, {
+      status,
+      solution,
+      issues: issues || request.issues,
+      problemCategory,
+      resolvedDate: now,
+      urgency: urgency || request.urgency,
+      assignedTo: currentUser?._id,
+      assignedToName: `${currentUser?.firstName} ${currentUser?.lastName}`,
+    });
+    navigate("/dashboard");
+  };
 
-  const handleSolve = (
-  status: "Resolved" | "Unresolved"
-) => {
+  const formattedDate = new Date(request.createdAt).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
 
-  const now = new Date().toISOString();
-
-  updateRequest(
-  request.id || request._id,
-  {
-    status,
-    solution,
-    issues: issues || request.issues,
-
-    problemCategory,
-
-    resolvedDate: now,
-    urgency,
-
-    assignedTo: currentUser?._id,
-    assignedToName: `${currentUser?.firstName} ${currentUser?.lastName}`,
-  }
-);
-
-  navigate("/dashboard");
-};
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <h2 className="text-3xl font-bold text-gray-800">
-        Solve Request –{" "}
-        {device ? device.deviceName : request.serialNumber}
-      </h2>
-
-      <p className="text-sm text-gray-400 max-w-xl">
-        Review the issue and provide a solution.
-      </p>
-
-      <div className="bg-white border rounded-2xl shadow-sm p-6">
-        <h3 className="font-bold text-2xl mb-4 text-gray-800">
-          📝 Request Details
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-          {/* Requester */}
-          <div>
-            <span className="text-gray-500 font-medium">Requester</span>
-            <span className="block text-gray-900">
-              {requester
-                ? `${requester.firstName} ${requester.lastName}`
-                : request.requestedBy}
-            </span>
-          </div>
-
-          {/* Solved By */}
-          <div>
-            <span className="text-gray-500 font-medium">Solved by</span>
-            <span className="block text-gray-900">
-              {solved
-                ? `${solved.firstName} ${solved.lastName}`
-                : "—"}
-            </span>
-          </div>
-
-          {/* Device */}
-          <div>
-            <span className="text-gray-500 font-medium">Device</span>
-            <span className="block text-gray-900">
-              {device
-                ? `${device.deviceName} (${device.deviceType})`
-                : "Unknown"}
-            </span>
-          </div>
-
-          {/* Date */}
-          <div>
-            <span className="text-gray-500 font-medium">
-              Requested Date
-            </span>
-            <span className="block text-gray-900">
-  {new Date(request.createdAt).toLocaleString()}
-</span>
+     <div className="min-h-screen bg-gray-50 py-8 rounded-lg px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* HEADER with Gradient */}
+        <div className="relative overflow-hidden bg-light-200 rounded-2xl shadow-xl">
+          <div className="absolute inset-0  opacity-10"></div>
+          <div className="relative px-6 py-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 hover:bg-white rounded-xl transition-colors"
+                >
+                  <IoArrowBack className="w-6 h-6 text-dark-600" />
+                </button>
+                <div>
+                  <h1 className="text-3xl font-bold text-black mb-1">
+                    Solve Service Request
+                  </h1>
+                  <p className="text-primary-100 text-sm flex items-center gap-2">
+                    <IoConstructOutline className="w-4 h-4" />
+                    {device ? device.deviceName : request.serialNumber}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Urgency Badge */}
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${urgencyStyle.bg} ${urgencyStyle.text} border ${urgencyStyle.border} shadow-sm backdrop-blur-sm`}>
+                <UrgencyIcon className="w-4 h-4" />
+                <span className="text-sm font-semibold">{urgency || request.urgency || 'Normal'} Urgency</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Description */}
-        <div className="mb-4">
-          <p className="text-gray-500 font-medium mb-2">
-            Problem Description
-          </p>
-          <p className="text-gray-700">{request.description}</p>
-        </div>
+        {/* Main Content Card */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {/* Request Details Section */}
+          <div className="border-b border-light-200">
+            <div className="bg-gradient-to-r from-dark-400 to-dark-800 px-6 py-4">
+              <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                <IoDocumentTextOutline className="w-5 h-5" />
+                Request Details
+              </h3>
+              <p className="text-gray-300 text-sm mt-1">Review the original request information</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {/* Requester */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border-l-4 border-blue-500">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <IoPerson className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-blue-600 uppercase tracking-wide font-semibold">Requester</p>
+                        <p className="text-sm text-dark-500">Person who reported issue</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-dark-400">
+                        {requester ? `${requester.firstName} ${requester.lastName}` : request.requestedBy}
+                      </p>
+                    </div>
+                  </div>
 
-        <div className="border-t my-6"></div>
-
-      <div className="mb-6">
-  <label className="block text-gray-700 font-semibold mb-2">
-    Problem Category
-  </label>
-
-  <select
-    value={problemCategory}
-    onChange={(e) =>
-      setProblemCategory(
-        e.target.value as ProblemCategory
-      )
-    }
-    className="w-full border rounded-md p-2"
-  >
-    {categories.map((category) => (
-      <option
-        key={category}
-        value={category}
-      >
-        {category}
-      </option>
-    ))}
-  </select>
-
-  <p className="text-xs text-yellow-600 mt-1">
-    Change this only if the user selected the wrong problemcategory.
-  </p>
-</div>
-
-     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-        {/* Problem Type */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            Problem Type
-          </label>
-          <select
-            value={issues}
-            onChange={(e) =>
-              setIssues(e.target.value as Issues)
-            }
-            className="w-full border rounded-md p-2 text-sm focus:ring-1 focus:ring-gray-400"
-          >
-            <option value="">Select problem type</option>
-            {PROBLEM_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Urgency */}
-        <div className="mb-6">
-                  <label className="block text-gray-700 font-semibold mb-2">Urgency level</label>
-                  
-                 <select
-          value={urgency}
-          onChange={(e) => setUrgency(e.target.value as Urgency)}
-          className="w-60 border border-black rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-gray-300"
-        >
-          <option value="">Select urgency</option>
-        
-          {urgencyOptions.map((level) => (
-            <option key={level} value={level}>
-              {level}
-            </option>
-          ))}
-        </select>
+                  {/* Device */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border-l-4 border-purple-500">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                        <IoDesktopOutline className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-purple-600 uppercase tracking-wide font-semibold">Device</p>
+                        <p className="text-sm text-dark-500">Hardware information</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-dark-400">
+                        {device ? `${device.deviceName} (${device.deviceType})` : "Unknown"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-</div>        
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {/* Solved By */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border-l-4 border-green-500">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
+                        <IoCheckmarkDoneCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-600 uppercase tracking-wide font-semibold">Solved By</p>
+                        <p className="text-sm text-dark-500">Assigning technician</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-dark-400">
+                        {solved ? `${solved.firstName} ${solved.lastName}` : currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "—"}
+                      </p>
+                    </div>
+                  </div>
 
-        {/* Solution */}
-        <h3 className="font-bold text-2xl mb-3 text-gray-800">
-          🧩 Solution
-        </h3>
-        <textarea
-          value={solution}
-          onChange={(e) => setSolution(e.target.value)}
-          rows={4}
-          className="w-full border rounded-md p-3 text-sm focus:ring-1 focus:ring-gray-400"
-          placeholder="Describe the solution provided..."
-        />
+                  {/* Requested Date */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border-l-4 border-orange-500">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md">
+                        <IoCalendar className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-orange-600 uppercase tracking-wide font-semibold">Requested Date</p>
+                        <p className="text-sm text-dark-500">Submission timestamp</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-dark-400">{formattedDate}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-        {/* Resolved Date */}
-        <div className="mt-4">
-          <label className="block text-gray-500 font-medium mb-2">
-            Resolved Date
-          </label>
-          <input
-            type="text"
-            readOnly
-            disabled
-            value={new Date().toLocaleString()}
-            className="border rounded-md px-3 py-1 bg-gray-100 text-gray-700 cursor-not-allowed"
-          />
-        </div>
+              {/* Problem Description */}
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary-500 to-primary-700 rounded-full"></div>
+                  <div className="pl-4">
+                    <div className="bg-gradient-to-br from-gray-50 to-light-200 rounded-xl p-5">
+                      <div className="flex items-start gap-3">
+                        <IoChatbubbleEllipses className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs text-dark-600 uppercase tracking-wide font-semibold mb-2">Problem Description</p>
+                          <p className="text-dark-400 leading-relaxed">{request.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Actions */}
-        <div className="mt-6 flex gap-4 justify-end">
-          <Button
-            onClick={() => handleSolve("Unresolved")}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md"
-          >
-            Mark Unresolved
-          </Button>
+          {/* Solution Section */}
+          <div className="p-6">
+            <div className="space-y-6">
+              {/* Problem Category */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-dark-400 mb-2">
+                  <IoClipboardOutline className="w-4 h-4 text-primary-500" />
+                  Problem Category
+                </label>
+                <select
+                  value={problemCategory}
+                  onChange={(e) => setProblemCategory(e.target.value as ProblemCategory)}
+                  className="w-full md:w-96 border border-light-200 rounded-lg px-4 py-2.5 text-dark-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white"
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-yellow-600 mt-2 flex items-center gap-1">
+                  <IoWarning className="w-3 h-3" />
+                  Change this only if the user selected the wrong problem category
+                </p>
+              </div>
 
-          <Button
-            onClick={() => handleSolve("Resolved")}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-md"
-          >
-            Mark Resolved
-          </Button>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Problem Type */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-dark-400 mb-2">
+                    <IoAlertCircleOutline className="w-4 h-4 text-primary-500" />
+                    Problem Type
+                  </label>
+                  <select
+                    value={issues}
+                    onChange={(e) => setIssues(e.target.value as Issues)}
+                    className="w-full border border-light-200 rounded-lg px-4 py-2.5 text-dark-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white"
+                  >
+                    <option value="">Select problem type</option>
+                    {PROBLEM_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Urgency Level */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-dark-400 mb-2">
+                    <IoFlag className="w-4 h-4 text-primary-500" />
+                    Urgency Level
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {urgencyOptions.map((level) => {
+                      const styles = getUrgencyStyles(level);
+                      const Icon = styles.icon;
+                      const isActive = urgency === level;
+                      
+                      return (
+                        <button
+                          key={level}
+                          onClick={() => setUrgency(level)}
+                          className={`
+                            flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all
+                            ${isActive 
+                              ? `${styles.bg} ${styles.border} border-2 ${styles.text} shadow-md` 
+                              : "bg-light-200 border border-light-200 text-dark-600 hover:bg-gray-100"
+                            }
+                          `}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {level}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Solution Textarea */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-dark-400 mb-2">
+                  <IoConstructOutline className="w-4 h-4 text-primary-500" />
+                  Solution Details
+                </label>
+                <textarea
+                  value={solution}
+                  onChange={(e) => setSolution(e.target.value)}
+                  rows={5}
+                  className="w-full border border-light-200 rounded-lg px-4 py-3 text-dark-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+                  placeholder="Describe the solution provided to resolve this issue..."
+                />
+              </div>
+
+              {/* Resolved Date */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-dark-400 mb-2">
+                  <IoTimeOutline className="w-4 h-4 text-primary-500" />
+                  Resolved Date
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    readOnly
+                    disabled
+                    value={new Date().toLocaleString()}
+                    className="w-full md:w-96 border border-light-200 rounded-lg px-4 py-2.5 bg-gray-50 text-dark-500 cursor-not-allowed"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <IoCalendar className="w-4 h-4 text-dark-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="border-t border-light-200 bg-gray-50 px-6 py-4">
+            <div className="flex justify-end gap-4">
+              <Button
+                onClick={() => navigate(-1)}
+                className="px-6 py-2.5 bg-white text-dark-600 border border-light-200 rounded-lg hover:bg-gray-50 transition-all font-medium"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                onClick={() => handleSolve("Unresolved")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+              >
+                <IoCloseCircle className="w-4 h-4" />
+                Mark Unresolved
+              </Button>
+
+              <Button
+                onClick={() => handleSolve("Resolved")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-900 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+              >
+                <IoCheckmarkCircle className="w-4 h-4" />
+                Mark Resolved
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
