@@ -1,16 +1,18 @@
 // components/ui/ErrorDialog.tsx
-
 import * as Dialog from "@radix-ui/react-dialog";
+import { XCircle } from "lucide-react";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
   message: string;
 };
 
 export default function ErrorDialog({
   open,
   onOpenChange,
+  title = "Error",
   message,
 }: Props) {
   return (
@@ -19,36 +21,39 @@ export default function ErrorDialog({
       onOpenChange={onOpenChange}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
 
         <Dialog.Content
           className="
             fixed top-1/2 left-1/2
             -translate-x-1/2 -translate-y-1/2
-            bg-white rounded-xl shadow-xl
-            p-6 w-[350px]
+            bg-white rounded-2xl shadow-2xl
+            p-8 w-[380px]
             text-center
             z-50
+            animate-in fade-in zoom-in duration-200
           "
         >
-          <div className="text-5xl mb-3">
-            ❌
+          <div className="flex justify-center mb-4">
+            <XCircle className="text-red-500" size={56} strokeWidth={1.5} />
           </div>
 
-          <Dialog.Title className="text-xl font-bold text-red-700">
-            Error
+          <Dialog.Title className="text-xl font-bold text-dark-200">
+            {title}
           </Dialog.Title>
 
-          <Dialog.Description className="text-gray-600 mt-2 whitespace-pre-line">
+          <Dialog.Description className="text-dark-600 mt-3 whitespace-pre-line leading-relaxed">
             {message}
           </Dialog.Description>
 
           <button
             onClick={() => onOpenChange(false)}
             className="
-              mt-5 px-4 py-2 rounded-md
+              mt-6 px-6 py-2.5 rounded-xl
               bg-red-600 text-white
               hover:bg-red-700
+              transition shadow-md hover:shadow-lg
+              font-medium
             "
           >
             Close

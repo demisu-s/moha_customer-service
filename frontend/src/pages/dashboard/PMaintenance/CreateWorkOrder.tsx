@@ -1,5 +1,5 @@
 // pages/PMaintenance/CreateWorkOrder.tsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePMWO } from "../../../context/PMWOContext";
 import { useUserContext } from "../../../context/UserContext";
@@ -9,7 +9,6 @@ import { WorkOrderFilters } from "../../../components/PMaintenance/WorkOrderFilt
 import { WorkOrderTable } from "../../../components/PMaintenance/WorkOrderTable";
 import { CreateWorkOrderForm } from "../../../components/PMaintenance/CreateWorkOrderForm";
 import { EditWorkOrderForm } from "../../../components/PMaintenance/EditWorkOrderForm";
-import { generateUUID } from "../../../utils/uuid";
 
 const CreateWorkOrder: React.FC = () => {
   const { addWorkOrder, workOrders, removeWorkOrder, updateWorkOrder, loading } = usePMWO();
@@ -40,53 +39,7 @@ const CreateWorkOrder: React.FC = () => {
     return typeof p === "string" ? p : (p as any)?._id;
   }, [currentUser, isSuperAdmin]);
 
-  // Filter work orders by plant for admin/supervisor
-  const visibleWorkOrders = useMemo(() => {
-    if (isSuperAdmin) return workOrders;
-    return workOrders.filter((wo) => {
-      const woPlant = typeof wo.plant === "string" ? wo.plant : wo.plant?._id;
-      return woPlant === adminPlantId;
-    });
-  }, [workOrders, isSuperAdmin, adminPlantId]);
-
-  // Filter state
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterPlant, setFilterPlant] = useState("all");
-  const [filterDate, setFilterDate] = useState("");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editFormOpen, setEditFormOpen] = useState(false);
-  const [editingWorkOrder, setEditingWorkOrder] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState(false);
-
-  // Filtered rows
-  const filteredOrders = useMemo(() => {
-    return visibleWorkOrders.filter((wo) => {
-      const woPlantId = typeof wo.plant === "string" ? wo.plant : wo.plant?._id;
-      const woPlantName = typeof wo.plant === "object" ? wo.plant?.name ?? "" : "";
-
-      const matchSearch =
-        !search.trim() ||
-        wo.title.toLowerCase().includes(search.toLowerCase()) ||
-        woPlantName.toLowerCase().includes(search.toLowerCase());
-
-      const matchStatus = filterStatus === "all" || wo.status === filterStatus;
-      const matchPlant = !isSuperAdmin || filterPlant === "all" || woPlantId === filterPlant;
-      const matchDate =
-        !filterDate ||
-        new Date(wo.scheduledDate).toISOString().slice(0, 10) === filterDate;
-
-      return matchSearch && matchStatus && matchPlant && matchDate;
-    });
-  }, [visibleWorkOrders, search, filterStatus, filterPlant, filterDate, isSuperAdmin]);
-
-  // Stats
-  const planned = visibleWorkOrders.filter((w) => w.status === "planned").length;
-  const inProgress = visibleWorkOrders.filter((w) => w.status === "in_progress").length;
-  const completed = visibleWorkOrders.filter((w) => w.status === "completed").length;
-
-  // Plant name lookup
+  // Get admin's plant name
   const getPlantName = (plant: any): string => {
     if (!plant) return "—";
     if (typeof plant === "object" && plant.name) return plant.name;
@@ -95,6 +48,88 @@ const CreateWorkOrder: React.FC = () => {
   };
 
   const adminPlantName = adminPlantId ? getPlantName(adminPlantId) : "";
+
+  // Filter state
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPlant, setFilterPlant] = useState("all");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [editingWorkOrder, setEditingWorkOrder] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  // Get the current plant name for display in stats
+  const getCurrentPlantNameForStats = useMemo(() => {
+    if (isSuperAdmin) {
+      if (filterPlant !== "all") {
+        const plant = plants.find(p => p._id === filterPlant);
+        return plant?.name || "All Plants";
+      }
+      return "All Plants";
+    }
+    return adminPlantName || "Your Plant";
+  }, [isSuperAdmin, filterPlant, plants, adminPlantName]);
+
+  // Filter work orders by plant
+  const visibleWorkOrders = useMemo(() => {
+    if (isSuperAdmin) {
+      if (filterPlant !== "all") {
+        return workOrders.filter((wo) => {
+          const woPlant = typeof wo.plant === "string" ? wo.plant : wo.plant?._id;
+          return woPlant === filterPlant;
+        });
+      }
+      return workOrders;
+    }
+    // For admin/supervisor, only their plant
+    return workOrders.filter((wo) => {
+      const woPlant = typeof wo.plant === "string" ? wo.plant : wo.plant?._id;
+      return woPlant === adminPlantId;
+    });
+  }, [workOrders, isSuperAdmin, adminPlantId, filterPlant]);
+
+  // Filtered rows with search, status, and date range
+  const filteredOrders = useMemo(() => {
+    return visibleWorkOrders.filter((wo) => {
+      const woPlantName = typeof wo.plant === "object" ? wo.plant?.name ?? "" : "";
+
+      const matchSearch =
+        !search.trim() ||
+        wo.title.toLowerCase().includes(search.toLowerCase()) ||
+        woPlantName.toLowerCase().includes(search.toLowerCase());
+
+      const matchStatus = filterStatus === "all" || wo.status === filterStatus;
+      
+      // Date range filtering
+      let matchDate = true;
+      const woDate = new Date(wo.scheduledDate);
+      woDate.setHours(0, 0, 0, 0);
+      
+      if (filterDateFrom) {
+        const fromDate = new Date(filterDateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        if (woDate < fromDate) matchDate = false;
+      }
+      
+      if (filterDateTo) {
+        const toDate = new Date(filterDateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (woDate > toDate) matchDate = false;
+      }
+
+      return matchSearch && matchStatus && matchDate;
+    });
+  }, [visibleWorkOrders, search, filterStatus, filterDateFrom, filterDateTo]);
+
+  // Stats - computed from visibleWorkOrders
+  const total = visibleWorkOrders.length;
+  const planned = visibleWorkOrders.filter((w) => w.status === "planned").length;
+  const inProgress = visibleWorkOrders.filter((w) => w.status === "in_progress").length;
+  const completed = visibleWorkOrders.filter((w) => w.status === "completed").length;
+  const cancelled = visibleWorkOrders.filter((w) => w.status === "cancelled").length;
 
   const handleSubmit = async (payload: any) => {
     setSaving(true);
@@ -137,10 +172,16 @@ const CreateWorkOrder: React.FC = () => {
     setSearch("");
     setFilterStatus("all");
     setFilterPlant("all");
-    setFilterDate("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
   };
 
-  const hasActiveFilters = search !== "" || filterStatus !== "all" || filterPlant !== "all" || filterDate !== "";
+  const hasActiveFilters = 
+    search !== "" || 
+    filterStatus !== "all" || 
+    filterPlant !== "all" || 
+    filterDateFrom !== "" || 
+    filterDateTo !== "";
 
   return (
     <div className="space-y-6 px-2">
@@ -177,15 +218,18 @@ const CreateWorkOrder: React.FC = () => {
         )}
       </div>
 
-      {/* Stats */}
+      {/* Stats - No plant filter here, just shows the current data */}
       <WorkOrderStats
-        total={visibleWorkOrders.length}
+        total={total}
         planned={planned}
         inProgress={inProgress}
         completed={completed}
+        cancelled={cancelled}
+        isLoading={loading}
+        currentPlantName={getCurrentPlantNameForStats}
       />
 
-      {/* Filters */}
+      {/* Filters - With date range */}
       <WorkOrderFilters
         search={search}
         onSearchChange={setSearch}
@@ -193,8 +237,10 @@ const CreateWorkOrder: React.FC = () => {
         onStatusChange={setFilterStatus}
         filterPlant={filterPlant}
         onPlantChange={setFilterPlant}
-        filterDate={filterDate}
-        onDateChange={setFilterDate}
+        filterDateFrom={filterDateFrom}
+        onDateFromChange={setFilterDateFrom}
+        filterDateTo={filterDateTo}
+        onDateToChange={setFilterDateTo}
         showPlantFilter={isSuperAdmin}
         plants={plants}
         onClearFilters={handleClearFilters}

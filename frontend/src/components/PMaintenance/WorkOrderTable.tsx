@@ -119,7 +119,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
                       {canEdit && (
                         <button
                           onClick={() => onEdit(wo)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-900"
                         >
                           Edit
                         </button>

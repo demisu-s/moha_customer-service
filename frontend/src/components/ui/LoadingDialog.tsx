@@ -1,5 +1,4 @@
 // components/ui/LoadingDialog.tsx
-
 import * as Dialog from "@radix-ui/react-dialog";
 
 type Props = {
@@ -14,22 +13,25 @@ export default function LoadingDialog({
   return (
     <Dialog.Root open={open}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
 
         <Dialog.Content
           className="
             fixed top-1/2 left-1/2
             -translate-x-1/2 -translate-y-1/2
-            bg-white rounded-xl shadow-xl
-            p-6 w-[300px]
-            flex flex-col items-center gap-4
+            bg-white rounded-2xl shadow-2xl
+            p-8 w-[320px]
+            flex flex-col items-center gap-5
             z-50
           "
         >
-          {/* Spinner */}
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin" />
+          {/* Animated Spinner */}
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-gray-200 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-primary-500 rounded-full animate-spin border-t-transparent"></div>
+          </div>
 
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-dark-600 text-center font-medium">
             {message}
           </p>
         </Dialog.Content>

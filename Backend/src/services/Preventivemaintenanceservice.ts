@@ -4,7 +4,7 @@ class PreventiveMaintenanceService {
 
   // ─── CREATE ──────────────────────────────────────────────────────────────
 
-   async createWorkOrder(data: any, userId: string) {
+  async createWorkOrder(data: any, userId: string) {
     const {
       title,
       description,
@@ -20,15 +20,12 @@ class PreventiveMaintenanceService {
       attachments,
     } = data;
 
-    // Validate plant is present
     if (!plant) {
       console.error("CreateWorkOrder Error: Plant is missing", { data, userId });
       throw new Error("Plant is required. Please ensure your account has a plant assigned.");
     }
 
     if (!scheduledDate) throw new Error("Scheduled date is required");
-
-    console.log("Creating work order with plant:", plant, "for user:", userId);
 
     const workOrders = [];
     const baseDate = new Date(scheduledDate);
@@ -37,7 +34,7 @@ class PreventiveMaintenanceService {
     workOrders.push({
       title,
       description,
-      plant, // This should be a valid ObjectId string
+      plant,
       createdBy: userId,
       assignedTo,
       department,
@@ -57,9 +54,18 @@ class PreventiveMaintenanceService {
       for (let i = 1; i <= count; i++) {
         const nextDate = new Date(baseDate);
 
-        if (recurrence === "daily") nextDate.setDate(baseDate.getDate() + i);
-        if (recurrence === "weekly") nextDate.setDate(baseDate.getDate() + i * 7);
-        if (recurrence === "monthly") nextDate.setMonth(baseDate.getMonth() + i);
+        // ✅ ADDED quarterly and yearly handling
+        if (recurrence === "daily") {
+          nextDate.setDate(baseDate.getDate() + i);
+        } else if (recurrence === "weekly") {
+          nextDate.setDate(baseDate.getDate() + i * 7);
+        } else if (recurrence === "monthly") {
+          nextDate.setMonth(baseDate.getMonth() + i);
+        } else if (recurrence === "quarterly") {
+          nextDate.setMonth(baseDate.getMonth() + i * 3);
+        } else if (recurrence === "yearly") {
+          nextDate.setFullYear(baseDate.getFullYear() + i);
+        }
 
         workOrders.push({
           title,
@@ -81,7 +87,6 @@ class PreventiveMaintenanceService {
     }
 
     const created = await PreventiveMaintenance.insertMany(workOrders);
-    console.log("Created work orders:", created.map(wo => ({ id: wo._id, plant: wo.plant })));
     return created;
   }
 

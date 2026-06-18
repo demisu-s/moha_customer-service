@@ -1,3 +1,4 @@
+// pages/Plants.tsx
 import { useEffect, useState } from "react";
 import {
   Plus,
@@ -6,6 +7,7 @@ import {
   ArrowLeft,
   Factory,
   Building2,
+  Search,
 } from "lucide-react";
 
 import CreatePlantModal from "../../components/CreatePlantModal";
@@ -59,6 +61,7 @@ const Plants = () => {
   const [errorOpen, setErrorOpen] =
     useState(false);
   const [message, setMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     refreshPlants();
@@ -123,26 +126,34 @@ const Plants = () => {
     }
   };
 
+  const filteredPlants = plants.filter((plant) =>
+    plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    plant.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    plant.area?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold text-dark-200">
             {selectedPlant
               ? `${selectedPlant.name} Departments`
               : "Plants Management"}
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Manage plants and departments
+          <p className="mt-1 text-sm text-dark-600">
+            {selectedPlant
+              ? `Manage departments for ${selectedPlant.name}`
+              : "Manage plants and departments across your organization"}
           </p>
         </div>
 
         {!selectedPlant ? (
           <button
             onClick={() => setShowPlantModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+            className="flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-primary-800 shadow-lg hover:shadow-xl"
           >
             <Plus size={18} />
             Create Plant
@@ -150,7 +161,7 @@ const Plants = () => {
         ) : (
           <button
             onClick={() => setShowDeptModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+            className="flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-primary-800 shadow-lg hover:shadow-xl"
           >
             <Plus size={18} />
             Create Department
@@ -162,7 +173,7 @@ const Plants = () => {
       {selectedPlant && (
         <button
           onClick={() => setSelectedPlant(null)}
-          className="mb-5 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="mb-5 flex items-center gap-2 text-sm font-medium text-primary-500 hover:text-primary-600 transition"
         >
           <ArrowLeft size={16} />
           Back to Plants
@@ -172,49 +183,63 @@ const Plants = () => {
       {/* Plants Table */}
       {!selectedPlant && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b p-5">
+          <div className="border-b border-gray-100 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Factory className="text-gray-700" />
-
-              <h2 className="text-lg font-semibold">
+              <Factory className="text-primary-500" size={20} />
+              <h2 className="text-lg font-semibold text-dark-200">
                 Plants List
               </h2>
+              <span className="ml-2 rounded-full bg-primary-100 px-3 py-0.5 text-sm text-primary-600">
+                {plants.length}
+              </span>
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-600" size={16} />
+              <input
+                type="text"
+                placeholder="Search plants..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full md:w-64"
+              />
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="border-b bg-gray-50/80 text-left">
+              <thead className="border-b border-gray-100 bg-gray-50/80 text-left">
                 <tr>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     #
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Name
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     City
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Area
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Actions
                   </th>
                 </tr>
               </thead>
 
               <tbody>
-                {plants.map((plant, index) => (
+                {filteredPlants.map((plant, index) => (
                   <tr
                     key={plant._id}
-                    className="border-b border-gray-100 transition duration-200 hover:bg-gray-50"
+                    className="border-b border-gray-100 transition duration-200 hover:bg-primary-50/50"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-sm text-dark-600">
                       {index + 1}
                     </td>
 
@@ -222,96 +247,105 @@ const Plants = () => {
                       onClick={() =>
                         setSelectedPlant(plant)
                       }
-                      className="cursor-pointer px-6 py-4 font-medium text-blue-600 hover:underline"
+                      className="cursor-pointer px-6 py-4 font-medium text-primary-600 hover:text-primary-700 hover:underline transition"
                     >
                       {plant.name}
                     </td>
 
-                    <td className="px-6 py-4">
-                      {plant.city}
+                    <td className="px-6 py-4 text-sm text-dark-600">
+                      {plant.city || "—"}
+                    </td>
+
+                    <td className="px-6 py-4 text-sm text-dark-600">
+                      {plant.area || "—"}
                     </td>
 
                     <td className="px-6 py-4">
-                      {plant.area}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={() =>
                             setEditPlant(plant)
                           }
-                          className="text-gray-500 transition duration-200 hover:text-blue-600"
+                          className="rounded-lg p-2 text-dark-600 transition hover:bg-primary-100 hover:text-primary-600"
+                          title="Edit Plant"
                         >
-                          <Pencil size={18} />
+                          <Pencil size={16} />
                         </button>
 
-                        <button
-                        disabled
+                        <button disabled
                           onClick={() =>
                             handleDeletePlant(
                               plant._id
                             )
                           }
-                          className="text-gray-500 transition duration-200 hover:text-red-600"
+                          className="rounded-lg p-2 text-dark-600 transition hover:bg-red-50 hover:text-red-600"
+                          title="Delete Plant"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
 
-                {plants.length === 0 && (
+                {filteredPlants.length === 0 && (
                   <tr>
                     <td
                       colSpan={5}
-                      className="py-10 text-center text-gray-400"
+                      className="py-12 text-center text-dark-600"
                     >
-                      No plants found
+                      {searchTerm ? "No plants match your search" : "No plants found. Create your first plant!"}
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          {filteredPlants.length > 0 && (
+            <div className="border-t border-gray-100 px-6 py-3 text-xs text-dark-600">
+              Showing {filteredPlants.length} of {plants.length} plants
+            </div>
+          )}
         </div>
       )}
 
       {/* Departments Table */}
       {selectedPlant && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b p-5">
+          <div className="border-b border-gray-100 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Building2 className="text-gray-700" />
-
-              <h2 className="text-lg font-semibold">
+              <Building2 className="text-primary-500" size={20} />
+              <h2 className="text-lg font-semibold text-dark-200">
                 Departments List
               </h2>
+              <span className="ml-2 rounded-full bg-primary-100 px-3 py-0.5 text-sm text-primary-600">
+                {departments.length}
+              </span>
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="border-b bg-gray-50/80 text-left">
+              <thead className="border-b border-gray-100 bg-gray-50/80 text-left">
                 <tr>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     #
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Name
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Block
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Floor
                   </th>
 
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-dark-600">
                     Actions
                   </th>
                 </tr>
@@ -322,52 +356,64 @@ const Plants = () => {
                   (department, index) => (
                     <tr
                       key={department._id}
-                      className="border-b border-gray-100 transition duration-200 hover:bg-gray-50"
+                      className="border-b border-gray-100 transition duration-200 hover:bg-primary-50/50"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-sm text-dark-600">
                         {index + 1}
                       </td>
 
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-6 py-4 font-medium text-dark-200">
                         {department.name}
                       </td>
 
-                      <td className="px-6 py-4">
-                        {department.block}
+                      <td className="px-6 py-4 text-sm text-dark-600">
+                        {department.block || "—"}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-dark-600">
+                        {department.floor || "—"}
                       </td>
 
                       <td className="px-6 py-4">
-                        {department.floor}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                           <button
                             onClick={() =>
                               setEditDepartment(
                                 department
                               )
                             }
-                            className="text-gray-500 transition duration-200 hover:text-blue-600"
+                            className="rounded-lg p-2 text-dark-600 transition hover:bg-primary-100 hover:text-primary-600"
+                            title="Edit Department"
                           >
-                            <Pencil size={18} />
+                            <Pencil size={16} />
                           </button>
 
-                          <button
-                          disabled
+                          <button disabled
                             onClick={() =>
                               handleDeleteDepartment(
                                 department._id
                               )
                             }
-                            className="text-gray-500 transition duration-200 hover:text-red-600"
+                            className="rounded-lg p-2 text-dark-600 transition hover:bg-red-50 hover:text-red-600"
+                            title="Delete Department"
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
                     </tr>
                   )
+                )}
+
+                {departments.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-12 text-center text-dark-600"
+                    >
+                      No departments found for this plant
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

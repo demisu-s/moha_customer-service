@@ -107,7 +107,8 @@ export interface CreateServiceRequestPayload {
 
 /* ================= SCHEDULE ================= */
 
-export type Recurrence = "none" | "daily" | "weekly" | "monthly";
+// export type Recurrence = "none" | "daily" | "weekly" | "monthly";
+export type Recurrence = "none" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
 
 export interface ScheduleEvent {
   _id: string;

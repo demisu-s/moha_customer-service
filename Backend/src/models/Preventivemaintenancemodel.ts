@@ -1,3 +1,4 @@
+// models/Preventivemaintenancemodel.ts
 import mongoose, { Schema, Document } from "mongoose";
 import { PMWOStatus, PMWOPriority } from "../interfaces/Preventivemaintenance.interface";
 
@@ -37,21 +38,15 @@ export interface IPreventiveMaintenanceDocument extends Document {
   createdBy: mongoose.Types.ObjectId;
   assignedTo?: mongoose.Types.ObjectId;
   department?: mongoose.Types.ObjectId;
-
   scheduledDate: Date;
   completedDate?: Date;
-
   priority: PMWOPriority;
   status: PMWOStatus;
-
   tasks: mongoose.Types.DocumentArray<any>;
-
-  recurrence?: "none" | "daily" | "weekly" | "monthly";
+  recurrence?: "none" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";  // ✅ ADDED quarterly & yearly
   cycles?: number;
-
   notes?: string;
   attachments?: string[];
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -98,7 +93,7 @@ const PreventiveMaintenanceSchema = new Schema<IPreventiveMaintenanceDocument>(
 
     recurrence: {
       type: String,
-      enum: ["none", "daily", "weekly", "monthly"],
+      enum: ["none", "daily", "weekly", "monthly", "quarterly", "yearly"],  // ✅ ADDED quarterly & yearly
       default: "none",
     },
     cycles: { type: Number, default: 1 },

@@ -1,7 +1,9 @@
+// interfaces/Preventivemaintenance.interface.ts
 import { Types } from "mongoose";
 
 export type PMWOStatus = "planned" | "in_progress" | "completed" | "cancelled";
 export type PMWOPriority = "low" | "medium" | "high" | "critical";
+export type RecurrenceType = "none" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";  // ✅ UPDATED
 
 export interface IProcedureStep {
   stepNumber: number;
@@ -32,21 +34,15 @@ export interface IPreventiveMaintenance {
   createdBy: Types.ObjectId;
   assignedTo?: Types.ObjectId;
   department?: Types.ObjectId;
-
   scheduledDate: Date;
   completedDate?: Date;
-
   priority: PMWOPriority;
   status: PMWOStatus;
-
   tasks: ITask[];
-
-  recurrence?: "none" | "daily" | "weekly" | "monthly";
+  recurrence?: RecurrenceType;  // ✅ UPDATED
   cycles?: number;
-
   notes?: string;
   attachments?: string[];
-
   createdAt?: Date;
   updatedAt?: Date;
 }
