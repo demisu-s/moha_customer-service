@@ -1,4 +1,4 @@
-import AssignForm from "../../components/requestComponent/AssignForm";
+import AssignForm from "../../components/requestComponent/assignForm"
 
 const AssignFormPage: React.FC = () => {
   

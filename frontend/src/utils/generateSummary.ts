@@ -13,9 +13,7 @@ export interface ReportRow {
   status: string;
 }
 
-export const generateSummaryData = (
-  data: ReportRow[]
-) => {
+export const generateSummaryData = (data: ReportRow[]) => {
   const plantMap: Record<string, any> = {};
 
   data.forEach((row) => {
@@ -25,191 +23,134 @@ export const generateSummaryData = (
       plantMap[plant] = {
         plant,
 
-        desktops: 0,
-        laptops: 0,
-        servers: 0,
-        switches: 0,
-        accessPoints: 0,
-        cameras: 0,
-        cameraRelated: 0,
-        network: 0,
-        biometric: 0,
+        // Hardware
+        Desktops: 0,
+        Laptops: 0,
+        Servers: 0,
+        Switches: 0,
+        AccessPoints: 0,
+        Cameras: 0,
+        CameraRelated: 0,
+        Biometric: 0,
+        Printer: 0,      // ✅ ADDED
+        UPS: 0,          // ✅ ADDED
+        TV: 0,           // ✅ ADDED
 
-        erp: 0,
-        peachtree: 0,
-        canteen: 0,
-        overtime: 0,
-        otherSoftware: 0,
+        // Software
+        ERP: 0,
+        Peachtree: 0,
+        Canteen: 0,
+        Overtime: 0,
+        OtherSoftware: 0,
 
-        networkRelated: 0,
-        internetRelated: 0,
+        // Network
+        Network: 0,
+        NetworkRelated: 0,
+        InternetRelated: 0,
 
-        projectRelated: 0,
-
-        otherServices: 0,
+        // Other
+        ProjectRelated: 0,
+        OtherServices: 0,
       };
     }
 
     const p = plantMap[plant];
 
-    // Hardware
+    // Hardware - by device type
+    if (row.deviceType === "Desktop") p.Desktops++;
+    else if (row.deviceType === "Laptop") p.Laptops++;
+    else if (row.deviceType === "Server") p.Servers++;
+    else if (row.deviceType === "Switch") p.Switches++;
+    else if (row.deviceType === "Access Point") p.AccessPoints++;
+    else if (row.deviceType === "Camera") p.Cameras++;
+    else if (row.deviceType === "Biometric") p.Biometric++;
+    else if (row.deviceType === "Printer") p.Printer++;
+    else if (row.deviceType === "UPS") p.UPS++;
+    else if (row.deviceType === "TV") p.TV++;
 
-    if (row.deviceType === "Desktop")
-      p.desktops++;
-
-    if (row.deviceType === "Laptop")
-      p.laptops++;
-
-    if (row.deviceType === "Server")
-      p.servers++;
-
-    if (row.deviceType === "Switch")
-      p.switches++;
-
-    if (row.deviceType === "Access Point")
-      p.accessPoints++;
-
-    if (row.deviceType === "Camera")
-      p.cameras++;
-
-    if (
-      row.problemCategory ===
-      "Camera Related"
-    )
-      p.cameraRelated++;
-
-    if (row.deviceType === "Network")
-      p.network++;
-
-    if (row.deviceType === "Biometric")
-      p.biometric++;
+    // Hardware - by problem category
+    if (row.problemCategory === "Camera Related") p.CameraRelated++;
 
     // Software
-
-    if (row.problemCategory === "ERP")
-      p.erp++;
-
-    if (
-      row.problemCategory ===
-      "Peachtree"
-    )
-      p.peachtree++;
-
-    if (
-      row.problemCategory ===
-      "Canteen"
-    )
-      p.canteen++;
-
-    if (
-      row.problemCategory ===
-      "Overtime"
-    )
-      p.overtime++;
-
-    if (
-      row.problemCategory ===
-      "Other Software"
-    )
-      p.otherSoftware++;
+    if (row.problemCategory === "ERP") p.ERP++;
+    else if (row.problemCategory === "Peachtree") p.Peachtree++;
+    else if (row.problemCategory === "Canteen") p.Canteen++;
+    else if (row.problemCategory === "Overtime") p.Overtime++;
+    else if (row.problemCategory === "Other Software") p.OtherSoftware++;
 
     // Network
-
-    if (
-      row.problemCategory ===
-      "Network Related"
-    )
-      p.networkRelated++;
-
-    if (
-      row.problemCategory ===
-      "Internet Related"
-    )
-      p.internetRelated++;
-
-    // Project
-
-    if (
-      row.problemCategory ===
-      "Project Related"
-    )
-      p.projectRelated++;
+    if (row.deviceType === "Network") p.Network++;
+    else if (row.problemCategory === "Network Related") p.NetworkRelated++;
+    else if (row.problemCategory === "Internet Related") p.InternetRelated++;
 
     // Other
-
-    if (
-      row.problemCategory ===
-      "Other Services"
-    )
-      p.otherServices++;
+    if (row.problemCategory === "Project Related") p.ProjectRelated++;
+    else if (row.problemCategory === "Other Services") p.OtherServices++;
   });
 
-  return Object.values(plantMap).map(
-    (item: any) => {
-      const hwTotal =
-        item.desktops +
-        item.laptops +
-        item.servers +
-        item.switches +
-        item.accessPoints +
-        item.cameras +
-        item.cameraRelated +
-        item.biometric;
+  return Object.values(plantMap).map((item: any) => {
+    const hwTotal =
+      item.Desktops +
+      item.Laptops +
+      item.Servers +
+      item.Switches +
+      item.AccessPoints +
+      item.Cameras +
+      item.CameraRelated +
+      item.Biometric +
+      item.Printer +
+      item.UPS +
+      item.TV;
 
-      const swTotal =
-        item.erp +
-        item.peachtree +
-        item.canteen +
-        item.overtime +
-        item.otherSoftware;
-       
-      const ntTotal =
-        item.network +
-        item.networkRelated +
-        item.internetRelated;
+    const swTotal =
+      item.ERP +
+      item.Peachtree +
+      item.Canteen +
+      item.Overtime +
+      item.OtherSoftware;
 
-      const total =
-        hwTotal +
-        swTotal +
-        ntTotal +
-        item.projectRelated +
-        item.otherServices;
+    const ntTotal =
+      item.Network +
+      item.NetworkRelated +
+      item.InternetRelated;
 
-      return {
-        Plant: item.plant,
+    const total =
+      hwTotal +
+      swTotal +
+      ntTotal +
+      item.ProjectRelated +
+      item.OtherServices;
 
-        Desktops: item.desktops,
-        Laptops: item.laptops,
-        Servers: item.servers,
-        Switches: item.switches,
-        AccessPoints: item.accessPoints,
-        Cameras: item.cameras,
-        CameraRelated:item.cameraRelated,
-        Biometric: item.biometric,
+    return {
+      Plant: item.plant,
 
-        HWTotal: hwTotal,
+      // For the table summary (aggregated)
+      HWTotal: hwTotal,
+      SWTotal: swTotal,
+      NetworkRelated: item.NetworkRelated,
+      InternetRelated: item.InternetRelated,
+      ProjectRelated: item.ProjectRelated,
+      OtherServices: item.OtherServices,
+      Total: total,
 
-        ERP: item.erp,
-        Peachtree: item.peachtree,
-        Canteen: item.canteen,
-        Overtime: item.overtime,
-        OtherSoftware: item.otherSoftware,
-
-        SWTotal: swTotal,
-
-        Network: item.network,
-        NetworkRelated: item.networkRelated,
-        InternetRelated:item.internetRelated,
-
-        NTTotal: ntTotal,
-
-
-
-        ProjectRelated: item.projectRelated,
-        OtherServices:item.otherServices,
-
-        Total: total,
-      };
-    }
-  );
+      // Individual columns for Excel export
+      Desktops: item.Desktops,
+      Laptops: item.Laptops,
+      Servers: item.Servers,
+      Switches: item.Switches,
+      AccessPoints: item.AccessPoints,
+      Cameras: item.Cameras,
+      CameraRelated: item.CameraRelated,
+      Biometric: item.Biometric,
+      Printer: item.Printer,
+      UPS: item.UPS,
+      TV: item.TV,
+      ERP: item.ERP,
+      Peachtree: item.Peachtree,
+      Canteen: item.Canteen,
+      Overtime: item.Overtime,
+      OtherSoftware: item.OtherSoftware,
+      Network: item.Network,
+    };
+  });
 };

@@ -7,7 +7,7 @@ import { ProtectedRoute } from './ProtectedRoute';
 import UserManagement from '../pages/dashboard/UserManagement/users'; 
 import AddUser from '../pages/dashboard/UserManagement/adduser';
 import RequestDetailsPage from '../pages/request/RequestDetailsPage';
-import AssignFormPage from '../components/requestComponent/AssignForm';
+import AssignFormPage from '../pages/request/AssignFormPage';
 import EditUser from '../pages/dashboard/UserManagement/edituser'; 
 import Devices from '../pages/dashboard/DeviceManagement/devices';
 import AddDevice from '../pages/dashboard/DeviceManagement/adddevice';
