@@ -1,3 +1,4 @@
+// pages/PMaintenance/CreateWorkOrder.tsx
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePMWO } from "../../../context/PMWOContext";
@@ -7,10 +8,11 @@ import { WorkOrderStats } from "../../../components/PMaintenance/WorkOrderStats"
 import { WorkOrderFilters } from "../../../components/PMaintenance/WorkOrderFilters";
 import { WorkOrderTable } from "../../../components/PMaintenance/WorkOrderTable";
 import { CreateWorkOrderForm } from "../../../components/PMaintenance/CreateWorkOrderForm";
+import { EditWorkOrderForm } from "../../../components/PMaintenance/EditWorkOrderForm";
 import { generateUUID } from "../../../utils/uuid";
 
 const CreateWorkOrder: React.FC = () => {
-  const { addWorkOrder, workOrders, removeWorkOrder, loading } = usePMWO();
+  const { addWorkOrder, workOrders, removeWorkOrder, updateWorkOrder, loading } = usePMWO();
   const { currentUser } = useUserContext();
   const { plants } = usePlantContext();
   const navigate = useNavigate();
@@ -18,8 +20,11 @@ const CreateWorkOrder: React.FC = () => {
   const isSuperAdmin = currentUser?.role === "superadmin";
   const isAdmin = currentUser?.role === "admin";
   const isSupervisor = currentUser?.role === "supervisor";
+  
+  // Permissions
   const canCreateWorkOrder = isSuperAdmin || isAdmin;
   const canDelete = isSuperAdmin || isAdmin;
+  const canEdit = isSuperAdmin || isAdmin;
 
   // Role-aware execute route prefix
   const executeRouteBase = React.useMemo(() => {
@@ -50,7 +55,10 @@ const CreateWorkOrder: React.FC = () => {
   const [filterPlant, setFilterPlant] = useState("all");
   const [filterDate, setFilterDate] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [editingWorkOrder, setEditingWorkOrder] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   // Filtered rows
   const filteredOrders = useMemo(() => {
@@ -97,6 +105,25 @@ const CreateWorkOrder: React.FC = () => {
       alert(err?.response?.data?.message || "Failed to create work order");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEdit = (workOrder: any) => {
+    setEditingWorkOrder(workOrder);
+    setEditFormOpen(true);
+  };
+
+  const handleUpdate = async (id: string, payload: any) => {
+    setEditing(true);
+    try {
+      await updateWorkOrder(id, payload);
+      setEditFormOpen(false);
+      setEditingWorkOrder(null);
+    } catch (err: any) {
+      console.error("Update work order error:", err);
+      alert(err?.response?.data?.message || "Failed to update work order");
+    } finally {
+      setEditing(false);
     }
   };
 
@@ -179,12 +206,32 @@ const CreateWorkOrder: React.FC = () => {
         workOrders={filteredOrders}
         loading={loading}
         isSuperAdmin={isSuperAdmin}
+        isAdmin={isAdmin}
+        isSupervisor={isSupervisor}
         executeRouteBase={executeRouteBase}
         onNavigate={navigate}
+        onEdit={handleEdit}
         onDelete={handleDelete}
         canDelete={canDelete}
+        canEdit={canEdit}
         getPlantName={getPlantName}
       />
+
+      {/* Edit Work Order Modal */}
+      {editingWorkOrder && (
+        <EditWorkOrderForm
+          isOpen={editFormOpen}
+          onOpenChange={setEditFormOpen}
+          workOrder={editingWorkOrder}
+          onSubmit={handleUpdate}
+          saving={editing}
+          isSuperAdmin={isSuperAdmin}
+          isAdmin={isAdmin}
+          plants={plants}
+          adminPlantName={adminPlantName}
+          getPlantName={getPlantName}
+        />
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+// context/PMWOContext.tsx
 import React, {
   createContext,
   useContext,
@@ -7,6 +8,7 @@ import React, {
 import {
   getPMWorkOrders,
   createPMWorkOrder,
+  updatePMWorkOrder,
   updatePMWorkOrderStatus,
   completeTask,
   completeProcedureStep,
@@ -58,6 +60,7 @@ type PMWOContextType = {
   loading: boolean;
   refreshWorkOrders: () => Promise<void>;
   addWorkOrder: (data: any) => Promise<void>;
+  updateWorkOrder: (id: string, data: any) => Promise<void>;  // ADD THIS
   changeStatus: (id: string, status: string) => Promise<void>;
   markTaskComplete: (workOrderId: string, taskId: string, duration?: number) => Promise<void>;
   markStepComplete: (workOrderId: string, taskId: string, stepNumber: number, notes?: string) => Promise<void>;
@@ -89,9 +92,16 @@ export const PMWOProvider: React.FC<{ children: React.ReactNode }> = ({ children
   /* ===== ADD ===== */
   const addWorkOrder = async (data: any) => {
     const created = await createPMWorkOrder(data);
-    // created can be array (recurrence) or single object
     const newItems = Array.isArray(created) ? created : [created];
     setWorkOrders((prev) => [...prev, ...newItems]);
+  };
+
+  /* ===== UPDATE ===== */
+  const updateWorkOrder = async (id: string, data: any) => {
+    const updated = await updatePMWorkOrder(id, data);
+    setWorkOrders((prev) =>
+      prev.map((wo) => (wo._id === id ? { ...wo, ...updated } : wo))
+    );
   };
 
   /* ===== STATUS ===== */
@@ -136,6 +146,7 @@ export const PMWOProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         refreshWorkOrders,
         addWorkOrder,
+        updateWorkOrder,  // ADD THIS
         changeStatus,
         markTaskComplete,
         markStepComplete,

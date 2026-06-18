@@ -32,6 +32,7 @@ import SolutionByAdminPage from '../pages/request/SolutionByAdminPage';
 import AssignedDevices from '../pages/dashboard/AssignedDevices';
 import CreateWorkOrder from '../pages/dashboard/PMaintenance/CreateWorkOrder';
 import ExecuteWorkOrder from '../pages/dashboard/PMaintenance/ExecuteWorkOrder';
+import SolutionBySuperadminPage from '../pages/request/SolutionBySuperadminPage';
 
 export const router = createBrowserRouter([
   {
@@ -67,8 +68,9 @@ export const router = createBrowserRouter([
     {path: "", element: <Dashboard />},
     {path: "assign/:requestId",element: <AssignFormPage />},
     {path: "details/:requestId",element: <RequestDetailsPage/>},
-    {path: "solve/:requestId",element: <SolutionPage/>},
+    // {path: "solve/:requestId",element: <SolutionPage/>},
     {path: "history/:requestId",element: <RequestHistoryPage/>},
+    {path: "solve/:requestId",element: <SolutionBySuperadminPage/>},
     {path: "unresolved/:requestId", element: <UnresolvedPage/>},
     {path: "users", element: <UserManagement />},
     {path: "users/adduser",element: <AddUser />},

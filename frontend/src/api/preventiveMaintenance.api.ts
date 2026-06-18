@@ -7,6 +7,12 @@ export const createPMWorkOrder = async (data: any) => {
   const response = await api.post<ApiResponse<any>>("/preventive-maintenance/", data);
   return response.data.data;
 };
+/*==============Update ==================*/ 
+export const updatePMWorkOrder = async (id: string, data: any) => {
+  const response = await api.put<ApiResponse<any>>(`/preventive-maintenance/${id}`, data);
+  return response.data.data;
+};
+
 
 /* ================= GET ALL WORK ORDERS ================= */
 

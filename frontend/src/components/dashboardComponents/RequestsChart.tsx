@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+// src/components/dashboardComponents/RequestsChart.tsx
+import React, { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -10,28 +11,38 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ServiceRequest } from "../../context/ServiceRequestContext";
+import { PlantPayload } from "../../api/global.types";
 
 type Props = {
   requests: ServiceRequest[];
+  userRole?: string;
+  userPlant?: string | null;
+  plants?: PlantPayload[];
+  selectedPlant?: string;
 };
 
-const RequestsChart: React.FC<Props> = ({ requests }) => {
-  const [selectedPlant, setSelectedPlant] = useState("All");
-
+const RequestsChart: React.FC<Props> = ({ 
+  requests, 
+  userRole, 
+  userPlant,
+  plants = [],
+  selectedPlant = "All"
+}) => {
   /* ================= FILTER BY PLANT ================= */
   const filteredRequests = useMemo(() => {
-    if (selectedPlant === "All") return requests;
-    return requests.filter((r) => r.plant === selectedPlant);
-  }, [requests, selectedPlant]);
-
-  /* ================= PLANT OPTIONS ================= */
-  const plantOptions = useMemo(() => {
-    const set = new Set<string>();
-    requests.forEach((r) => {
-      if (r.plant) set.add(r.plant);
-    });
-    return ["All", ...Array.from(set)];
-  }, [requests]);
+    // For superadmin, filter by selected plant
+    if (userRole === "superadmin") {
+      if (selectedPlant === "All") return requests;
+      return requests.filter((r) => r.plant === selectedPlant);
+    }
+    
+    // For admin and supervisor, only show their plant
+    if ((userRole === "admin" || userRole === "supervisor") && userPlant) {
+      return requests.filter((r) => r.plant === userPlant);
+    }
+    
+    return requests;
+  }, [requests, selectedPlant, userRole, userPlant]);
 
   /* ================= CHART DATA ================= */
   const data = useMemo(() => {
@@ -57,22 +68,17 @@ const RequestsChart: React.FC<Props> = ({ requests }) => {
   }, [filteredRequests]);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold">Plants Request Overview Chart</h3>
-
-        <select
-          value={selectedPlant}
-          onChange={(e) => setSelectedPlant(e.target.value)}
-          className="border rounded px-2 py-1 text-sm"
-        >
-          {plantOptions.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
+      <div className="mb-4">
+        <h3 className="font-semibold text-gray-800">Plants Request Overview Chart</h3>
+        <p className="text-xs text-gray-400 mt-0.5">
+          {userRole === "superadmin" 
+            ? selectedPlant === "All" 
+              ? "Showing all plants" 
+              : `Showing ${selectedPlant} plant`
+            : `Showing ${userPlant || "your"} plant`}
+        </p>
       </div>
 
       {/* CHART */}

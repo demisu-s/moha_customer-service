@@ -228,7 +228,7 @@ const EditDevice: React.FC = () => {
   }
 };
 
-  const handleCancel = () => navigate("/dashboard/devices");
+  const handleCancel = () => navigate(-1);
 
   if (!deviceToEdit) {
     return <div className="text-center mt-8">Device not found</div>;

@@ -1,3 +1,4 @@
+// components/PMaintenance/WorkOrderTable.tsx
 import React from "react";
 import { PriorityBadge } from "./PriorityBadge";
 import { StatusBadge } from "./StatusBadge";
@@ -6,10 +7,14 @@ interface WorkOrderTableProps {
   workOrders: any[];
   loading: boolean;
   isSuperAdmin: boolean;
+  isAdmin: boolean;
+  isSupervisor: boolean;
   executeRouteBase: string;
   onNavigate: (path: string) => void;
+  onEdit: (workOrder: any) => void;
   onDelete: (id: string) => void;
   canDelete: boolean;
+  canEdit: boolean;
   getPlantName: (plant: any) => string;
 }
 
@@ -17,10 +22,14 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   workOrders,
   loading,
   isSuperAdmin,
+  isAdmin,
+  isSupervisor,
   executeRouteBase,
   onNavigate,
+  onEdit,
   onDelete,
   canDelete,
+  canEdit,
   getPlantName,
 }) => {
   const headers = [
@@ -51,6 +60,9 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
       </div>
     );
   }
+
+  // Determine if actions should be shown
+  const showActions = !isSupervisor;
 
   return (
     <div className="bg-white rounded-lg shadow border overflow-hidden">
@@ -93,22 +105,45 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
                   {wo.tasks.filter((t: any) => t.isCompleted).length}/{wo.tasks.length} done
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-2">
+                  {showActions ? (
+                    <div className="flex gap-2">
+                      {/* View/Execute Button - Available to all */}
+                      <button
+                        onClick={() => onNavigate(`${executeRouteBase}/${wo._id}`)}
+                        className="bg-primary-500 text-white px-3 py-1 rounded text-sm hover:bg-primary-700"
+                      >
+                        {wo.status === "planned" ? "Start" : "View"}
+                      </button>
+
+                      {/* Edit Button - Only for Admin and SuperAdmin */}
+                      {canEdit && (
+                        <button
+                          onClick={() => onEdit(wo)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                        >
+                          Edit
+                        </button>
+                      )}
+
+                      {/* Delete Button - Only for Admin and SuperAdmin */}
+                      {canDelete && (
+                        <button
+                          onClick={() => onDelete(wo._id)}
+                          className="border border-red-300 text-red-500 px-3 py-1 rounded text-sm hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    // Supervisor only gets View/Execute button
                     <button
                       onClick={() => onNavigate(`${executeRouteBase}/${wo._id}`)}
                       className="bg-primary-500 text-white px-3 py-1 rounded text-sm hover:bg-primary-700"
                     >
                       {wo.status === "planned" ? "Start" : "View"}
                     </button>
-                    {canDelete && (
-                      <button
-                        onClick={() => onDelete(wo._id)}
-                        className="border border-red-300 text-red-500 px-3 py-1 rounded text-sm hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </td>
               </tr>
             ))}

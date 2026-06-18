@@ -84,12 +84,12 @@ export interface ServiceRequest {
 
   assignedTo?: string;
   assignedToName?: string;
-
+  resolvedBy?: string;
+  resolvedByName?: string;
   solution?: string;
   issues?: Issues;
-  urgency?: Urgency;
+  urgency: Urgency; // ✅ Make it required (not optional)
 
-  // ✅ FIXED
   attachments?: string[];
 
   notes?: string;
@@ -172,20 +172,26 @@ export const ServiceRequestProvider: React.FC<{
           r.status?.slice(1),
 
         assignedTo: r.assignedTo?._id,
-
         assignedToName: r.assignedTo
           ? `${r.assignedTo.firstName} ${r.assignedTo.lastName}`
           : undefined,
 
+        resolvedBy: r.resolvedBy?._id || r.resolvedBy,
+        resolvedByName: r.resolvedBy
+          ? `${r.resolvedBy.firstName} ${r.resolvedBy.lastName}`
+          : r.resolvedByName || undefined,
+
         solution: r.solution,
-        urgency: r.urgency,
+        
+        // ✅ CRITICAL FIX: Ensure urgency is always set
+        urgency: r.urgency || "Low", // ✅ Default to "Low" if not provided
+        
         issues: r.issues,
         notes: r.notes,
 
         problemCategory:
           r.problemCategory || "Other Services",
 
-        // ✅ IMPORTANT FIX
         attachments: r.attachments || [],
       }));
 
@@ -219,11 +225,8 @@ export const ServiceRequestProvider: React.FC<{
 
     const res = await apiCreateRequest({
       description: requestData.description,
-      problemCategory:requestData.problemCategory || "Other Services",
-
-      attachments:
-        (requestData.attachments as any) || [],
-
+      problemCategory: requestData.problemCategory || "Other Services",
+      attachments: (requestData.attachments as any) || [],
       deviceId: requestData.deviceId,
     });
 
@@ -232,47 +235,37 @@ export const ServiceRequestProvider: React.FC<{
     const newRequest: ServiceRequest = {
       id: r._id,
       _id: r._id,
-
       deviceId: r.device?._id || r.device || "",
       serialNumber: r.device?.serialNumber || "",
-
       requestedBy: r.requestedBy
         ? `${r.requestedBy.firstName} ${r.requestedBy.lastName}`
         : "",
-
       description: r.description || "",
-
       plant: r.device?.plant?.name || "",
       department: r.device?.department?.name || "",
-
       createdAt: r.createdAt,
-
       assignedDate: r.assignedDate || "",
       resolvedDate: r.resolvedDate || "",
-
       deviceImage: r.device?.image || "",
       deviceName: r.device?.deviceName || "",
       deviceType: r.device?.deviceType || "",
-
-      status:
-        r.status.charAt(0).toUpperCase() +
-        r.status.slice(1),
-
+      status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
       assignedTo: r.assignedTo?._id,
-
       assignedToName: r.assignedTo
         ? `${r.assignedTo.firstName} ${r.assignedTo.lastName}`
         : undefined,
-
+      resolvedBy: r.resolvedBy?._id,
+      resolvedByName: r.resolvedBy
+        ? `${r.resolvedBy.firstName} ${r.resolvedBy.lastName}`
+        : undefined,
       solution: r.solution,
-      urgency: r.urgency,
+      
+      // ✅ Ensure urgency is set
+      urgency: r.urgency || "Low",
+      
       issues: r.issues,
       notes: r.notes,
-
-      problemCategory:
-        r.problemCategory || "Other Services",
-
-      // ✅ IMPORTANT FIX
+      problemCategory: r.problemCategory || "Other Services",
       attachments: r.attachments || [],
     };
 
@@ -289,7 +282,15 @@ export const ServiceRequestProvider: React.FC<{
     id: string,
     data: Partial<ServiceRequest>
   ) => {
-    await updateServiceRequest(id, data);
+    // ✅ Ensure urgency is always included in the update
+    const updateData = { ...data };
+    if (!updateData.urgency) {
+      // If urgency is not provided, try to preserve existing value or default to "Low"
+      const existing = requests.find((r) => r.id === id);
+      updateData.urgency = existing?.urgency || "Low";
+    }
+    
+    await updateServiceRequest(id, updateData);
     await refreshRequests();
   };
 

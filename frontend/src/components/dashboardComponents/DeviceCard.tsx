@@ -1,9 +1,11 @@
 // src/components/dashboardComponents/DeviceCard.tsx
-import React, { JSX } from "react";
+import React, { JSX, useState } from "react";
 import * as Label from "@radix-ui/react-label";
 import { Button } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
 import defaultDeviceImage from "../../assets/device 1.png";
+import { EyeIcon, UserPlusIcon, CheckCircleIcon, ClockIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { motion } from "framer-motion";
 
 import {
   RequestStatus,
@@ -42,6 +44,7 @@ const formatDate = (date?: string) => {
 
   return new Date(date).toLocaleDateString("en-US");
 };
+
 type DeviceCardProps = {
   id: string;
   deviceType: string;
@@ -53,6 +56,7 @@ type DeviceCardProps = {
   status: RequestStatus;
 
   supervisorName?: string;
+  resolvedByName?: string; // ✅ Add this prop
 
   assignedDate?: string;
   resolvedDate?: string;
@@ -62,6 +66,10 @@ type DeviceCardProps = {
   issues?: Issues;
 
   deviceImage?: string;
+  
+  // ✅ Add these props for better tracking
+  assignedTo?: string;
+  resolvedBy?: string;
 };
 
 const DeviceCard: React.FC<DeviceCardProps> = ({
@@ -74,20 +82,94 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   problem,
   status,
   supervisorName,
+  resolvedByName, // ✅ Add this
   assignedDate,
+  resolvedDate,
   deviceImage,
   problemCategory,
   createdAt,
-  resolvedDate,
   issues,
+  assignedTo, // ✅ Add this
+  resolvedBy, // ✅ Add this
 }) => {
   const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   const { currentUser } = useUserContext();
-
   const role = currentUser?.role;
-
   const baseRoute = getBaseRoute(role);
+
+  // Status color mapping
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    Assigned: "bg-blue-100 text-blue-800 border-blue-300",
+    Resolved: "bg-green-100 text-green-800 border-green-300",
+    Unresolved: "bg-red-100 text-red-800 border-red-300",
+  };
+
+  const statusIcons = {
+    Pending: <ClockIcon className="w-3 h-3" />,
+    Assigned: <UserPlusIcon className="w-3 h-3" />,
+    Resolved: <CheckCircleIcon className="w-3 h-3" />,
+    Unresolved: <ArrowPathIcon className="w-3 h-3" />,
+  };
+
+  // ✅ Updated getSolverDisplay function to handle superadmin tracking
+  const getSolverDisplay = () => {
+    // For Resolved and Unresolved status, show who solved it
+    if (status === "Resolved" || status === "Unresolved") {
+      // ✅ First check if resolvedByName exists (from backend)
+      if (resolvedByName) {
+        // Determine the role based on who solved it
+        // If there's an assignedTo, it was a supervisor who solved it
+        // If no assignedTo, it was an admin/superadmin
+        const role = assignedTo ? "supervisor" : "admin";
+        return {
+          label: "Solved By:",
+          name: resolvedByName,
+          role: role
+        };
+      }
+      
+      // ✅ Fallback to supervisorName if available (for backward compatibility)
+      if (supervisorName) {
+        const role = assignedDate ? "supervisor" : "admin";
+        return {
+          label: "Solved By:",
+          name: supervisorName,
+          role: role
+        };
+      }
+      
+      // ✅ Fallback to current user if they solved it
+      if (currentUser && (status === "Resolved" || status === "Unresolved")) {
+        const name = `${currentUser.firstName} ${currentUser.lastName}`;
+        // Show superadmin as "admin" in the display
+        const role = currentUser.role === "superadmin" ? "admin" : currentUser.role;
+        return {
+          label: "Solved By:",
+          name: name,
+          role: role
+        };
+      }
+      
+      return null;
+    }
+    
+    // For Assigned status, show who it's assigned to
+    if (status === "Assigned" && supervisorName) {
+      return {
+        label: "Assigned To:",
+        name: supervisorName,
+        role: assignedDate ? "supervisor" : "admin"
+      };
+    }
+    
+    return null;
+  };
+
+  const solverInfo = getSolverDisplay();
 
   const renderButtons = () => {
     const buttons: JSX.Element[] = [];
@@ -96,94 +178,125 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
        ✅ PENDING (ROLE BASED)
     ========================== */
     if (status === "Pending") {
-      // ADMIN → Details + Assign + Solve
-      if (role === "admin") {
+      // ADMIN & SUPERADMIN → Details + Assign + Solve
+      if (role === "admin" || role === "superadmin") {
         buttons.push(
-          <Button
+          <motion.div
             key="details"
-            onClick={() => navigate(`${baseRoute}/details/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Details
-          </Button>,
+            <Button
+              onClick={() => navigate(`${baseRoute}/details/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <EyeIcon className="w-2.5 h-2.5" />
+              Details
+            </Button>
+          </motion.div>,
 
-          <Button
+          <motion.div
             key="assign"
-            onClick={() => navigate(`${baseRoute}/assign/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Assign
-          </Button>,
+            <Button
+              onClick={() => navigate(`${baseRoute}/assign/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <UserPlusIcon className="w-2.5 h-2.5" />
+              Assign
+            </Button>
+          </motion.div>,
 
-          <Button
+          <motion.div
             key="solve"
-            onClick={() => navigate(`${baseRoute}/solve/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-[10px] font-semibold px-4 py-[2px] rounded-md"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Solve
-          </Button>
-        );
-      }
-
-      // SUPERADMIN → Details + Assign
-      else if (role === "superadmin") {
-        buttons.push(
-          <Button
-            key="details"
-            onClick={() => navigate(`${baseRoute}/details/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
-          >
-            Details
-          </Button>,
-
-          <Button
-            key="assign"
-            onClick={() => navigate(`${baseRoute}/assign/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
-          >
-            Assign
-          </Button>
+            <Button
+              onClick={() => navigate(`${baseRoute}/solve/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <CheckCircleIcon className="w-2.5 h-2.5" />
+              Solve
+            </Button>
+          </motion.div>
         );
       }
 
       // SUPERVISOR → Details only
       else if (role === "supervisor") {
         buttons.push(
-          <Button
+          <motion.div
             key="details"
-            onClick={() => navigate(`${baseRoute}/details/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Details
-          </Button>
+            <Button
+              onClick={() => navigate(`${baseRoute}/details/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <EyeIcon className="w-2.5 h-2.5" />
+              Details
+            </Button>
+          </motion.div>
         );
       }
     }
 
     /* =========================
-       ✅ ADMIN & SUPERADMIN
+       ✅ RESOLVED / UNRESOLVED (ADMIN & SUPERADMIN)
     ========================== */
     if (role === "admin" || role === "superadmin") {
       if (status === "Resolved" || status === "Unresolved") {
         buttons.push(
-          <Button
+          <motion.div
             key="history"
-            onClick={() => navigate(`${baseRoute}/history/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            History
-          </Button>
+            <Button
+              onClick={() => navigate(`${baseRoute}/history/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <ClockIcon className="w-2.5 h-2.5" />
+              History
+            </Button>
+          </motion.div>
         );
 
         if (status === "Unresolved") {
           buttons.push(
-            <Button
+            <motion.div
               key="reassign"
-              onClick={() => navigate(`${baseRoute}/assign/${id}`)}
-              className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              Reassign
-            </Button>
+              <Button
+                onClick={() => navigate(`${baseRoute}/assign/${id}`)}
+                className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+              >
+                <ArrowPathIcon className="w-2.5 h-2.5" />
+                Reassign
+              </Button>
+            </motion.div>
+          );
+
+          buttons.push(
+            <motion.div
+              key="solve"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                onClick={() => navigate(`${baseRoute}/solve/${id}`)}
+                className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+              >
+                <CheckCircleIcon className="w-2.5 h-2.5" />
+                Solve
+              </Button>
+            </motion.div>
           );
         }
       }
@@ -195,37 +308,55 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
     if (role === "supervisor") {
       if (status === "Assigned") {
         buttons.push(
-          <Button
+          <motion.div
             key="solve"
-            onClick={() => navigate(`${baseRoute}/solve/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Solve
-          </Button>
+            <Button
+              onClick={() => navigate(`${baseRoute}/solve/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <CheckCircleIcon className="w-2.5 h-2.5" />
+              Solve
+            </Button>
+          </motion.div>
         );
       } else if (
         status === "Resolved" ||
         status === "Unresolved"
       ) {
         buttons.push(
-          <Button
+          <motion.div
             key="history"
-            onClick={() => navigate(`${baseRoute}/history/${id}`)}
-            className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            History
-          </Button>
+            <Button
+              onClick={() => navigate(`${baseRoute}/history/${id}`)}
+              className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+            >
+              <ClockIcon className="w-2.5 h-2.5" />
+              History
+            </Button>
+          </motion.div>
         );
 
         if (status === "Unresolved") {
           buttons.push(
-            <Button
+            <motion.div
               key="resolve"
-              onClick={() => navigate(`${baseRoute}/solve/${id}`)}
-              className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              Resolve
-            </Button>
+              <Button
+                onClick={() => navigate(`${baseRoute}/solve/${id}`)}
+                className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+              >
+                <CheckCircleIcon className="w-2.5 h-2.5" />
+                Resolve
+              </Button>
+            </motion.div>
           );
         }
       }
@@ -236,13 +367,19 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
     ========================== */
     if (role === "user" || !role) {
       buttons.push(
-        <Button
+        <motion.div
           key="details"
-          onClick={() => navigate(`${baseRoute}/details/${id}`)}
-          className="bg-orange-700 hover:bg-orange-500 text-black text-xs font-semibold px-6 py-1 rounded"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          Details
-        </Button>
+          <Button
+            onClick={() => navigate(`${baseRoute}/details/${id}`)}
+            className="bg-primary-400 hover:bg-primary-500 text-white text-[9px] font-semibold px-3 py-[2px] rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-0.5"
+          >
+            <EyeIcon className="w-2.5 h-2.5" />
+            Details
+          </Button>
+        </motion.div>
       );
     }
 
@@ -254,34 +391,62 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   const buttonContainerClass =
     buttons.length === 1
       ? "flex justify-center mt-2"
-      : "flex justify-between mt-2";
+      : "flex justify-between mt-2 gap-0.5";
 
   return (
-    <div className="w-[230px] bg-primary-900 rounded-xl shadow-md p-3 space-y-3 text-sm">
-      <img
-        src={deviceImage || defaultDeviceImage}
-        alt="Device"
-        className="w-full h-28 object-contain rounded"
-      />
+    <motion.div
+      className="w-[230px] bg-white rounded-xl shadow-xl p-3 space-y-3 text-sm border border-gray-100"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={{
+        y: -4,
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        transition: { duration: 0.2 }
+      }}
+    >
+      {/* Status Badge */}
+      <div className="flex justify-between items-start">
+        <div className={`px-2 py-1 rounded-full text-[10px] font-semibold border ${statusColors[status]} flex items-center gap-1`}>
+          {statusIcons[status]}
+          {status}
+        </div>
+        <motion.div
+          animate={{ rotate: isHovered ? 360 : 0 }}
+          transition={{ duration: 0 }}
+          className="text-gray-400 text-[10px]"
+        >
+          {id.slice(0, 6)}
+        </motion.div>
+      </div>
+
+      <motion.div
+        className="relative overflow-hidden rounded"
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.2 }}
+      >
+        <img
+          src={deviceImage || defaultDeviceImage}
+          alt="Device"
+          className={`w-full h-28 object-contain rounded transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setIsImageLoaded(true)}
+        />
+        {!isImageLoaded && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded" />
+        )}
+      </motion.div>
 
       <div className="space-y-2">
         <Field label="Device Type" value={deviceType} />
-
         <Field label="Serial No" value={serialNumber} />
-
         <Field label="Department" value={department} />
-
         <Field label="Plant" value={plant} />
-
         <Field label="User" value={userName} />
 
-        {/* ✅ ALWAYS SHOW */}
         <Field
           label="Requested On"
           value={formatDate(createdAt)}
         />
 
-        {/* ✅ ONLY AFTER ASSIGNMENT */}
         {status !== "Pending" && assignedDate && (
           <Field
             label="Assigned On"
@@ -289,43 +454,39 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
           />
         )}
 
-        {/* ✅ ONLY RESOLVED / UNRESOLVED */}
-        {(status === "Resolved" ||
-          status === "Unresolved") &&
-          resolvedDate && (
-            <Field
-              label="Resolved On"
-              value={formatDate(resolvedDate)}
-            />
-          )}
+        {(status === "Resolved" || status === "Unresolved") && resolvedDate && (
+          <Field
+            label="Resolved On"
+            value={formatDate(resolvedDate)}
+          />
+        )}
 
         {problemCategory && (
-          <Field
-            label="Problem Category"
-            value={problemCategory}
-          />
+          <Field label="Problem Category" value={problemCategory} />
         )}
 
         {issues && (
           <Field label="Issue" value={issues} />
         )}
 
-        {/* ✅ HIDE ON PENDING */}
-        {status !== "Pending" && supervisorName && (
-          <div className="flex items-center">
+        {/* ✅ Show Solver Info - Updated to show superadmin properly */}
+        {solverInfo && (
+          <motion.div
+            className="flex items-center"
+            whileHover={{ x: 2 }}
+            transition={{ duration: 0.2 }}
+          >
             <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
-              {status === "Assigned"
-                ? "Assigned To:"
-                : "Solved By:"}
+              {solverInfo.label}
             </Label.Root>
 
-            <div className="w-[55%] text-xs px-2 py-[3px] border border-gray-300 rounded bg-white text-gray-800">
-      {supervisorName}{" "}
+            <div className="w-[55%] text-xs px-2 py-[3px] border border-gray-300 rounded bg-blue-50 text-gray-800">
+              {solverInfo.name}{" "}
               <span className="text-[9px] text-gray-500">
-        ({assignedDate ? "supervisor" : "admin"})
-      </span>
+                ({solverInfo.role})
+              </span>
             </div>
-          </div>
+          </motion.div>
         )}
 
         <Field label="Problem" value={problem || "—"} />
@@ -334,16 +495,20 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
       <div className={buttonContainerClass}>
         {buttons}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-// ✅ Field Component
+// ✅ Field Component with enhanced interactivity
 const Field: React.FC<{
   label: string;
   value: string;
 }> = ({ label, value }) => (
-  <div className="flex items-center">
+  <motion.div
+    className="flex items-center"
+    whileHover={{ x: 2 }}
+    transition={{ duration: 0.2 }}
+  >
     <Label.Root className="w-[45%] text-[11px] font-bold text-gray-700">
       {label}:
     </Label.Root>
@@ -352,9 +517,9 @@ const Field: React.FC<{
       type="text"
       value={value}
       readOnly
-      className="w-[55%] text-xs px-2 py-[3px] border border-gray-300 rounded bg-white text-gray-800"
+      className="w-[55%] text-xs px-2 py-[3px] border border-gray-200 rounded bg-gray-50 text-gray-800 transition-colors duration-200 hover:border-primary-400 focus:outline-none"
     />
-  </div>
+  </motion.div>
 );
 
 export default DeviceCard;

@@ -1,4 +1,4 @@
-// src/components/dashboardComponents/AdminSolveComponent.tsx
+// src/components/dashboardComponents/SuperAdminSolveComponent.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
@@ -30,13 +30,13 @@ import {
   IoClipboardOutline
 } from "react-icons/io5";
 
-const SolutionByAdminComponent: React.FC = () => {
+const SuperAdminSolveComponent: React.FC = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
   const { getRequestById, updateRequest } = useServiceRequests();
   const { users, currentUser } = useUserContext();
   const { devices } = useDeviceContext();
-  const [urgency, setUrgency] = useState<Urgency>("");
+  const [urgency, setUrgency] = useState<Urgency>("Low");
   const urgencyOptions: Urgency[] = ["Low", "Medium", "High"];
 
   const [solution, setSolution] = useState("");
@@ -48,13 +48,12 @@ const SolutionByAdminComponent: React.FC = () => {
 
   useEffect(() => {
     if (request) {
-      setProblemCategory(request.problemCategory);
-    }
-    if (request?.issues) {
-      setIssues(request.issues);
-    }
-    if (request?.urgency) {
-      setUrgency(request.urgency);
+      setProblemCategory(request.problemCategory || "Software");
+      if (request.issues) {
+        setIssues(request.issues);
+      }
+      // ✅ Set urgency from request or default to "Low"
+      setUrgency(request.urgency || "Low");
     }
   }, [request]);
 
@@ -112,7 +111,7 @@ const SolutionByAdminComponent: React.FC = () => {
     const updateData = {
       status,
       solution: solution || request.solution || "",
-      issues: issues || request.issues || "",
+      issues: (issues || request.issues) as Issues | undefined,
       problemCategory: problemCategory || request.problemCategory || "Software",
       resolvedDate: now,
       urgency: urgency || request.urgency || "Low",
@@ -121,8 +120,10 @@ const SolutionByAdminComponent: React.FC = () => {
       assignedToName: solverName,
     };
     
+    console.log("📝 SuperAdmin solving with data:", updateData);
+    
     try {
-      await updateRequest(request.id || request._id, updateData as any);
+      await updateRequest(request.id || request._id, updateData);
       navigate("/dashboard");
     } catch (error) {
       console.error("Failed to update request:", error);
@@ -188,6 +189,7 @@ const SolutionByAdminComponent: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Left Column */}
                 <div className="space-y-3 sm:space-y-4">
+                  {/* Requester */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border-l-4 border-blue-500 gap-2 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
@@ -205,6 +207,7 @@ const SolutionByAdminComponent: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Device */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border-l-4 border-purple-500 gap-2 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
@@ -225,6 +228,7 @@ const SolutionByAdminComponent: React.FC = () => {
 
                 {/* Right Column */}
                 <div className="space-y-3 sm:space-y-4">
+                  {/* Solved By */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border-l-4 border-green-500 gap-2 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
@@ -245,6 +249,7 @@ const SolutionByAdminComponent: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Requested Date */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border-l-4 border-orange-500 gap-2 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
@@ -285,6 +290,7 @@ const SolutionByAdminComponent: React.FC = () => {
           {/* Solution Section */}
           <div className="p-4 sm:p-6">
             <div className="space-y-4 sm:space-y-6">
+              {/* Problem Category */}
               <div>
                 <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-dark-400 mb-1.5 sm:mb-2">
                   <IoClipboardOutline className="w-4 h-4 text-primary-500" />
@@ -307,7 +313,9 @@ const SolutionByAdminComponent: React.FC = () => {
                 </p>
               </div>
 
+              {/* ✅ GRID: Problem Type + Urgency Level */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Problem Type */}
                 <div>
                   <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-dark-400 mb-1.5 sm:mb-2">
                     <IoAlertCircleOutline className="w-4 h-4 text-primary-500" />
@@ -327,6 +335,7 @@ const SolutionByAdminComponent: React.FC = () => {
                   </select>
                 </div>
 
+                {/* ✅ URGENCY LEVEL - THIS WAS MISSING! */}
                 <div>
                   <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-dark-400 mb-1.5 sm:mb-2">
                     <IoFlag className="w-4 h-4 text-primary-500" />
@@ -356,9 +365,14 @@ const SolutionByAdminComponent: React.FC = () => {
                       );
                     })}
                   </div>
+                  {/* ✅ Show current urgency for debugging */}
+                  <p className="text-xs text-gray-400 mt-1">
+                    Selected: {urgency || "Low"}
+                  </p>
                 </div>
               </div>
 
+              {/* Solution Details */}
               <div>
                 <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-dark-400 mb-1.5 sm:mb-2">
                   <IoConstructOutline className="w-4 h-4 text-primary-500" />
@@ -373,6 +387,7 @@ const SolutionByAdminComponent: React.FC = () => {
                 />
               </div>
 
+              {/* Resolved Date */}
               <div>
                 <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-dark-400 mb-1.5 sm:mb-2">
                   <IoTimeOutline className="w-4 h-4 text-primary-500" />
@@ -427,4 +442,4 @@ const SolutionByAdminComponent: React.FC = () => {
   );
 };
 
-export default SolutionByAdminComponent;
+export default SuperAdminSolveComponent;

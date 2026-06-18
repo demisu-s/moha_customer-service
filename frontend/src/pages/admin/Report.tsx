@@ -63,28 +63,30 @@ const Report = () => {
       SERVICE DATA
   ========================================================= */
 
-  const serviceData = useMemo(() => {
-    return requests
-      .map((req: any) => ({
-        requestedBy: req.requestedBy || "—",
-        requestedDate: req.createdAt ? new Date(req.createdAt).toLocaleDateString() : "—",
-        createdAt: req.createdAt,
-        assignedDate: req.assignedDate,
-        resolvedDate: req.resolvedDate,
-        plant: req.plant?.name || req.plant || "—",
-        problemCategory: req.problemCategory || "—",
-        deviceType: req.deviceType || "—",
-        problemType: req.issues || "—",
-        priority: req.urgency || "—",
-        solvedBy: req.assignedToName || "—",
-        solution: req.solution || "—",
-        status: req.status || "Pending",
-      }))
-      .filter((item: any) => {
-        if (isSuperAdmin) return true;
-        return item.plant === currentPlantName;
-      });
-  }, [requests, isSuperAdmin, currentPlantName]);
+  // In the serviceData useMemo in Report.tsx
+const serviceData = useMemo(() => {
+  return requests
+    .map((req: any) => ({
+      requestedBy: req.requestedBy || "—",
+      requestedDate: req.createdAt ? new Date(req.createdAt).toLocaleDateString() : "—",
+      createdAt: req.createdAt,
+      assignedDate: req.assignedDate,
+      resolvedDate: req.resolvedDate,
+      plant: req.plant?.name || req.plant || "—",
+      problemCategory: req.problemCategory || "—",
+      deviceType: req.deviceType || "—",
+      problemType: req.issues || "—",
+      priority: req.urgency || "—",
+      // ✅ Use resolvedByName first, then assignedToName
+      solvedBy: req.resolvedByName || req.assignedToName || "—",
+      solution: req.solution || "—",
+      status: req.status || "Pending",
+    }))
+    .filter((item: any) => {
+      if (isSuperAdmin) return true;
+      return item.plant === currentPlantName;
+    });
+}, [requests, isSuperAdmin, currentPlantName]);
 
   /* =========================================================
       PM (PREVENTIVE MAINTENANCE) DATA

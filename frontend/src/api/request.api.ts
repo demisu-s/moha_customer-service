@@ -87,9 +87,19 @@ export const assignRequest = async (id: string, data: any) => {
 
 /* ================= RESOLVE REQUEST ================= */
 
-export const resolveServiceRequest = async (id: string) => {
+// export const resolveServiceRequest = async (id: string) => {
+//   const response = await api.put<ApiResponse<any>>(
+//     `/request/resolve/${id}`
+//   );
+
+//   return response.data.data;
+// };
+
+// In request.api.ts, update the resolveServiceRequest function
+export const resolveServiceRequest = async (id: string, data?: { solution?: string, issues?: string }) => {
   const response = await api.put<ApiResponse<any>>(
-    `/request/resolve/${id}`
+    `/request/resolve/${id}`,
+    data || {} // ✅ Pass the data
   );
 
   return response.data.data;

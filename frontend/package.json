@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@opentelemetry/instrumentation": "^0.203.0",
     "@opentelemetry/instrumentation-document-load": "^0.48.0",
     "@radix-ui/react-avatar": "^1.1.10",

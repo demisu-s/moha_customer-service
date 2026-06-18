@@ -4,6 +4,7 @@ import { RequestStatus } from "../constants/request-status";
 export interface IServiceDocument extends Document {
   device?: mongoose.Types.ObjectId;
   requestedBy: mongoose.Types.ObjectId;
+  resolvedBy?: mongoose.Types.ObjectId;
 
   urgency?: "Low" | "Medium" | "High";
 
@@ -53,6 +54,10 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
       ref: "User",
       required: true,
     },
+    resolvedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
 
     urgency: {
       type: String,

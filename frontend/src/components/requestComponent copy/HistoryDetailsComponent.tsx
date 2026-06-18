@@ -61,7 +61,8 @@ const HistoryDetailsComponent: React.FC = () => {
     );
   }
 
-  const supervisor = users.find((u) => u._id === request.assignedTo);
+  // ✅ Find the solver - check if assignedTo exists and find user
+  const solver = request.assignedTo ? users.find((u) => u._id === request.assignedTo) : null;
   const device = devices.find((d) => d._id === request.deviceId);
   const isSupervisorFlow = !!request.assignedDate;
   const userImages = request.attachments || [];
@@ -90,24 +91,35 @@ const HistoryDetailsComponent: React.FC = () => {
     });
   };
 
+  // ✅ Determine solver role display
+  const getSolverRole = () => {
+    if (!solver) return null;
+    // If solver is superadmin or admin, show as "admin"
+    if (solver.role === "superadmin" || solver.role === "admin") {
+      return "admin";
+    }
+    return solver.role;
+  };
+
   return (
-          <div className="min-h-screen bg-gray-50 py-8 rounded-lg px-4">
+    <div className="min-h-screen bg-gray-50 py-8 rounded-lg px-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-         <div className="relative overflow-hidden bg-light-200 rounded-2xl shadow-xl">
-          <div className="absolute inset-0  opacity-10"></div>
+        <div className="relative overflow-hidden bg-light-200 rounded-2xl shadow-xl">
+          <div className="absolute inset-0 opacity-10"></div>
           <div className="relative px-6 py-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
                 <button onClick={() => navigate(-1)} 
-                                  className="p-2 hover:bg-white rounded-xl transition-colors"
->
-                   <IoArrowBack className="w-6 h-6 text-dark-600"  />
+                  className="p-2 hover:bg-white rounded-xl transition-colors"
+                >
+                  <IoArrowBack className="w-6 h-6 text-dark-600" />
                 </button>
                 <div>
                   <h1 className="text-3xl font-bold text-dark-400 mb-1">Request History</h1>
                   <p className="text-primary-100 text-sm">
-                    {device ? device.deviceName : request.serialNumber}</p>
+                    {device ? device.deviceName : request.serialNumber}
+                  </p>
                 </div>
               </div>
               <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${statusStyle.bg} ${statusStyle.text} border ${statusStyle.border}`}>
@@ -270,7 +282,14 @@ const HistoryDetailsComponent: React.FC = () => {
                   <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                     <IoPerson className="w-5 h-5 text-blue-600" />
                     <span className="text-sm font-semibold text-dark-600">Assigned To:</span>
-                    <span className="text-dark-400">{supervisor ? `${supervisor.firstName} ${supervisor.lastName}` : request.assignedToName || "Not assigned"}</span>
+                    <span className="text-dark-400">
+                      {solver ? `${solver.firstName} ${solver.lastName}` : request.assignedToName || "Not assigned"}
+                      {solver && (
+                        <span className="text-xs text-gray-500 ml-1">
+                          ({getSolverRole() === "admin" ? "superadmin" : solver.role})
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -311,6 +330,18 @@ const HistoryDetailsComponent: React.FC = () => {
                     <p className="text-dark-600">{request.solution || "No solution provided yet."}</p>
                   </div>
                 </div>
+                {/* ✅ Show who solved it */}
+                {solver && (request.status === "Resolved" || request.status === "Unresolved") && (
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                    <span className="text-sm font-semibold text-dark-600">Solved By</span>
+                    <span className="text-dark-400">
+                      {solver.firstName} {solver.lastName}
+                      <span className="text-xs text-gray-500 ml-1">
+                        ({getSolverRole() === "admin" ? "superadmin" : solver.role})
+                      </span>
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -319,7 +350,7 @@ const HistoryDetailsComponent: React.FC = () => {
         {/* Back Button */}
         <div className="flex justify-end">
           <Button onClick={() => navigate(-1)} 
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-500 to-primary-900 text-white px-6 py-2.5 rounded-lg hover:shadow-lg transition-all">
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-500 to-primary-900 text-white px-6 py-2.5 rounded-lg hover:shadow-lg transition-all">
             <IoArrowBack className="w-4 h-4" />
             Back to Dashboard
           </Button>
