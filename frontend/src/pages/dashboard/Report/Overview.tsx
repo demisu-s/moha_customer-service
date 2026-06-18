@@ -1,11 +1,11 @@
 // src/pages/Overview.tsx
 import React, { useMemo, useState } from "react";
-import StatCard from "../../components/dashboardComponents/StatCard";
-import RequestsChart from "../../components/dashboardComponents/RequestsChart";
-import SupervisorCard from "../../components/dashboardComponents/SupervisorCard";
-import { useServiceRequests } from "../../context/ServiceRequestContext";
-import { useUserContext } from "../../context/UserContext";
-import { usePlantContext } from "../../context/PlantContext";
+import StatCard from "../../../components/dashboardComponents/StatCard";
+import RequestsChart from "../../../components/dashboardComponents/RequestsChart";
+import SupervisorCard from "../../../components/dashboardComponents/SupervisorCard";
+import { useServiceRequests } from "../../../context/ServiceRequestContext";
+import { useUserContext } from "../../../context/UserContext";
+import { usePlantContext } from "../../../context/PlantContext";
 import { FiFilter } from "react-icons/fi";
 import { 
   ClipboardDocumentListIcon,

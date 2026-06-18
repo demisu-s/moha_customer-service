@@ -50,7 +50,6 @@ export const createServiceRequest = async (
   return response.data.data;
 };
 /* ================= GET ALL REQUESTS ================= */
-
 export const getServiceRequests = async () => {
   const response = await api.get<ApiResponse<any[]>>(
     "/request/getRequests"
@@ -60,7 +59,6 @@ export const getServiceRequests = async () => {
 };
 
 /* ================= UPDATE REQUEST ================= */
-
 export const updateServiceRequest = async (
   id: string,
   data: any
@@ -74,8 +72,6 @@ export const updateServiceRequest = async (
 };
 
 /* ================= ASSIGN SUPERVISOR ================= */
-
-
 export const assignRequest = async (id: string, data: any) => {
   const response = await api.put<ApiResponse<any>>(
     `/request/assign/assignedSupervisor/${id}`,
@@ -85,17 +81,6 @@ export const assignRequest = async (id: string, data: any) => {
   return response.data.data;
 };
 
-/* ================= RESOLVE REQUEST ================= */
-
-// export const resolveServiceRequest = async (id: string) => {
-//   const response = await api.put<ApiResponse<any>>(
-//     `/request/resolve/${id}`
-//   );
-
-//   return response.data.data;
-// };
-
-// In request.api.ts, update the resolveServiceRequest function
 export const resolveServiceRequest = async (id: string, data?: { solution?: string, issues?: string }) => {
   const response = await api.put<ApiResponse<any>>(
     `/request/resolve/${id}`,

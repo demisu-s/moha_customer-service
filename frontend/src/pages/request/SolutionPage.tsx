@@ -1,4 +1,4 @@
-import RequestSolutionComponent from "../../components/requestComponent copy/RequestSolutionComponent";
+import RequestSolutionComponent from "../../components/requestComponent/RequestSolutionComponent";
 
 const SolutionPage: React.FC = () => {
   

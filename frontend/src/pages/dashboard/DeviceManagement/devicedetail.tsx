@@ -2,8 +2,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@radix-ui/themes";
 
-import { useDeviceContext } from "../../context/DeviceContext";
-import { useServiceRequests } from "../../context/ServiceRequestContext";
+import { useDeviceContext } from "../../../context/DeviceContext";
+import { useServiceRequests } from "../../../context/ServiceRequestContext";
 
 import { IoArrowBack } from "react-icons/io5";
 
@@ -16,9 +16,9 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 
-import LoadingDialog from "../../components/ui/LoadingDialog";
-import ErrorDialog from "../../components/ui/ErrorDialog";
-import { getImageUrl } from "../../utils/image";
+import LoadingDialog from "../../../components/ui/LoadingDialog";
+import ErrorDialog from "../../../components/ui/ErrorDialog";
+import { getImageUrl } from "../../../utils/image";
 
 const DeviceDetail: React.FC = () => {
   const { id } = useParams();

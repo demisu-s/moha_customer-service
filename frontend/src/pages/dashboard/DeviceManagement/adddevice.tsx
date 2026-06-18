@@ -4,12 +4,12 @@ import * as Label from "@radix-ui/react-label";
 import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { useDeviceContext } from "../../context/DeviceContext";
-import { useUserContext } from "../../context/UserContext";
-import { usePlantContext } from "../../context/PlantContext";
-import { useDepartmentContext } from "../../context/DepartmentContext";
-import { PlantPayload, DepartmentPayload, User, CreateDevicePayload } from "../../api/global.types";
-import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
+import { useDeviceContext } from "../../../context/DeviceContext";
+import { useUserContext } from "../../../context/UserContext";
+import { usePlantContext } from "../../../context/PlantContext";
+import { useDepartmentContext } from "../../../context/DepartmentContext";
+import { PlantPayload, DepartmentPayload, User, CreateDevicePayload } from "../../../api/global.types";
+import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../../router/routeConstants";
 
 interface DeviceFormData {
   deviceType: "Printer" | "Laptop" | "Desktop" | "Scanner" | "Router" | "Switch" | "Other";

@@ -7,8 +7,8 @@ import {
   CheckIcon,
 } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { useUserContext } from "../../context/UserContext";
-import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../router/routeConstants";
+import { useUserContext } from "../../../context/UserContext";
+import { ADMIN_DASHBOARD_ROUTE, DASHBOARD_ROUTE, SUPERVISOR_DASHBOARD_ROUTE } from "../../../router/routeConstants";
 
 /* -------------------- Types -------------------- */
 

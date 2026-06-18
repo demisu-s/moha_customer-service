@@ -16,7 +16,10 @@ export interface IServiceDocument extends Document {
   | "Jet Report"
   | "Office Activation"
   | "Other";
-problemCategory:"Hardware" | "Software" | "Network" | "Other";
+problemCategory:"Desktop" | "Printer" | "UPS" | "TV" | "Laptop" | "Server" | "Switch" |
+   "Access Point" | "Camera" | "Biometric" | "Camera Related" | "Software" | "ERP"
+    | "Peachtree" | "Canteen" | "Overtime" | "Other Software" | "Network" | "Network Related"
+     | "Internet Related" | "Project Related" | "Other Services";
 
     
 
@@ -80,6 +83,9 @@ const ServiceRequestSchema = new Schema<IServiceDocument>(
       type:String,
       enum:[
         "Desktop",
+        "Printer",
+        "UPS",
+        "TV",
         "Laptop",
         "Server",
         "Switch",

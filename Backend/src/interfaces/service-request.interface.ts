@@ -32,7 +32,7 @@ export interface IServiceRequest {
   assignedDate?: string;
 
   urgency?: "Low" | "Medium" | "High";
-  problemCategory?:  "Hardware" | "Desktop" | "Laptop" | "Server" | "Switch" |
+  problemCategory?:"Desktop" | "Printer" | "UPS" | "TV" | "Laptop" | "Server" | "Switch" |
    "Access Point" | "Camera" | "Biometric" | "Camera Related" | "Software" | "ERP"
     | "Peachtree" | "Canteen" | "Overtime" | "Other Software" | "Network" | "Network Related"
      | "Internet Related" | "Project Related" | "Other Services";

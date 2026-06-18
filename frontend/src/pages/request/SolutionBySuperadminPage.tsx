@@ -1,4 +1,4 @@
-import SolutionByAdminComponent from "../../components/requestComponent copy/SolutionByAdminComponent";
+import SolutionByAdminComponent from "../../components/requestComponent/SolutionByAdminComponent";
 
 const SolutionBySuperadminPage: React.FC = () => {
   

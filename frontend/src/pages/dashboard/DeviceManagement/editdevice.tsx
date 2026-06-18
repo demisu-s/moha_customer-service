@@ -4,16 +4,16 @@ import * as Select from "@radix-ui/react-select";
 import { UploadIcon, ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useDeviceContext } from "../../context/DeviceContext";
-import { useUserContext } from "../../context/UserContext";
+import { useDeviceContext } from "../../../context/DeviceContext";
+import { useUserContext } from "../../../context/UserContext";
 
 import {
   SUPERVISOR_DEVICES_ROUTE,
   ADMIN_DEVICES_ROUTE,
   DASHBOARD_ROUTE,
-} from "../../router/routeConstants";
-import {Device} from "../../api/global.types";
-import { getImageUrl } from "../../utils/image";
+} from "../../../router/routeConstants";
+import {Device} from "../../../api/global.types";
+import { getImageUrl } from "../../../utils/image";
 
 /* -------------------- Types -------------------- */
 

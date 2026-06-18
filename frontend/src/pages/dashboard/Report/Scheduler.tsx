@@ -1,9 +1,9 @@
 import React from "react";
-import EventForm from "../../components/dashboardComponents/EventForm";
-import CalendarView from "../../components/dashboardComponents/CalendarView";
+import EventForm from "../../../components/dashboardComponents/EventForm";
+import CalendarView from "../../../components/dashboardComponents/CalendarView";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useSchedule } from "../../context/ScheduleContext";
-import { useUserContext } from "../../context/UserContext";
+import { useSchedule } from "../../../context/ScheduleContext";
+import { useUserContext } from "../../../context/UserContext";
 
 const Scheduler: React.FC = () => {
   const { events, addEvent, removeEvent, loading, refreshEvents } =

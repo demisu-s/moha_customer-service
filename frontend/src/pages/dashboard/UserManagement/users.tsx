@@ -2,21 +2,21 @@ import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { JSX, useMemo, useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { CreateUserPayload } from "../../api/user.api";
+import { CreateUserPayload } from "../../../api/user.api";
 import { useNavigate } from "react-router-dom";
-import { useUserContext } from "../../context/UserContext";
-import { getDepartmentsByPlant } from "../../api/department.api";
+import { useUserContext } from "../../../context/UserContext";
+import { getDepartmentsByPlant } from "../../../api/department.api";
 
-import LoadingDialog from "../../components/ui/LoadingDialog";
-import SuccessDialog from "../../components/ui/SuccessDialog";
-import ErrorDialog from "../../components/ui/ErrorDialog";
+import LoadingDialog from "../../../components/ui/LoadingDialog";
+import SuccessDialog from "../../../components/ui/SuccessDialog";
+import ErrorDialog from "../../../components/ui/ErrorDialog";
 
 import {
   SUPERVISOR_USERS_ROUTE,
   DASHBOARD_ROUTE,
   ADMIN_DASHBOARD_ROUTE,
   ADMIN_USERS_ROUTE,
-} from "../../router/routeConstants";
+} from "../../../router/routeConstants";
 
 export default function UserManagement(): JSX.Element {
   const {

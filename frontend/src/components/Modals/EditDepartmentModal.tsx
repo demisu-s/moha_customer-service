@@ -1,11 +1,11 @@
 // components/EditDepartmentModal.tsx
 import { useState } from "react";
 import { X } from "lucide-react";
-import { useDepartmentContext } from "../context/DepartmentContext";
+import { useDepartmentContext } from "../../context/DepartmentContext";
 
-import LoadingDialog from "./ui/LoadingDialog";
-import SuccessDialog from "./ui/SuccessDialog";
-import ErrorDialog from "./ui/ErrorDialog";
+import LoadingDialog from "../ui/LoadingDialog";
+import SuccessDialog from "../ui/SuccessDialog";
+import ErrorDialog from "../ui/ErrorDialog";
 
 const EditDepartmentModal = ({
   department,

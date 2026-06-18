@@ -1,5 +1,5 @@
-import HistoryDetailsComponent from "../../components/requestComponent copy/HistoryDetailsComponent";
-import UnresolvedComponent from "../../components/requestComponent copy/UnresolvedComponent";
+import HistoryDetailsComponent from "../../components/requestComponent/HistoryDetailsComponent";
+import UnresolvedComponent from "../../components/requestComponent/UnresolvedComponent";
 
 const RequestHistoryPage: React.FC = () => {
   

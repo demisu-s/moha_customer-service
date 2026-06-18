@@ -10,22 +10,22 @@ import {
   Search,
 } from "lucide-react";
 
-import CreatePlantModal from "../../components/CreatePlantModal";
-import CreateDepartmentModal from "../../components/CreateDepartmentModal";
-import EditPlantModal from "../../components/EditPlantModal";
-import EditDepartmentModal from "../../components/EditDepartmentModal";
+import CreatePlantModal from "../../../components/Modals/CreatePlantModal";
+import CreateDepartmentModal from "../../../components/Modals/CreateDepartmentModal";
+import EditPlantModal from "../../../components/Modals/EditPlantModal";
+import EditDepartmentModal from "../../../components/Modals/EditDepartmentModal";
 
-import LoadingDialog from "../../components/ui/LoadingDialog";
-import SuccessDialog from "../../components/ui/SuccessDialog";
-import ErrorDialog from "../../components/ui/ErrorDialog";
+import LoadingDialog from "../../../components/ui/LoadingDialog";
+import SuccessDialog from "../../../components/ui/SuccessDialog";
+import ErrorDialog from "../../../components/ui/ErrorDialog";
 
 import {
   PlantPayload,
   DepartmentPayload,
-} from "../../api/global.types";
+} from "../../../api/global.types";
 
-import { usePlantContext } from "../../context/PlantContext";
-import { useDepartmentContext } from "../../context/DepartmentContext";
+import { usePlantContext } from "../../../context/PlantContext";
+import { useDepartmentContext } from "../../../context/DepartmentContext";
 
 const Plants = () => {
   const {

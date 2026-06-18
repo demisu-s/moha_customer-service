@@ -78,7 +78,7 @@ export interface Device {
 
 export interface CreateDevicePayload {
   deviceName: string;
-  deviceType: "Printer" | "Laptop" | "Desktop" | "Scanner" | "Router" | "Switch" | "Other";
+  deviceType: "Printer" | "Laptop" | "Desktop" | "Scanner" | "Server" | "UPS" | "TV" | "Router" | "Switch" | "Biometric" | "Access Point" |"Camera" | "Other";
   deviceId: string;
   serialNumber: string;
 
@@ -96,7 +96,7 @@ export interface CreateServiceRequestPayload {
   deviceId: string;
 
   attachments?: File[];
-  problemCategory:"Desktop" | "Laptop" | "Server" | "Switch" |
+  problemCategory:"Desktop" | "Printer" | "UPS" | "TV" | "Laptop" | "Server" | "Switch" |
    "Access Point" | "Camera" | "Biometric" | "Camera Related" | "Software" | "ERP"
     | "Peachtree" | "Canteen" | "Overtime" | "Other Software" | "Network" | "Network Related"
      | "Internet Related" | "Project Related" | "Other Services";
@@ -107,7 +107,6 @@ export interface CreateServiceRequestPayload {
 
 /* ================= SCHEDULE ================= */
 
-// export type Recurrence = "none" | "daily" | "weekly" | "monthly";
 export type Recurrence = "none" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
 
 export interface ScheduleEvent {

@@ -1,4 +1,4 @@
-import HistoryDetailsComponent from "../../components/requestComponent copy/HistoryDetailsComponent";
+import HistoryDetailsComponent from "../../components/requestComponent/HistoryDetailsComponent";
 
 const RequestHistoryPage: React.FC = () => {
   

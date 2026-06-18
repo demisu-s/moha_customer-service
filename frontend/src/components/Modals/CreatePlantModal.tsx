@@ -1,28 +1,22 @@
-// components/CreateDepartmentModal.tsx
+// components/CreatePlantModal.tsx
 import { useState } from "react";
 import { X } from "lucide-react";
-import { useDepartmentContext } from "../context/DepartmentContext";
+import { usePlantContext } from "../../context/PlantContext";
 
-import LoadingDialog from "./ui/LoadingDialog";
-import SuccessDialog from "./ui/SuccessDialog";
-import ErrorDialog from "./ui/ErrorDialog";
+import LoadingDialog from "../ui/LoadingDialog";
+import SuccessDialog from "../ui/SuccessDialog";
+import ErrorDialog from "../ui/ErrorDialog";
 
-const CreateDepartmentModal = ({
-  plantId,
-  onClose,
-  onCreated,
-}: any) => {
-  const { addDepartment } =
-    useDepartmentContext();
+const CreatePlantModal = ({ onClose, onCreated }: any) => {
+  const { addPlant } = usePlantContext();
 
   const [form, setForm] = useState({
     name: "",
-    block: "",
-    floor: "",
+    city: "",
+    area: "",
   });
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [successOpen, setSuccessOpen] =
     useState(false);
@@ -37,12 +31,9 @@ const CreateDepartmentModal = ({
     try {
       setLoading(true);
 
-      await addDepartment({
-        ...form,
-        plant: plantId,
-      });
+      await addPlant(form as any);
 
-      await onCreated();
+      if (onCreated) await onCreated();
 
       setSuccessOpen(true);
 
@@ -54,7 +45,7 @@ const CreateDepartmentModal = ({
 
       setErrorMessage(
         error?.message ||
-          "Failed to create department."
+          "Failed to create plant."
       );
 
       setErrorOpen(true);
@@ -78,19 +69,19 @@ const CreateDepartmentModal = ({
           </button>
 
           <h2 className="text-2xl font-bold text-dark-200 mb-2">
-            Create Department
+            Create Plant
           </h2>
           <p className="text-sm text-dark-600 mb-6">
-            Add a new department to this plant
+            Add a new plant to your organization
           </p>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-dark-200 mb-1">
-                Department Name *
+                Plant Name *
               </label>
               <input
-                placeholder="e.g. Engineering"
+                placeholder="e.g. Manufacturing Plant A"
                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 onChange={(e) =>
                   setForm({
@@ -104,35 +95,35 @@ const CreateDepartmentModal = ({
 
             <div>
               <label className="block text-sm font-medium text-dark-200 mb-1">
-                Block
+                City
               </label>
               <input
-                placeholder="e.g. Block A"
+                placeholder="e.g. New York"
                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    block: e.target.value,
+                    city: e.target.value,
                   })
                 }
-                value={form.block}
+                value={form.city}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-dark-200 mb-1">
-                Floor
+                Area
               </label>
               <input
-                placeholder="e.g. 3rd Floor"
+                placeholder="e.g. Industrial Zone"
                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    floor: e.target.value,
+                    area: e.target.value,
                   })
                 }
-                value={form.floor}
+                value={form.area}
               />
             </div>
           </div>
@@ -150,7 +141,7 @@ const CreateDepartmentModal = ({
               disabled={!form.name.trim()}
               className="bg-primary-700 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-primary-800 transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Department
+              Create Plant
             </button>
           </div>
         </div>
@@ -158,13 +149,13 @@ const CreateDepartmentModal = ({
 
       <LoadingDialog
         open={loading}
-        message="Creating department..."
+        message="Creating plant..."
       />
 
       <SuccessDialog
         open={successOpen}
         onOpenChange={setSuccessOpen}
-        message="Department created successfully."
+        message="Plant created successfully."
       />
 
       <ErrorDialog
@@ -176,4 +167,4 @@ const CreateDepartmentModal = ({
   );
 };
 
-export default CreateDepartmentModal;
+export default CreatePlantModal;

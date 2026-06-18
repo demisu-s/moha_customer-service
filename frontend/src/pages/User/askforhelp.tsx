@@ -118,7 +118,7 @@ const AskForHelp: React.FC = () => {
 
     setDescription("");
     setFiles([]);
-    setProblemCategory("Desktop");
+    setProblemCategory("Other Services");
 
     setShowSuccessDialog(true);
 

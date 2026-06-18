@@ -17,7 +17,7 @@ export type RequestStatus =
   | "Resolved"
   | "Unresolved";
 
-export type ProblemCategory = "Desktop" | "Laptop" | "Server" | "Switch" |
+export type ProblemCategory = "Desktop" | "Printer" | "UPS" | "TV" | "Laptop" | "Server" | "Switch" |
    "Access Point" | "Camera" | "Biometric" | "Camera Related" | "Software" | "ERP"
     | "Peachtree" | "Canteen" | "Overtime" | "Other Software" | "Network" | "Network Related"
      | "Internet Related" | "Project Related" | "Other Services";
@@ -42,14 +42,17 @@ export const PROBLEM_TYPES: Issues[] = [
 ];
 
 export const PROBLEM_CATEGORY: ProblemCategory[] = [
-  "Desktop",
-  "Laptop",
-  "Server",
-  "Switch",
-  "Access Point",
-  "Camera",
-  "Biometric",
-  "Camera Related",
+   "Desktop",
+   "Printer",
+   "UPS",
+   "TV",
+   "Laptop",
+   "Server",
+   "Switch",
+   "Access Point",
+   "Camera",
+   "Biometric",
+   "Camera Related",
 
   "Software",
   "ERP",
@@ -88,7 +91,7 @@ export interface ServiceRequest {
   resolvedByName?: string;
   solution?: string;
   issues?: Issues;
-  urgency: Urgency; // ✅ Make it required (not optional)
+  urgency: Urgency;
 
   attachments?: string[];
 
@@ -183,8 +186,7 @@ export const ServiceRequestProvider: React.FC<{
 
         solution: r.solution,
         
-        // ✅ CRITICAL FIX: Ensure urgency is always set
-        urgency: r.urgency || "Low", // ✅ Default to "Low" if not provided
+        urgency: r.urgency || "Low",
         
         issues: r.issues,
         notes: r.notes,
@@ -260,7 +262,6 @@ export const ServiceRequestProvider: React.FC<{
         : undefined,
       solution: r.solution,
       
-      // ✅ Ensure urgency is set
       urgency: r.urgency || "Low",
       
       issues: r.issues,
@@ -282,10 +283,8 @@ export const ServiceRequestProvider: React.FC<{
     id: string,
     data: Partial<ServiceRequest>
   ) => {
-    // ✅ Ensure urgency is always included in the update
     const updateData = { ...data };
     if (!updateData.urgency) {
-      // If urgency is not provided, try to preserve existing value or default to "Low"
       const existing = requests.find((r) => r.id === id);
       updateData.urgency = existing?.urgency || "Low";
     }

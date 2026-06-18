@@ -1,11 +1,11 @@
 // components/EditPlantModal.tsx
 import { useState } from "react";
 import { X } from "lucide-react";
-import { usePlantContext } from "../context/PlantContext";
+import { usePlantContext } from "../../context/PlantContext";
 
-import LoadingDialog from "./ui/LoadingDialog";
-import SuccessDialog from "./ui/SuccessDialog";
-import ErrorDialog from "./ui/ErrorDialog";
+import LoadingDialog from "../ui/LoadingDialog";
+import SuccessDialog from "../ui/SuccessDialog";
+import ErrorDialog from "../ui/ErrorDialog";
 
 const EditPlantModal = ({
   plant,

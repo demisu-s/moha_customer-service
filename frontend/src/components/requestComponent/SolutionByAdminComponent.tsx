@@ -113,7 +113,7 @@ const SolutionByAdminComponent: React.FC = () => {
       status,
       solution: solution || request.solution || "",
       issues: issues || request.issues || "",
-      problemCategory: problemCategory || request.problemCategory || "Software",
+      problemCategory: problemCategory || request.problemCategory || "Other Services",
       resolvedDate: now,
       urgency: urgency || request.urgency || "Low",
       resolvedBy: solverId,

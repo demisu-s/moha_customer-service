@@ -8,18 +8,18 @@ import { useNavigate } from "react-router-dom";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
-import { useDeviceContext } from "../../context/DeviceContext";
-import { usePlantContext } from "../../context/PlantContext";
-import { useDepartmentContext } from "../../context/DepartmentContext";
-import { useUserContext } from "../../context/UserContext";
+import { useDeviceContext } from "../../../context/DeviceContext";
+import { usePlantContext } from "../../../context/PlantContext";
+import { useDepartmentContext } from "../../../context/DepartmentContext";
+import { useUserContext } from "../../../context/UserContext";
 
-import DeviceCard2 from "../../components/dashboardComponents/DeviceCard2";
+import DeviceCard2 from "../../../components/dashboardComponents/DeviceCard2";
 
 import {
   ADMIN_DASHBOARD_ROUTE,
   DASHBOARD_ROUTE,
   SUPERVISOR_DEVICES_ROUTE,
-} from "../../router/routeConstants";
+} from "../../../router/routeConstants";
 
 export default function AssignedDevices() {
   const { devices } = useDeviceContext();

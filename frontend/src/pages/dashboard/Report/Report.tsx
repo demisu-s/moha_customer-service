@@ -9,16 +9,16 @@ import {
   FileText,
 } from "lucide-react";
 
-import { useServiceRequests } from "../../context/ServiceRequestContext";
-import { usePMWO } from "../../context/PMWOContext";
-import { useUserContext } from "../../context/UserContext";
+import { useServiceRequests } from "../../../context/ServiceRequestContext";
+import { usePMWO } from "../../../context/PMWOContext";
+import { useUserContext } from "../../../context/UserContext";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-import ServiceReportTable from "../../components/dashboardComponents/ServiceReportTable";
-import PMReportTable from "../../components/dashboardComponents/PMReportTable";
-import { generateSummaryData } from "../../utils/generateSummary";
-import SummaryTable from "../../components/dashboardComponents/SummaryTable";
+import ServiceReportTable from "../../../components/dashboardComponents/ServiceReportTable";
+import PMReportTable from "../../../components/dashboardComponents/PMReportTable";
+import { generateSummaryData } from "../../../utils/generateSummary";
+import SummaryTable from "../../../components/dashboardComponents/SummaryTable";
 
 const Report = () => {
   const { requests, loading: serviceLoading } = useServiceRequests();

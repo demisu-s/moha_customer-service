@@ -8,21 +8,21 @@ import {
   Search,
 } from "lucide-react";
 
-import CreateDepartmentModal from "../../components/CreateDepartmentModal";
-import EditDepartmentModal from "../../components/EditDepartmentModal";
+import CreateDepartmentModal from "../../../components/Modals/CreateDepartmentModal";
+import EditDepartmentModal from "../../../components/Modals/EditDepartmentModal";
 
-import LoadingDialog from "../../components/ui/LoadingDialog";
-import SuccessDialog from "../../components/ui/SuccessDialog";
-import ErrorDialog from "../../components/ui/ErrorDialog";
+import LoadingDialog from "../../../components/ui/LoadingDialog";
+import SuccessDialog from "../../../components/ui/SuccessDialog";
+import ErrorDialog from "../../../components/ui/ErrorDialog";
 
 import {
   PlantPayload,
   DepartmentPayload,
-} from "../../api/global.types";
+} from "../../../api/global.types";
 
-import { usePlantContext } from "../../context/PlantContext";
-import { useDepartmentContext } from "../../context/DepartmentContext";
-import { useUserContext } from "../../context/UserContext";
+import { usePlantContext } from "../../../context/PlantContext";
+import { useDepartmentContext } from "../../../context/DepartmentContext";
+import { useUserContext } from "../../../context/UserContext";
 
 const Department = () => {
   const { plants, refreshPlants } =

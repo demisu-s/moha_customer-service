@@ -4,19 +4,19 @@ import { DashboardLayout } from '../pages/layout/DashboardLayout';
 import { ClientDashboardLayout } from '../pages/layout/ClientDashboardLayout';
 import {LANDING_ROUTE,DASHBOARD_ROUTE,AUTH_ROUTE,SIGN_IN_ROUTE, USERS_ROUTE, SUPERVISOR_DASHBOARD_ROUTE, CLIENT_DASHBOARD_ROUTE, ADMIN_DASHBOARD_ROUTE } from './routeConstants';
 import { ProtectedRoute } from './ProtectedRoute';
-import UserManagement from '../pages/dashboard/users'; 
-import AddUser from '../pages/dashboard/adduser';
+import UserManagement from '../pages/dashboard/UserManagement/users'; 
+import AddUser from '../pages/dashboard/UserManagement/adduser';
 import RequestDetailsPage from '../pages/request/RequestDetailsPage';
-import AssignFormPage from '../pages/admin/assignForm';
-import EditUser from '../pages/dashboard/edituser'; 
-import Devices from '../pages/dashboard/devices';
-import AddDevice from '../pages/dashboard/adddevice';
-import EditDevice from '../pages/dashboard/editdevice';
-import Plants from '../pages/dashboard/plants';
-import Overview from '../pages/admin/Overview';
-import Report from '../pages/admin/Report';
-import Scheduler from '../pages/dashboard/Scheduler';
-import DeviceDetail from '../pages/dashboard/devicedetail';
+import AssignFormPage from '../components/requestComponent/AssignForm';
+import EditUser from '../pages/dashboard/UserManagement/edituser'; 
+import Devices from '../pages/dashboard/DeviceManagement/devices';
+import AddDevice from '../pages/dashboard/DeviceManagement/adddevice';
+import EditDevice from '../pages/dashboard/DeviceManagement/editdevice';
+import Plants from '../pages/dashboard/PlantAndDepertmentManagement/plants';
+import Overview from '../pages/dashboard/Report/Overview';
+import Report from '../pages/dashboard/Report/Report';
+import Scheduler from '../pages/dashboard/Report/Scheduler';
+import DeviceDetail from '../pages/dashboard/DeviceManagement/devicedetail';
 import Home from '../pages/User/Home'; 
 import SolutionPage from '../pages/request/SolutionPage';
 import RequestHistoryPage from '../pages/request/RequestHistoryPage';
@@ -26,10 +26,10 @@ import ClientOverview from '../pages/User/overview';
 import UnresolvedPage from '../pages/request/UnresolvedPage';
 import { SupervisorDashboardLayout } from '../pages/layout/SupervisorDashboardLayout';
 import { AdminDashboardLayout } from '../pages/layout/AdminDasboardLayout';
-import Users from '../pages/dashboard/users';
-import Department from '../pages/dashboard/Department';
+import Users from '../pages/dashboard/UserManagement/users';
+import Department from '../pages/dashboard/PlantAndDepertmentManagement/Department';
 import SolutionByAdminPage from '../pages/request/SolutionByAdminPage';
-import AssignedDevices from '../pages/dashboard/AssignedDevices';
+import AssignedDevices from '../pages/dashboard/DeviceManagement/AssignedDevices';
 import CreateWorkOrder from '../pages/dashboard/PMaintenance/CreateWorkOrder';
 import ExecuteWorkOrder from '../pages/dashboard/PMaintenance/ExecuteWorkOrder';
 import SolutionBySuperadminPage from '../pages/request/SolutionBySuperadminPage';
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
     {path: "history/:requestId",element: <RequestHistoryPage/>},
     {path: "solve/:requestId",element: <SolutionBySuperadminPage/>},
     {path: "unresolved/:requestId", element: <UnresolvedPage/>},
-    {path: "users", element: <UserManagement />},
+    {path: "users", element: <UserManagement/>},
     {path: "users/adduser",element: <AddUser />},
     {path: "users/editUser/:id",element: <EditUser />},
     {path: "devices",element: <Devices />},

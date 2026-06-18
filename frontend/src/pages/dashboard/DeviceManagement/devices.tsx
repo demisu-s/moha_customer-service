@@ -3,25 +3,25 @@ import { useNavigate } from "react-router-dom";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as XLSX from "xlsx";
 
-import { useDeviceContext } from "../../context/DeviceContext";
-import { usePlantContext } from "../../context/PlantContext";
-import { useDepartmentContext } from "../../context/DepartmentContext";
-import { useUserContext } from "../../context/UserContext";
-import { getDepartmentsByPlant } from "../../api/department.api";
+import { useDeviceContext } from "../../../context/DeviceContext";
+import { usePlantContext } from "../../../context/PlantContext";
+import { useDepartmentContext } from "../../../context/DepartmentContext";
+import { useUserContext } from "../../../context/UserContext";
+import { getDepartmentsByPlant } from "../../../api/department.api";
 
-import DeviceTable from "../../components/deviceComponents/DeviceTable";
+import DeviceTable from "../../../components/deviceComponents/DeviceTable";
 
 import {
   ADMIN_DASHBOARD_ROUTE,
   DASHBOARD_ROUTE,
   SUPERVISOR_DEVICES_ROUTE,
-} from "../../router/routeConstants";
+} from "../../../router/routeConstants";
 
-import { CreateDevicePayload, Device } from "../../api/global.types";
+import { CreateDevicePayload, Device } from "../../../api/global.types";
 
-import LoadingDialog from "../../components/ui/LoadingDialog";
-import ErrorDialog from "../../components/ui/ErrorDialog";
-import SuccessDialog from "../../components/ui/SuccessDialog";
+import LoadingDialog from "../../../components/ui/LoadingDialog";
+import ErrorDialog from "../../../components/ui/ErrorDialog";
+import SuccessDialog from "../../../components/ui/SuccessDialog";
 
 export default function Devices() {
   const { devices, deleteDevice, addDevice } =
@@ -393,15 +393,11 @@ export default function Devices() {
                 ? matchedUser._id
                 : null,
 
-              image: "",
+              // when no image is provided, cast null to File to satisfy payload typing
+              image: null as unknown as File,
             };
 
-          await addDevice(
-            payload as unknown as Omit<
-              Device,
-              "_id"
-            >
-          );
+          await addDevice(payload as CreateDevicePayload);
 
           successCount++;
         } catch (err: any) {

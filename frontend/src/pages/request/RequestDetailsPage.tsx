@@ -1,4 +1,4 @@
-import RequestDetailsComponent from "../../components/requestComponent copy/RequestDetailsComponent";
+import RequestDetailsComponent from "../../components/requestComponent/RequestDetailsComponent";
 
 const RequestDetailsPage: React.FC = () => {
   
