@@ -3,8 +3,8 @@ import { Outlet } from 'react-router-dom';
 
 export const AuthenticationLayout = () => {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary-500 to-primary-500">
-            <div className="bg-primary-600 p-8 rounded-xl shadow-lg w-[100%] max-w-sm flex flex-col items-center">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-primary-500 to-primary-500">
+            <div className="bg-primary-600 p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-sm flex flex-col items-center">
                 {/* Logo */}
                 <div className="mb-6">
                     <CompanyLogo />

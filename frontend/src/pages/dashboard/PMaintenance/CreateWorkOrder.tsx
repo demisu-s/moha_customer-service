@@ -184,11 +184,11 @@ const CreateWorkOrder: React.FC = () => {
     filterDateTo !== "";
 
   return (
-    <div className="space-y-6 px-2">
+    <div className="space-y-4 sm:space-y-6 px-1 sm:px-2">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Preventive Maintenance</h1>
+          <h1 className="text-xl sm:text-3xl font-bold">Preventive Maintenance</h1>
           <p className="text-gray-500 mt-1">
             {isSupervisor 
               ? "View and execute maintenance work orders"

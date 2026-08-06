@@ -18,10 +18,12 @@ export function SupervisorDashboardLayout() {
 
     return (
        <div className="flex h-screen overflow-hidden">
-      <SupervisorSidebar />
-      <div className="flex flex-col flex-1">
+      <div className="hidden md:flex">
+        <SupervisorSidebar />
+      </div>
+      <div className="flex flex-col flex-1 overflow-hidden">
         <DashboardHeader />
-        <main className="flex-1 overflow-y-auto bg-white p-6">
+        <main className="flex-1 overflow-y-auto bg-white p-3 sm:p-6">
           <Outlet />
         </main>
       </div>

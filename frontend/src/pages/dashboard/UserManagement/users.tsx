@@ -670,7 +670,7 @@ export default function UserManagement(): JSX.Element {
 
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
 
           {/* IMPORT */}
           <label className="px-4 py-2 border rounded-md text-sm cursor-pointer hover:bg-gray-100">

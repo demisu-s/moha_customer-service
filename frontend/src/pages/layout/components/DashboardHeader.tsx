@@ -31,9 +31,9 @@ export function DashboardHeader() {
 
   return (
     <header className="flex h-16 items-center justify-between bg-[#1891C3] px-4 text-white shadow-md lg:px-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <MobileMenu />
-        <h1 className="text-lg ml-30 font-bold sm:text-xl">
+        <h1 className="text-xs sm:text-sm md:text-xl font-bold truncate max-w-[200px] sm:max-w-none">
           MOHA SOFT DRINKS INDUSTRY S.C
         </h1>
       </div>

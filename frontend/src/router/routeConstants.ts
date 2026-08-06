@@ -6,10 +6,13 @@ export const SETTINGS_ROUTE ="/"
 export const USERS_ROUTE = "/dashboard/users";
 export const DEVICES_ROUTE = "/dashboard/devices";
 export const ASSIGNED_DEVICES_ROUTE = "/dashboard/assigned-devices";
+export const SUPERADMIN_PLAN_PM_ROUTE = '/superadmin/plan-pm';
 
 export const PLANTS_ROUTE = "/dashboard/plants";
 export const SCHEDULES_ROUTE = "/dashboard/schedules";
 export const PLAN_PM_ROUTE = "/dashboard/work-orders";
+// src/router/routeConstants.ts
+export const DEPARTMENT_ROUTE = "/department";
 export const REQUESTS_ROUTE = "/requests";
 export const REQUEST_DETAILS_ROUTE = "/requests/details/:requestId";
 export const REQUEST_HISTORY_ROUTE = "/requests/history/:requestId";
@@ -20,6 +23,7 @@ export const DASHBOARD_ROUTE = "/dashboard";
 export const CLIENT_DASHBOARD_ROUTE = "/client-dashboard";
 export const OVERVIEW_ROUTE="/dashboard/overview"
 export const REPORT_ROUTE="/dashboard/report"
+
 
 
 //admin routes
