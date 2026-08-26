@@ -247,14 +247,14 @@ const Home: React.FC = () => {
   ========================== */
 
   return (
-    <div className="px-4 space-y-6 font-sans">
+    <div className="px-1 sm:px-4 space-y-4 sm:space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 pb-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 pb-1">
             Welcome, {userName}!
           </h1>
-          <p className="text-sm text-gray-400 max-w-xl">
+          <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
             Select a category to view devices. You can search by serial number,
             username, department, or issues.
           </p>
@@ -275,7 +275,7 @@ const Home: React.FC = () => {
           {/* Filter Dropdown */}
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100 whitespace-nowrap">
+              <button className="w-full sm:w-auto px-4 py-2 border rounded-md text-sm hover:bg-gray-100 whitespace-nowrap">
                 Filter
               </button>
             </DropdownMenu.Trigger>
@@ -353,12 +353,12 @@ const Home: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-16 border-b border-gray-200">
+      <div className="flex gap-2 sm:gap-6 md:gap-16 border-b border-gray-200 overflow-x-auto pb-1">
         {availableTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`relative px-4 pb-2 text-xl font-bold capitalize transition-all duration-200 ${
+            className={`relative px-2 sm:px-4 pb-2 text-sm sm:text-base md:text-xl font-bold capitalize whitespace-nowrap transition-all duration-200 ${
               activeTab === tab
                 ? "text-primary-500"
                 : "text-gray-600"

@@ -49,9 +49,9 @@ export function ClientHeader() {
           </div>
 
           {/* Title */}
-          <h1 className="text-sm ml-30 font-bold sm:text-xl">
-          MOHA SOFT DRINKS INDUSTRY S.C
-        </h1>
+          <h1 className="text-xs sm:text-sm md:text-xl font-bold truncate max-w-[200px] sm:max-w-none">
+            MOHA SOFT DRINKS INDUSTRY S.C
+          </h1>
         </div>
 
         {/* Right */}

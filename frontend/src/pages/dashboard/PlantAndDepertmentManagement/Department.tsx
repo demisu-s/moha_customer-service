@@ -124,17 +124,17 @@ const Department = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-dark-200">
+          <h1 className="text-xl sm:text-3xl font-bold text-dark-200">
             {selectedPlant
               ? `${selectedPlant.name} Departments`
               : "Departments"}
           </h1>
 
-          <p className="mt-1 text-sm text-dark-600">
+          <p className="mt-1 text-xs sm:text-sm text-dark-600">
             {selectedPlant
               ? `Manage departments for ${selectedPlant.name}`
               : "Manage plant departments"}
@@ -144,7 +144,7 @@ const Department = () => {
         {selectedPlant && (
           <button
             onClick={() => setShowDeptModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-primary-800 shadow-lg hover:shadow-xl"
+            className="w-full sm:w-auto justify-center flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-medium text-white transition hover:bg-primary-800 shadow-lg hover:shadow-xl"
           >
             <Plus size={18} />
             Create Department

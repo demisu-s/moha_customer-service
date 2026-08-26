@@ -94,7 +94,7 @@ const RequestDetailsComponent: React.FC = () => {
   console.log("ALL IMAGES:", allImages);
 
   return (
-             <div className="min-h-screen bg-gray-50 py-8 rounded-lg px-4">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8 rounded-lg px-2 sm:px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* HEADER */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -106,7 +106,7 @@ const RequestDetailsComponent: React.FC = () => {
               <IoArrowBack className="w-6 h-6 text-dark-600" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-dark-400">
+              <h1 className="text-xl sm:text-3xl font-bold text-dark-400">
                 Request Details
               </h1>
               <p className="text-sm text-dark-600 mt-1">

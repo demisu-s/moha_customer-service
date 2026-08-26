@@ -228,10 +228,10 @@ const Overview: React.FC = () => {
   }, [plants, userRole, userPlant, requests]);
 
   return (
-    <div className="px-6 space-y-6 pb-6">
+    <div className="px-2 sm:px-6 space-y-4 sm:space-y-6 pb-6">
       {/* Header with Filter */}
       <div className="flex flex-wrap justify-between items-center gap-3">
-        <h1 className="text-2xl font-bold text-gray-800">Total Task Overview</h1>
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-800">Total Task Overview</h1>
         
         {userRole === "superadmin" && plantOptions.length > 1 && (
           <div className="flex items-center gap-2">
